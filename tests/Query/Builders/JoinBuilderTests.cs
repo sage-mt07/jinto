@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -24,7 +25,15 @@ public class JoinBuilderTests
     {
         IQueryable<TestEntity> outer = new List<TestEntity>().AsQueryable();
         IQueryable<ChildEntity> inner = new List<ChildEntity>().AsQueryable();
-        var expr = outer.Join(inner, o => new { o.Id }, c => new { c.ParentId, c.Id }, (o, c) => new { o.Id }).Expression;
+
+        // 型引数を明示的に指定して、意図的に不正なJoinを作成
+        var expr = outer.Join<TestEntity, ChildEntity, object, object>(
+            inner,
+            o => new { o.Id },
+            c => new { c.ParentId, c.Id },  // 意図的にキー構造を不一致にする
+            (o, c) => new { o.Id }
+        ).Expression;
+
         var builder = new JoinBuilder();
         var result = builder.Build(expr);
         Assert.Contains("JOIN構築エラー", result);
