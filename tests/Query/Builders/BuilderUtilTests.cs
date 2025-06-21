@@ -1,3 +1,4 @@
+using System;
 using System.Linq.Expressions;
 using KsqlDsl.Query.Builders.Common;
 using Xunit;
