@@ -3,7 +3,7 @@ using System.Linq.Expressions;
 
 namespace KsqlDsl.Query.Pipeline;
 
-public interface IDDLQueryGenerator
+internal interface IDDLQueryGenerator
 {
     string GenerateCreateStream(string streamName, string topicName, EntityModel entityModel);
     string GenerateCreateTable(string tableName, string topicName, EntityModel entityModel);

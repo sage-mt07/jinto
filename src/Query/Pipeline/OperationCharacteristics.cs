@@ -1,4 +1,4 @@
-﻿using KsqlDsl.Query.Abstructions;
+﻿using KsqlDsl.Query.Abstractions;
 
 namespace KsqlDsl.Query.Pipeline;
 

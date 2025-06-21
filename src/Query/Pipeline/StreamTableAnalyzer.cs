@@ -1,5 +1,5 @@
 ﻿using KsqlDsl.Core.Extensions;
-using KsqlDsl.Query.Abstructions;
+using KsqlDsl.Query.Abstractions;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 using System.Linq.Expressions;

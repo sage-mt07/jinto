@@ -36,7 +36,7 @@
 
 	<ItemGroup>
 	  <Folder Include="Query\Builders\Common\" />
-	  <Folder Include="Query\Schema\" />
 	  <Folder Include="Query\Abstractions\" />
+	  <Folder Include="Query\Ksql\" />
 	</ItemGroup>
 </Project>

@@ -18,7 +18,7 @@ namespace KsqlDsl.Query.Pipeline;
 /// </summary>
 
 
-public class DDLQueryGenerator : IDDLQueryGenerator
+internal class DDLQueryGenerator : IDDLQueryGenerator
 {
     private readonly IKsqlBuilder _whereBuilder;
     private readonly IKsqlBuilder _projectionBuilder;
