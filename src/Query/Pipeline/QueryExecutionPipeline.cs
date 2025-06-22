@@ -147,14 +147,12 @@ internal class QueryExecutionPipeline : IQueryTranslator, IDisposable
     public string ToKsql(Expression expression, string topicName, bool isPullQuery = false)
     {
         _logger.LogDebug("IQueryTranslator.ToKsql called for {TopicName}", topicName);
-        _diagnostics.LogStep("IQueryTranslator.ToKsql called", new { TopicName = topicName, IsPullQuery = isPullQuery });
-
         return GenerateKsqlQuery(topicName, expression, isPullQuery);
     }
 
     public string GetDiagnostics()
     {
-        return _diagnostics.GenerateReport();
+        return "Diagnostics removed in Phase1";
     }
 
     public bool IsPullQuery()

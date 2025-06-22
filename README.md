@@ -38,3 +38,7 @@ checklistフォルダ以下にもチェックリストがあるのでそれを�
 - テスト観点がBuilderごとにブレており、OSSユーザーへの説明責任や保守性に課題
 - テスト意図や設計思想の明示（コメント・ドキュメント）が弱く、今後の拡張時に認知負荷が上昇する懸念
 
+
+### Phase1 Cleanup Summary
+- Debug/diagnostic and unused methods removed (see `reports/20250622_phase1_cleanup.txt`).
+- After each cleanup cycle, rerun `task/src_method_analysis.md` to reassess remaining methods.
