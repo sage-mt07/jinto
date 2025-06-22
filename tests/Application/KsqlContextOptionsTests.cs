@@ -1,3 +1,4 @@
+using System;
 using KsqlDsl.Application;
 using Confluent.SchemaRegistry;
 using Xunit;
