@@ -24,3 +24,5 @@ public class GroupByBuilderTests
         Assert.Throws<InvalidOperationException>(() => builder.Build(expr.Body));
     }
 }
+
+

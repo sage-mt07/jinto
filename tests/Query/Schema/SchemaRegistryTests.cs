@@ -63,3 +63,5 @@ public class SchemaRegistryTests
         Assert.True(registry.IsRegistered(typeof(StreamEntity)));
     }
 }
+
+

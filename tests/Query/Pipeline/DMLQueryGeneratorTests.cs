@@ -25,3 +25,5 @@ public class DMLQueryGeneratorTests
         Assert.Equal("SELECT * FROM s1 WHERE (Id = 1) EMIT CHANGES", query);
     }
 }
+
+

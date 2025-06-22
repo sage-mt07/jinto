@@ -33,3 +33,5 @@ public class HavingBuilderTests
         Assert.Throws<ArgumentNullException>(() => builder.Build(null!));
     }
 }
+
+

@@ -52,3 +52,5 @@ public class DerivedObjectManagerTests
         Assert.Empty(manager.GetType().GetField("_derivedObjects", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!.GetValue(manager) as System.Collections.IDictionary);
     }
 }
+
+

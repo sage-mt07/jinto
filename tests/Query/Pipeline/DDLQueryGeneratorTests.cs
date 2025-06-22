@@ -46,3 +46,5 @@ public class DDLQueryGeneratorTests
         Assert.Contains("GROUP BY Type", query);
     }
 }
+
+

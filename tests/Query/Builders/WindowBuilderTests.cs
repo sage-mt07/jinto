@@ -23,3 +23,5 @@ public class WindowBuilderTests
         Assert.Throws<ArgumentNullException>(() => builder.Build(null!));
     }
 }
+
+

@@ -19,3 +19,5 @@ public class QueryDiagnosticsTests
         Assert.Contains("Query:", summary);
     }
 }
+
+

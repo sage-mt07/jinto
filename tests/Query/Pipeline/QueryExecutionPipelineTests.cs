@@ -70,3 +70,5 @@ public class QueryExecutionPipelineTests
         Assert.True(executor.StopCalled);
     }
 }
+
+

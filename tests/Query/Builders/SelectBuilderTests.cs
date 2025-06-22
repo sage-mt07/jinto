@@ -32,3 +32,5 @@ public class SelectBuilderTests
         Assert.Throws<ArgumentNullException>(() => builder.Build(null!));
     }
 }
+
+

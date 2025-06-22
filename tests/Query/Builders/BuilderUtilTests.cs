@@ -17,3 +17,4 @@ public class BuilderUtilTests
         Assert.Equal("Id", member!.Member.Name);
     }
 }
+

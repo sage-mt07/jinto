@@ -39,3 +39,5 @@ public class StreamTableAnalyzerTests
         Assert.True(result.RequiresTableOutput);
     }
 }
+
+

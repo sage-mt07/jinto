@@ -40,3 +40,5 @@ public class KsqlDbRestApiClientTests
         Assert.Equal("1", result.CommandId);
     }
 }
+
+
