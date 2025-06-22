@@ -1,40 +1,38 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace KsqlDsl.Core.Configuration.Abstractions
+namespace KsqlDsl.Core.Configuration.Abstractions;
+internal class TopicOverrideService
 {
-    internal class TopicOverrideService
+    private readonly Dictionary<string, string> _overrides = new();
+
+    public void AddOverride(string originalTopic, string overrideTopic)
     {
-        private readonly Dictionary<string, string> _overrides = new();
+        _overrides[originalTopic] = overrideTopic;
+    }
 
-        public void AddOverride(string originalTopic, string overrideTopic)
+    public string GetOverrideTopic(string originalTopic)
+    {
+        return _overrides.TryGetValue(originalTopic, out var overrideTopic)
+            ? overrideTopic
+            : originalTopic;
+    }
+
+    public Dictionary<string, string> GetAllOverrides()
+    {
+        return new Dictionary<string, string>(_overrides);
+    }
+
+    public string GetOverrideSummary()
+    {
+        if (_overrides.Count == 0)
+            return "Topic Overrides: なし";
+
+        var summary = new List<string> { "Topic Overrides:" };
+        foreach (var kvp in _overrides)
         {
-            _overrides[originalTopic] = overrideTopic;
+            summary.Add($"  {kvp.Key} → {kvp.Value}");
         }
-
-        public string GetOverrideTopic(string originalTopic)
-        {
-            return _overrides.TryGetValue(originalTopic, out var overrideTopic)
-                ? overrideTopic
-                : originalTopic;
-        }
-
-        public Dictionary<string, string> GetAllOverrides()
-        {
-            return new Dictionary<string, string>(_overrides);
-        }
-
-        public string GetOverrideSummary()
-        {
-            if (_overrides.Count == 0)
-                return "Topic Overrides: なし";
-
-            var summary = new List<string> { "Topic Overrides:" };
-            foreach (var kvp in _overrides)
-            {
-                summary.Add($"  {kvp.Key} → {kvp.Value}");
-            }
-            return string.Join(Environment.NewLine, summary);
-        }
+        return string.Join(Environment.NewLine, summary);
     }
 }

@@ -4,14 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace KsqlDsl.Query.Pipeline
+namespace KsqlDsl.Query.Pipeline;
+internal class QueryExecutionResult
 {
-    internal class QueryExecutionResult
-    {
-        public bool Success { get; set; }
-        public string TargetObject { get; set; } = string.Empty;
-        public object? Data { get; set; }
-        public DateTime ExecutedAt { get; set; }
-        public string? ErrorMessage { get; set; }
-    }
+    public bool Success { get; set; }
+    public string TargetObject { get; set; } = string.Empty;
+    public object? Data { get; set; }
+    public DateTime ExecutedAt { get; set; }
+    public string? ErrorMessage { get; set; }
 }

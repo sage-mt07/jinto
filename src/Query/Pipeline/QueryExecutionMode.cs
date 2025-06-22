@@ -4,11 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace KsqlDsl.Query.Pipeline
+namespace KsqlDsl.Query.Pipeline;
+internal enum QueryExecutionMode
 {
-    internal enum QueryExecutionMode
-    {
-        PullQuery,
-        PushQuery
-    }
+    PullQuery,
+    PushQuery
 }

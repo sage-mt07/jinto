@@ -2,15 +2,13 @@
 using System;
 using System.Collections.Generic;
 
-namespace KsqlDsl.Serialization.Avro.Management
+namespace KsqlDsl.Serialization.Avro.Management;
+internal interface IAvroSchemaRepository
 {
-    internal interface IAvroSchemaRepository
-    {
-        void StoreSchemaInfo(AvroSchemaInfo schemaInfo);
-        AvroSchemaInfo? GetSchemaInfo(Type entityType);
-        AvroSchemaInfo? GetSchemaInfoByTopic(string topicName);
-        List<AvroSchemaInfo> GetAllSchemas();
-        bool IsRegistered(Type entityType);
-        void Clear();
-    }
+    void StoreSchemaInfo(AvroSchemaInfo schemaInfo);
+    AvroSchemaInfo? GetSchemaInfo(Type entityType);
+    AvroSchemaInfo? GetSchemaInfoByTopic(string topicName);
+    List<AvroSchemaInfo> GetAllSchemas();
+    bool IsRegistered(Type entityType);
+    void Clear();
 }

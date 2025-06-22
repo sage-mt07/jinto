@@ -1,37 +1,35 @@
 ﻿using System;
 
-namespace KsqlDsl.Core.Configuration
+namespace KsqlDsl.Core.Configuration;
+internal class CoreSettingsProvider : ICoreSettingsProvider
 {
-    internal class CoreSettingsProvider : ICoreSettingsProvider
+    private CoreSettings _settings = new();
+    private readonly object _lock = new();
+
+    public event EventHandler<CoreSettingsChangedEventArgs>? SettingsChanged;
+
+    public CoreSettings GetSettings()
     {
-        private CoreSettings _settings = new();
-        private readonly object _lock = new();
-
-        public event EventHandler<CoreSettingsChangedEventArgs>? SettingsChanged;
-
-        public CoreSettings GetSettings()
+        lock (_lock)
         {
-            lock (_lock)
-            {
-                return _settings.Clone();
-            }
+            return _settings.Clone();
+        }
+    }
+
+    public void UpdateSettings(CoreSettings settings)
+    {
+        if (settings == null)
+            throw new ArgumentNullException(nameof(settings));
+
+        settings.Validate();
+
+        CoreSettings oldSettings;
+        lock (_lock)
+        {
+            oldSettings = _settings.Clone();
+            _settings = settings.Clone();
         }
 
-        public void UpdateSettings(CoreSettings settings)
-        {
-            if (settings == null)
-                throw new ArgumentNullException(nameof(settings));
-
-            settings.Validate();
-
-            CoreSettings oldSettings;
-            lock (_lock)
-            {
-                oldSettings = _settings.Clone();
-                _settings = settings.Clone();
-            }
-
-            SettingsChanged?.Invoke(this, new CoreSettingsChangedEventArgs(oldSettings, settings));
-        }
+        SettingsChanged?.Invoke(this, new CoreSettingsChangedEventArgs(oldSettings, settings));
     }
 }
