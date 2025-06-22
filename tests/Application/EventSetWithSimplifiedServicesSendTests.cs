@@ -1,4 +1,5 @@
 using KsqlDsl;
+using KafkaApplication = KsqlDsl.Application.KafkaContext;
 using KsqlDsl.Core.Abstractions;
 using KsqlDsl.Core.Context;
 using KsqlDsl.Messaging.Abstractions;
@@ -35,12 +36,12 @@ public class EventSetWithSimplifiedServicesSendTests
         public void Dispose() { }
     }
 
-    private class TestContext : KafkaContext
+    private class TestContext : KafkaApplication
     {
         public TestContext() : base() { }
         public void SetProducer(object manager)
         {
-            typeof(KafkaContext).GetField("_producerManager", BindingFlags.NonPublic | BindingFlags.Instance)!.SetValue(this, manager);
+            typeof(KafkaApplication).GetField("_producerManager", BindingFlags.NonPublic | BindingFlags.Instance)!.SetValue(this, manager);
         }
     }
 
