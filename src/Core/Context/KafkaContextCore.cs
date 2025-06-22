@@ -80,13 +80,20 @@ public abstract class KafkaContextCore : IKafkaContext
         var genericMethod = method!.MakeGenericMethod(entityType);
         return genericMethod.Invoke(this, new object[] { entityModel })!;
     }
+    protected void ConfigureModel()
+    {
+        var modelBuilder = new ModelBuilder(Options.ValidationMode);
+        OnModelCreating(modelBuilder);
+        ApplyModelBuilderSettings(modelBuilder);
+    }
 
     // ✅ 内部処理：モデル初期化（副作用なし）
     private void InitializeEntityModels()
-    {
-        var modelBuilder = new ModelBuilder(Options.ValidationMode);
-        OnModelCreating((IModelBuilder)modelBuilder);
-        ApplyModelBuilderSettings(modelBuilder);
+    {// OnModelCreatingは呼び出さない（基本の属性ベース初期化のみ）
+     // Fluent APIが必要な場合のみ派生クラスで明示的に呼び出し
+     //var modelBuilder = new ModelBuilder(Options.ValidationMode);
+     //OnModelCreating((IModelBuilder)modelBuilder);
+     //ApplyModelBuilderSettings(modelBuilder);
     }
 
     private void ApplyModelBuilderSettings(ModelBuilder modelBuilder)

@@ -2,7 +2,6 @@
 using KsqlDsl.Configuration;
 using KsqlDsl.Core.Abstractions;
 using KsqlDsl.Core.Context;
-using KsqlDsl.Core.Modeling;
 using KsqlDsl.Messaging.Consumers;
 using System;
 using System.Collections.Generic;
@@ -19,10 +18,8 @@ public abstract class KafkaContext : KafkaContextCore
     private readonly KafkaProducerManager _producerManager;
     private readonly KafkaConsumerManager _consumerManager;
 
-    private readonly ModelBuilder _modelBuilder;
     protected KafkaContext() : base()
     {
-        _modelBuilder = new ModelBuilder(ValidationMode.Strict); // デフォルト値
         _producerManager = new KafkaProducerManager(
             Microsoft.Extensions.Options.Options.Create(new KsqlDslOptions()),
             null);
