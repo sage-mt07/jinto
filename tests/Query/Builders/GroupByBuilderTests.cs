@@ -15,4 +15,12 @@ public class GroupByBuilderTests
         var result = builder.Build(expr.Body);
         Assert.Equal("GROUP BY Id, Type", result);
     }
+
+    [Fact]
+    public void Build_NoKeys_ThrowsInvalidOperationException()
+    {
+        Expression<Func<TestEntity, TestEntity>> expr = e => e;
+        var builder = new GroupByBuilder();
+        Assert.Throws<InvalidOperationException>(() => builder.Build(expr.Body));
+    }
 }

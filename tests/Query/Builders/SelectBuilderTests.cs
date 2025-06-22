@@ -24,4 +24,11 @@ public class SelectBuilderTests
         var result = builder.BuildCondition(expr.Body);
         Assert.Equal("(e.IsActive = false)", result);
     }
+
+    [Fact]
+    public void Build_NullExpression_ThrowsArgumentNullException()
+    {
+        var builder = new SelectBuilder();
+        Assert.Throws<ArgumentNullException>(() => builder.Build(null!));
+    }
 }

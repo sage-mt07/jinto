@@ -25,4 +25,11 @@ public class HavingBuilderTests
         var result = builder.Build(expr.Body);
         Assert.Equal("HAVING (SUM(Id) > 5)", result);
     }
+
+    [Fact]
+    public void Build_NullExpression_ThrowsArgumentNullException()
+    {
+        var builder = new HavingBuilder();
+        Assert.Throws<ArgumentNullException>(() => builder.Build(null!));
+    }
 }
