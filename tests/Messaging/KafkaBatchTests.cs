@@ -1,5 +1,6 @@
 using KsqlDsl.Messaging.Producers.Core;
 using System;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace KsqlDsl.Tests.Messaging;

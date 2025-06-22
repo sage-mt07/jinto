@@ -2,7 +2,7 @@
 
 namespace KsqlDsl.Core.Configuration
 {
-    public class CoreSettingsProvider : ICoreSettingsProvider
+    internal class CoreSettingsProvider : ICoreSettingsProvider
     {
         private CoreSettings _settings = new();
         private readonly object _lock = new();

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace KsqlDsl.Serialization.Avro.Management
 {
-    public interface IAvroSchemaRepository
+    internal interface IAvroSchemaRepository
     {
         void StoreSchemaInfo(AvroSchemaInfo schemaInfo);
         AvroSchemaInfo? GetSchemaInfo(Type entityType);

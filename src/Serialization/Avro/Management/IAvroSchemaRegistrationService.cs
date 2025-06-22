@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace KsqlDsl.Serialization.Avro.Management
 {
-    public interface IAvroSchemaRegistrationService
+    internal interface IAvroSchemaRegistrationService
     {
         /// <summary>
         /// 全スキーマ一括登録（初期化パス）

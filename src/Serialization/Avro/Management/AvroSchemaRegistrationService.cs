@@ -13,7 +13,7 @@ using ConfluentSchemaRegistry = Confluent.SchemaRegistry;
 
 namespace KsqlDsl.Serialization.Avro.Management
 {
-    public class AvroSchemaRegistrationService : IAvroSchemaRegistrationService
+    internal class AvroSchemaRegistrationService : IAvroSchemaRegistrationService
     {
         private readonly ConfluentSchemaRegistry.ISchemaRegistryClient _schemaRegistryClient;
         private readonly ILoggerFactory? _loggerFactory;

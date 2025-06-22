@@ -2,7 +2,7 @@
 
 namespace KsqlDsl.Core.Configuration
 {
-    public class CoreSettingsChangedEventArgs : EventArgs
+    internal class CoreSettingsChangedEventArgs : EventArgs
     {
         public CoreSettings OldSettings { get; }
         public CoreSettings NewSettings { get; }

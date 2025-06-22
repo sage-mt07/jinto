@@ -2,7 +2,7 @@
 
 namespace KsqlDsl.Core.Configuration
 {
-    public interface ICoreSettingsProvider
+    internal interface ICoreSettingsProvider
     {
         CoreSettings GetSettings();
         void UpdateSettings(CoreSettings settings);

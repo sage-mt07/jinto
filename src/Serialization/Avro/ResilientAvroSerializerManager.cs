@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace KsqlDsl.Serialization.Avro
 {
-    public class ResilientAvroSerializerManager
+    internal class ResilientAvroSerializerManager
     {
         private readonly ISchemaRegistryClient _schemaRegistryClient;
         private readonly AvroOperationRetrySettings _retrySettings;

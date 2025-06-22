@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace KsqlDsl.Serialization.Abstractions
 {
-    public interface ISchemaRegistryClient : IDisposable
+    internal interface ISchemaRegistryClient : IDisposable
     {
         Task<(int keySchemaId, int valueSchemaId)> RegisterTopicSchemasAsync(string topicName, string keySchema, string valueSchema);
 
