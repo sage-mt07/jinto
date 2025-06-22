@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.Serialization;
 using Confluent.Kafka;
+using Confluent.SchemaRegistry;
 using KsqlDsl.Configuration;
 using KsqlDsl.Messaging.Configuration;
 using KsqlDsl.Messaging.Producers;
@@ -84,7 +85,8 @@ public class KafkaProducerManagerTests
         typeof(KafkaProducerManager).GetField("_loggerFactory", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(manager, new NullLoggerFactory());
         typeof(KafkaProducerManager).GetField("_serializationManagers", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(manager, new ConcurrentDictionary<Type, object>());
         typeof(KafkaProducerManager).GetField("_schemaRegistryClient", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(manager,
-            new Lazy<Confluent.SchemaRegistry.ISchemaRegistryClient>(() => null!));
+            new Lazy<Confluent.SchemaRegistry.ISchemaRegistryClient>(() =>
+                new CachedSchemaRegistryClient(new SchemaRegistryConfig { Url = "localhost" })));
 
         var first = InvokePrivate<object>(manager, "GetOrCreateSerializationManager", new[] { typeof(SampleEntity) });
         var second = InvokePrivate<object>(manager, "GetOrCreateSerializationManager", new[] { typeof(SampleEntity) });
