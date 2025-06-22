@@ -2,6 +2,7 @@ using Confluent.SchemaRegistry;
 using KsqlDsl.Configuration;
 using KsqlDsl.Messaging.Configuration;
 using KsqlDsl.Messaging.Producers;
+using System.Collections.Generic;
 using Microsoft.Extensions.Options;
 using Xunit;
 using static KsqlDsl.Tests.PrivateAccessor;
@@ -27,5 +28,76 @@ public class KafkaProducerManagerExtraTests
         var manager = new KafkaProducerManager(Options.Create(options), null);
         var client = InvokePrivate<object>(manager, "CreateSchemaRegistryClient", System.Type.EmptyTypes);
         Assert.Equal("CachedSchemaRegistryClient", client!.GetType().Name);
+    }
+
+    [Fact]
+    public void BuildProducerConfig_WithSecurityAndPartitioner()
+    {
+        var options = new KsqlDslOptions
+        {
+            Common = new CommonSection
+            {
+                BootstrapServers = "s",
+                ClientId = "c",
+                SecurityProtocol = Confluent.Kafka.SecurityProtocol.SaslSsl,
+                SaslMechanism = Confluent.Kafka.SaslMechanism.Plain,
+                SaslUsername = "u",
+                SaslPassword = "p",
+                SslCaLocation = "ca",
+                SslCertificateLocation = "cert",
+                SslKeyLocation = "key",
+                SslKeyPassword = "kp"
+            },
+            Topics = new Dictionary<string, TopicSection>
+            {
+                ["t"] = new TopicSection
+                {
+                    Producer = new ProducerSection
+                    {
+                        Acks = "All",
+                        CompressionType = "Gzip",
+                        Partitioner = "m"
+                    }
+                }
+            }
+        };
+
+        var manager = new KafkaProducerManager(Options.Create(options), new Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory());
+        var config = InvokePrivate<Confluent.Kafka.ProducerConfig>(manager, "BuildProducerConfig", new[] { typeof(string) }, null, "t");
+
+        Assert.Equal(Confluent.Kafka.SecurityProtocol.SaslSsl, config.SecurityProtocol);
+        Assert.Equal(Confluent.Kafka.SaslMechanism.Plain, config.SaslMechanism);
+        Assert.Equal("u", config.SaslUsername);
+        Assert.Equal("p", config.SaslPassword);
+        Assert.Equal("ca", config.SslCaLocation);
+        Assert.Equal("cert", config.SslCertificateLocation);
+        Assert.Equal("key", config.SslKeyLocation);
+        Assert.Equal("kp", config.SslKeyPassword);
+        Assert.True(config.TryGetValue("partitioner.class", out var part));
+        Assert.Equal("m", part);
+    }
+
+    [Fact]
+    public void CreateSchemaRegistryClient_WithAuthAndSsl()
+    {
+        var options = new KsqlDslOptions
+        {
+            SchemaRegistry = new SchemaRegistrySection
+            {
+                Url = "url",
+                MaxCachedSchemas = 1,
+                RequestTimeoutMs = 5,
+                BasicAuthUserInfo = "x:y",
+                BasicAuthCredentialsSource = SchemaRegistryAuthCredentialsSource.UserInfo,
+                SslCaLocation = "ca",
+                SslKeystoreLocation = "ks",
+                SslKeystorePassword = "pw",
+                SslKeyPassword = "kp"
+            }
+        };
+
+        var manager = new KafkaProducerManager(Options.Create(options), null);
+        var client = InvokePrivate<object>(manager, "CreateSchemaRegistryClient", System.Type.EmptyTypes);
+        Assert.NotNull(client);
     }
 }
