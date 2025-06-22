@@ -119,9 +119,20 @@ public class UnifiedSchemaGeneratorTests
             typeof(SampleEntity).GetProperty(nameof(SampleEntity.GuidKey))!
         };
         var json = InvokePrivate<string>(typeof(UnifiedSchemaGenerator), "GenerateCompositeKeySchema", new[] { typeof(PropertyInfo[]) }, null, (object)keys);
-        Assert.Contains("CompositeKey", json);
-        Assert.Contains("id", json);
-        Assert.Contains("guidKey", json);
+
+        using var document = JsonDocument.Parse(json);
+        var root = document.RootElement;
+
+        Assert.Equal("record", root.GetProperty("type").GetString(), ignoreCase: true);
+        Assert.Equal("CompositeKey", root.GetProperty("name").GetString(), ignoreCase: true);
+
+        var fieldNames = root.GetProperty("fields")
+            .EnumerateArray()
+            .Select(f => f.GetProperty("name").GetString())
+            .ToArray();
+
+        Assert.Contains(fieldNames, f => string.Equals(f, "id", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(fieldNames, f => string.Equals(f, "guidKey", StringComparison.OrdinalIgnoreCase));
     }
 
     [Fact]
@@ -145,10 +156,19 @@ public class UnifiedSchemaGeneratorTests
     {
         var schema = new AvroSchema { Type = "record", Name = "R" };
         var json = InvokePrivate<string>(typeof(UnifiedSchemaGenerator), "SerializeSchema", new[] { typeof(AvroSchema) }, null, schema);
-        Assert.Contains("\"type\":\"record\"", json);
+
+        using (var doc = JsonDocument.Parse(json))
+        {
+            Assert.Equal("record", doc.RootElement.GetProperty("type").GetString(), ignoreCase: true);
+        }
+
         var opts = new SchemaGenerationOptions { PrettyFormat = false, UseKebabCase = true };
         json = InvokePrivate<string>(typeof(UnifiedSchemaGenerator), "SerializeSchema", new[] { typeof(AvroSchema), typeof(SchemaGenerationOptions) }, null, schema, opts);
-        Assert.Contains("type", json);
+
+        using (var doc2 = JsonDocument.Parse(json))
+        {
+            Assert.True(doc2.RootElement.TryGetProperty("type", out var _));
+        }
     }
 
     [Fact]
