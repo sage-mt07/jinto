@@ -43,7 +43,8 @@ public class HavingBuilderTests
     [InlineData("AVERAGE", "AVG")]
     public void TransformMethodName_ReturnsExpected(string original, string expected)
     {
-        var result = InvokePrivate<string>(typeof(HavingBuilder), "TransformMethodName", new[] { typeof(string) }, null, original);
+        var visitorType = typeof(HavingBuilder).GetNestedType("HavingExpressionVisitor", BindingFlags.NonPublic)!;
+        var result = InvokePrivate<string>(visitorType, "TransformMethodName", new[] { typeof(string) }, null, original);
         Assert.Equal(expected, result);
     }
 
@@ -52,15 +53,17 @@ public class HavingBuilderTests
     [InlineData(ExpressionType.AndAlso, "AND")]
     public void GetSqlOperator_ReturnsExpected(ExpressionType type, string expected)
     {
-        var result = InvokePrivate<string>(typeof(HavingBuilder), "GetSqlOperator", new[] { typeof(ExpressionType) }, null, type);
+        var visitorType = typeof(HavingBuilder).GetNestedType("HavingExpressionVisitor", BindingFlags.NonPublic)!;
+        var result = InvokePrivate<string>(visitorType, "GetSqlOperator", new[] { typeof(ExpressionType) }, null, type);
         Assert.Equal(expected, result);
     }
 
     [Fact]
     public void GetSqlOperator_Unsupported_Throws()
     {
+        var visitorType = typeof(HavingBuilder).GetNestedType("HavingExpressionVisitor", BindingFlags.NonPublic)!;
         var ex = Assert.Throws<TargetInvocationException>(() =>
-            InvokePrivate<string>(typeof(HavingBuilder), "GetSqlOperator", new[] { typeof(ExpressionType) }, null, ExpressionType.ArrayIndex));
+            InvokePrivate<string>(visitorType, "GetSqlOperator", new[] { typeof(ExpressionType) }, null, ExpressionType.ArrayIndex));
         Assert.IsType<NotSupportedException>(ex.InnerException);
     }
 }
