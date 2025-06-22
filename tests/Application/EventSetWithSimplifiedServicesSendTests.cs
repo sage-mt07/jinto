@@ -4,6 +4,7 @@ using KsqlDsl.Core.Context;
 using KsqlDsl.Messaging.Abstractions;
 using KsqlDsl.Messaging.Producers.Core;
 using KsqlDsl.Configuration;
+using KsqlDsl.Application;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System;
