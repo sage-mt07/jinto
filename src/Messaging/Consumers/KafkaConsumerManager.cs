@@ -24,7 +24,7 @@ namespace KsqlDsl.Messaging.Consumers
     /// 型安全Consumer管理 - Pool削除、直接管理、型安全性強化版
     /// 設計理由: EF風API、事前確定管理、型安全性確保
     /// </summary>
-    public class KafkaConsumerManager : IDisposable
+    internal class KafkaConsumerManager : IDisposable
     {
         private readonly KsqlDslOptions _options;
         private readonly ILogger? _logger;

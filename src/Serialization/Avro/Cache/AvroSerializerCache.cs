@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace KsqlDsl.Serialization.Avro.Cache
 {
-    public class AvroSerializerCache : IDisposable
+    internal class AvroSerializerCache : IDisposable
     {
         private readonly ConcurrentDictionary<Type, object> _serializerManagers = new();
         private readonly AvroSerializerFactory _factory;

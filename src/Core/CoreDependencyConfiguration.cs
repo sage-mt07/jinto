@@ -8,7 +8,7 @@ namespace KsqlDsl.Core
     /// Core層の依存関係設定
     /// 設計理由：Core層の抽象定義と実装の分離
     /// </summary>
-    public static class CoreDependencyConfiguration
+    internal static class CoreDependencyConfiguration
     {
         public static IServiceCollection AddKsqlDslCore(this IServiceCollection services)
         {

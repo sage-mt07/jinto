@@ -3,7 +3,7 @@ using System;
 
 namespace KsqlDsl.Messaging.Consumers.Core
 {
-    public class ConsumerInstance
+    internal class ConsumerInstance
     {
         public ConsumerKey ConsumerKey { get; set; } = default!;
         public PooledConsumer PooledConsumer { get; set; } = default!;

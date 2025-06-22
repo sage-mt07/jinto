@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace KsqlDsl.Query.Pipeline
 {
-    public enum QueryExecutionMode
+    internal enum QueryExecutionMode
     {
         PullQuery,
         PushQuery

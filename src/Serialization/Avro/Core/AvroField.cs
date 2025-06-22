@@ -1,7 +1,7 @@
 ﻿namespace KsqlDsl.Serialization.Avro.Core;
 
 
-public class AvroField
+internal class AvroField
 {
     public string Name { get; set; } = string.Empty;
     public object Type { get; set; } = string.Empty;

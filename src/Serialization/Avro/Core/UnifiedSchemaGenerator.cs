@@ -9,7 +9,7 @@ using System.Text.Json;
 
 namespace KsqlDsl.Serialization.Avro.Core
 {
-    public static class UnifiedSchemaGenerator
+    internal static class UnifiedSchemaGenerator
     {
         #region Core Schema Generation
 

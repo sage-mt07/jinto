@@ -5,7 +5,7 @@ using System.Reflection;
 
 namespace KsqlDsl.Core
 {
-    public static class CoreLayerPhase3Marker
+    internal static class CoreLayerPhase3Marker
     {
         public const string Version = "Phase3-Refactored";
         public const string RefactorDate = "2025-06-20";

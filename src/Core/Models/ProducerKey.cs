@@ -3,7 +3,7 @@
 namespace KsqlDsl.Core.Models;
 
 
-public class ProducerKey : IEquatable<ProducerKey>
+internal class ProducerKey : IEquatable<ProducerKey>
 {
     public Type EntityType { get; }
     public string TopicName { get; }

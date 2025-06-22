@@ -19,7 +19,7 @@ using ConfluentSchemaRegistry = Confluent.SchemaRegistry;
 /// 型安全Producer管理 - Pool削除、直接管理、型安全性強化版
 /// 設計理由: EF風API、事前確定管理、型安全性確保
 /// </summary>
-public class KafkaProducerManager : IDisposable
+internal class KafkaProducerManager : IDisposable
 {
     private readonly KsqlDslOptions _options;
     private readonly ILogger? _logger;

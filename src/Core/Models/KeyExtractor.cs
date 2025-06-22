@@ -8,12 +8,12 @@ using System.Reflection;
 
 namespace KsqlDsl.Core.Models;
 
-public static class KeyExtractor
+internal static class KeyExtractor
 {
     /// <summary>
     /// エンティティモデルから複合キーかどうかを判定
     /// </summary>
-    public static bool IsCompositeKey(EntityModel entityModel)
+    internal static bool IsCompositeKey(EntityModel entityModel)
     {
         return entityModel?.KeyProperties != null && entityModel.KeyProperties.Length > 1;
     }
@@ -21,7 +21,7 @@ public static class KeyExtractor
     /// <summary>
     /// エンティティモデルからキー型を決定
     /// </summary>
-    public static Type DetermineKeyType(EntityModel entityModel)
+    internal static Type DetermineKeyType(EntityModel entityModel)
     {
         if (entityModel?.KeyProperties == null || entityModel.KeyProperties.Length == 0)
             return typeof(string);
@@ -36,7 +36,7 @@ public static class KeyExtractor
     /// <summary>
     /// エンティティ型からキープロパティを抽出
     /// </summary>
-    public static PropertyInfo[] ExtractKeyProperties(Type entityType)
+    internal static PropertyInfo[] ExtractKeyProperties(Type entityType)
     {
         var allProperties = entityType.GetProperties(BindingFlags.Public | BindingFlags.Instance);
         var keyProperties = Array.FindAll(allProperties, p => p.GetCustomAttribute<KeyAttribute>() != null);
@@ -55,7 +55,7 @@ public static class KeyExtractor
     /// <summary>
     /// エンティティインスタンスからキー値を抽出
     /// </summary>
-    public static object ExtractKeyValue<T>(T entity, EntityModel entityModel) where T : class
+    internal static object ExtractKeyValue<T>(T entity, EntityModel entityModel) where T : class
     {
         if (entity == null)
             throw new ArgumentNullException(nameof(entity));
@@ -83,7 +83,7 @@ public static class KeyExtractor
     /// <summary>
     /// キー値を文字列に変換
     /// </summary>
-    public static string KeyToString(object keyValue)
+    internal static string KeyToString(object keyValue)
     {
         if (keyValue == null)
             return string.Empty;
@@ -103,7 +103,7 @@ public static class KeyExtractor
     /// <summary>
     /// キー型がサポートされているかチェック
     /// </summary>
-    public static bool IsSupportedKeyType(Type keyType)
+    internal static bool IsSupportedKeyType(Type keyType)
     {
         var underlyingType = Nullable.GetUnderlyingType(keyType) ?? keyType;
 
@@ -117,7 +117,7 @@ public static class KeyExtractor
     /// <summary>
     /// EntityModelからAvroEntityConfigurationを作成
     /// </summary>
-    public static AvroEntityConfiguration ToAvroEntityConfiguration(EntityModel entityModel)
+    internal static AvroEntityConfiguration ToAvroEntityConfiguration(EntityModel entityModel)
     {
         if (entityModel == null)
             throw new ArgumentNullException(nameof(entityModel));

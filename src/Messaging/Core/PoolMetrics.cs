@@ -4,7 +4,7 @@ using System;
 
 namespace KsqlDsl.Messaging.Core
 {
-    public class PoolMetrics
+    internal class PoolMetrics
     {
         public ProducerKey? ProducerKey { get; set; }
         public ConsumerKey? ConsumerKey { get; set; }
