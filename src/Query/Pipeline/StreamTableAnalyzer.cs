@@ -102,6 +102,9 @@ internal class StreamTableAnalyzer
 
         protected override Expression VisitMethodCall(MethodCallExpression node)
         {
+            // Visit inner call first to preserve the original LINQ method order
+            var visited = base.VisitMethodCall(node);
+
             var methodName = node.Method.Name;
             MethodCalls.Add(node);
 
@@ -143,7 +146,7 @@ internal class StreamTableAnalyzer
                 }
             }
 
-            return base.VisitMethodCall(node);
+            return visited;
         }
     }
 }
