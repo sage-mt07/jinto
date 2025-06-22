@@ -42,7 +42,7 @@ public class KafkaContextTests
             AllProperties = typeof(TestEntity).GetProperties()
         };
         var set = ctx.CallCreateEntitySet<TestEntity>(model);
-        Assert.IsType<EventSet<TestEntity>>(set);
+        Assert.IsType<EventSetWithServices<TestEntity>>(set);
     }
 
     [Fact]
