@@ -18,7 +18,11 @@ public class AvroSchemaInfoExtensionsTests
     [Fact]
     public void GetStreamTableType_UsesHasCustomKey()
     {
-        var info = new AvroSchemaInfo { TopicName = "t", HasCustomKey = true };
+        var info = new AvroSchemaInfo
+        {
+            TopicName = "t",
+            KeyProperties = new[] { typeof(TestEntity).GetProperty(nameof(TestEntity.Id))! }
+        };
         Assert.Equal("Table", info.GetStreamTableType());
     }
 
@@ -28,7 +32,6 @@ public class AvroSchemaInfoExtensionsTests
         var info = new AvroSchemaInfo
         {
             TopicName = "t",
-            HasCustomKey = true,
             KeyProperties = new[] { typeof(TestEntity).GetProperty(nameof(TestEntity.Id))!, typeof(TestEntity).GetProperty(nameof(TestEntity.Name))! }
         };
         Assert.Equal("CompositeKey", info.GetKeyTypeName());
