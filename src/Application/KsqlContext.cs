@@ -64,7 +64,16 @@ public abstract class KafkaContext : KafkaContextCore
     internal KafkaConsumerManager GetConsumerManager() => _consumerManager;
 
 
-    private IReadOnlyDictionary<Type, AvroEntityConfiguration> ConvertToAvroConfigurations(
+    /// <summary>
+    /// EntityModel の情報を AvroEntityConfiguration へ変換する。
+    /// </summary>
+    /// <param name="entityModels">変換対象のモデル一覧</param>
+    /// <returns>変換後の AvroEntityConfiguration マップ</returns>
+    /// <remarks>
+    /// テストからリフレクションで呼び出されるためアクセスレベルを
+    /// <c>protected</c> に変更する。
+    /// </remarks>
+    protected IReadOnlyDictionary<Type, AvroEntityConfiguration> ConvertToAvroConfigurations(
     Dictionary<Type, EntityModel> entityModels)
     {
         var avroConfigs = new Dictionary<Type, AvroEntityConfiguration>();
