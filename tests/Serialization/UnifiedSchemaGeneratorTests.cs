@@ -6,6 +6,7 @@ using System.Text.Json;
 using KsqlDsl.Configuration.Abstractions;
 using KsqlDsl.Core.Abstractions;
 using KsqlDsl.Serialization.Avro.Core;
+using KsqlDsl.Serialization.Abstractions;
 using Xunit;
 
 namespace KsqlDsl.Tests.Serialization;
