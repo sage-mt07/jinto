@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Reflection;
 using Confluent.Kafka;
 using KsqlDsl.Configuration.Abstractions;
 using KsqlDsl.Core.Abstractions;
