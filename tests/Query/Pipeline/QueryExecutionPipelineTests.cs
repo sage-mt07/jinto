@@ -69,6 +69,7 @@ public class QueryExecutionPipelineTests
         await pipeline.StopAllStreamingQueriesAsync();
 
         Assert.True(executor.StopCalled);
+    }
     [Fact]
     public void GetDiagnostics_ReturnsConstant()
     {
@@ -120,6 +121,5 @@ public class QueryExecutionPipelineTests
         Assert.True(result.Success);
         Assert.NotNull(result.ExecutedAt);
         Assert.NotNull(result.Data);
-    }
     }
 }
