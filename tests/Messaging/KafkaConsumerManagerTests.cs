@@ -6,6 +6,7 @@ using System.Runtime.Serialization;
 using Confluent.Kafka;
 using Confluent.SchemaRegistry;
 using KsqlDsl.Configuration;
+using KsqlDsl.Configuration.Abstractions;
 using KsqlDsl.Messaging.Configuration;
 using KsqlDsl.Messaging.Consumers;
 using Microsoft.Extensions.Logging.Abstractions;
