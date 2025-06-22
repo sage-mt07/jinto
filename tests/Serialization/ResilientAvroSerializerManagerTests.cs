@@ -1,6 +1,7 @@
 using System;
 using System.Reflection;
 using System.Runtime.Serialization;
+using static KsqlDsl.Tests.PrivateAccessor;
 using Microsoft.Extensions.Logging.Abstractions;
 using KsqlDsl.Configuration.Options;
 using KsqlDsl.Serialization.Avro;
@@ -10,11 +11,6 @@ namespace KsqlDsl.Tests.Serialization;
 
 public class ResilientAvroSerializerManagerTests
 {
-    private static T InvokePrivate<T>(object obj, string name, params object[]? args)
-    {
-        var method = obj.GetType().GetMethod(name, BindingFlags.Instance | BindingFlags.NonPublic)!;
-        return (T)method.Invoke(obj, args)!;
-    }
 
     private static ResilientAvroSerializerManager CreateUninitialized()
     {
@@ -31,7 +27,7 @@ public class ResilientAvroSerializerManagerTests
     public void ExtractTopicFromSubject_ReturnsTopic(string subject, string expected)
     {
         var mgr = CreateUninitialized();
-        var result = InvokePrivate<string>(mgr, "ExtractTopicFromSubject", subject);
+        var result = InvokePrivate<string>(mgr, "ExtractTopicFromSubject", new[] { typeof(string) }, null, subject);
         Assert.Equal(expected, result);
     }
 
@@ -41,9 +37,9 @@ public class ResilientAvroSerializerManagerTests
         var mgr = CreateUninitialized();
         var policy = new AvroRetryPolicy { MaxAttempts = 3, RetryableExceptions = { typeof(TimeoutException) } };
         var ex = new TimeoutException();
-        var result = InvokePrivate<bool>(mgr, "ShouldRetry", ex, policy, 1);
+        var result = InvokePrivate<bool>(mgr, "ShouldRetry", new[] { typeof(Exception), typeof(AvroRetryPolicy), typeof(int) }, null, ex, policy, 1);
         Assert.True(result);
-        Assert.False(InvokePrivate<bool>(mgr, "ShouldRetry", ex, policy, 3));
+        Assert.False(InvokePrivate<bool>(mgr, "ShouldRetry", new[] { typeof(Exception), typeof(AvroRetryPolicy), typeof(int) }, null, ex, policy, 3));
     }
 
     [Fact]
@@ -56,8 +52,8 @@ public class ResilientAvroSerializerManagerTests
             BackoffMultiplier = 2,
             MaxDelay = TimeSpan.FromMilliseconds(500)
         };
-        var delay1 = InvokePrivate<TimeSpan>(mgr, "CalculateDelay", policy, 1);
-        var delay2 = InvokePrivate<TimeSpan>(mgr, "CalculateDelay", policy, 3);
+        var delay1 = InvokePrivate<TimeSpan>(mgr, "CalculateDelay", new[] { typeof(AvroRetryPolicy), typeof(int) }, null, policy, 1);
+        var delay2 = InvokePrivate<TimeSpan>(mgr, "CalculateDelay", new[] { typeof(AvroRetryPolicy), typeof(int) }, null, policy, 3);
         Assert.Equal(TimeSpan.FromMilliseconds(100), delay1);
         Assert.Equal(TimeSpan.FromMilliseconds(400), delay2);
     }
