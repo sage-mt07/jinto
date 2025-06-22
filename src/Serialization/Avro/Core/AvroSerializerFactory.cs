@@ -280,11 +280,9 @@ internal class AvroCompositeKeySerializer : ISerializer<object>
     {
         if (data is System.Collections.Generic.Dictionary<string, object> dict)
         {
-            // ✅ 修正: Confluent.SchemaRegistry.Serdes.AvroSerializerを明示的に指定
-            var serializer = new Confluent.SchemaRegistry.Serdes.AvroSerializer<System.Collections.Generic.Dictionary<string, object>>(_client);
-
-            // ✅ 修正: SerializeAsyncを呼び出してGetAwaiter().GetResult()で同期実行
-            return serializer.SerializeAsync(dict, context).GetAwaiter().GetResult();
+            // Use JSON to avoid the Confluent Avro serializer restrictions on
+            // supported types.
+            return System.Text.Json.JsonSerializer.SerializeToUtf8Bytes(dict);
         }
         throw new InvalidOperationException("Expected Dictionary<string, object> for composite key");
     }
@@ -301,12 +299,35 @@ internal class AvroCompositeKeyDeserializer : IDeserializer<object>
 
     public object Deserialize(ReadOnlySpan<byte> data, bool isNull, SerializationContext context)
     {
-        if (isNull) return new System.Collections.Generic.Dictionary<string, object>();
+        if (isNull || data.IsEmpty)
+        {
+            return new System.Collections.Generic.Dictionary<string, object>();
+        }
 
-        // ✅ 修正: Confluent.SchemaRegistry.Serdes.AvroDeserializerを明示的に指定
-        var deserializer = new Confluent.SchemaRegistry.Serdes.AvroDeserializer<System.Collections.Generic.Dictionary<string, object>>(_client);
-        var result = deserializer.DeserializeAsync(data.ToArray(), isNull, context).GetAwaiter().GetResult();
-        return result!;
+        var raw = System.Text.Json.JsonSerializer.Deserialize<System.Collections.Generic.Dictionary<string, System.Text.Json.JsonElement>>(data)
+                  ?? new System.Collections.Generic.Dictionary<string, System.Text.Json.JsonElement>();
+        var result = new System.Collections.Generic.Dictionary<string, object>();
+
+        foreach (var kv in raw)
+        {
+            var elem = kv.Value;
+            object? value = elem.ValueKind switch
+            {
+                System.Text.Json.JsonValueKind.Number => elem.TryGetInt32(out var i)
+                    ? i
+                    : elem.TryGetInt64(out var l)
+                        ? l
+                        : (object)elem.GetDouble(),
+                System.Text.Json.JsonValueKind.String => elem.GetString()!,
+                System.Text.Json.JsonValueKind.True => true,
+                System.Text.Json.JsonValueKind.False => false,
+                System.Text.Json.JsonValueKind.Null => null,
+                _ => elem.GetRawText()
+            };
+            result[kv.Key] = value!;
+        }
+
+        return result;
     }
 }
 
