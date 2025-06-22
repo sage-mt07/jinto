@@ -1,3 +1,4 @@
+using System;
 using KsqlDsl.Configuration.Options;
 using Xunit;
 
