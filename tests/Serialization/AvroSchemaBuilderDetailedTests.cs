@@ -154,4 +154,22 @@ public class AvroSchemaBuilderDetailedTests
         var json = InvokePrivate<string>(builder, "SerializeSchema", new[] { typeof(AvroSchema) }, null, schema);
         Assert.Contains("name", json);
     }
+
+    [Fact]
+    public void ValidateAvroSchema_ReturnsTrueForValidRecord()
+    {
+        var builder = new AvroSchemaBuilder();
+        var schema = "{ \"type\": \"record\", \"name\": \"T\" }";
+        var valid = InvokePrivate<bool>(builder, "ValidateAvroSchema", new[] { typeof(string) }, null, schema);
+        Assert.True(valid);
+    }
+
+    [Fact]
+    public void ValidateAvroSchema_ReturnsFalseForInvalidRecord()
+    {
+        var builder = new AvroSchemaBuilder();
+        var schema = "{ \"type\": \"record\" }"; // missing name
+        var valid = InvokePrivate<bool>(builder, "ValidateAvroSchema", new[] { typeof(string) }, null, schema);
+        Assert.False(valid);
+    }
 }

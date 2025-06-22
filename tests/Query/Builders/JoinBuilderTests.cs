@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using KsqlDsl.Query.Builders;
 using Xunit;
+using static KsqlDsl.Tests.PrivateAccessor;
 
 namespace KsqlDsl.Tests.Query.Builders;
 
@@ -44,6 +46,36 @@ public class JoinBuilderTests
     {
         var builder = new JoinBuilder();
         Assert.Throws<ArgumentNullException>(() => builder.Build(null!));
+    }
+
+    private class Holder
+    {
+        public Holder(object value) { Value = value; }
+        public object Value { get; }
+    }
+
+    [Fact]
+    public void FindJoinCall_ReturnsMethodCallFromNewExpression()
+    {
+        IQueryable<TestEntity> outer = new List<TestEntity>().AsQueryable();
+        IQueryable<ChildEntity> inner = new List<ChildEntity>().AsQueryable();
+        var joinExpr = outer.Join(inner, o => o.Id, c => c.ParentId, (o, c) => new { o.Id, c.ParentId }).Expression;
+        var ctor = typeof(Holder).GetConstructor(new[] { typeof(object) })!;
+        var newExpr = Expression.New(ctor, joinExpr);
+        var builder = new JoinBuilder();
+        var result = InvokePrivate<MethodCallExpression?>(builder, "FindJoinCall", new[] { typeof(Expression) }, null, newExpr);
+        Assert.NotNull(result);
+    }
+
+    [Fact]
+    public void FindJoinCall_ReturnsMethodCallFromLambda()
+    {
+        IQueryable<TestEntity> outer = new List<TestEntity>().AsQueryable();
+        IQueryable<ChildEntity> inner = new List<ChildEntity>().AsQueryable();
+        Expression<Func<object>> lambda = () => outer.Join(inner, o => o.Id, c => c.ParentId, (o, c) => new { o.Id });
+        var builder = new JoinBuilder();
+        var result = InvokePrivate<MethodCallExpression?>(builder, "FindJoinCall", new[] { typeof(Expression) }, null, lambda);
+        Assert.NotNull(result);
     }
 }
 
