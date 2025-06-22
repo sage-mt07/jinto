@@ -21,9 +21,20 @@ public class KafkaProducerManagerTests
         public int Id { get; set; }
     }
 
-    private static T InvokePrivate<T>(object obj, string name, params object[]? args)
+    private static T InvokePrivate<T>(object obj, string name, Type[]? genericTypes = null, params object[]? args)
     {
         var method = obj.GetType().GetMethod(name, BindingFlags.Instance | BindingFlags.NonPublic)!;
+
+        if (method.IsGenericMethodDefinition)
+        {
+            if (genericTypes == null)
+            {
+                throw new ArgumentException($"Generic arguments required for method '{name}'");
+            }
+
+            method = method.MakeGenericMethod(genericTypes);
+        }
+
         return (T)method.Invoke(obj, args)!;
     }
 
@@ -51,7 +62,7 @@ public class KafkaProducerManagerTests
             }
         };
         var manager = new KafkaProducerManager(Options.Create(options), new NullLoggerFactory());
-        var config = InvokePrivate<ProducerConfig>(manager, "BuildProducerConfig", "topic");
+        var config = InvokePrivate<ProducerConfig>(manager, "BuildProducerConfig", null, "topic");
 
         Assert.Equal("server", config.BootstrapServers);
         Assert.Equal("cid", config.ClientId);
@@ -75,8 +86,8 @@ public class KafkaProducerManagerTests
         typeof(KafkaProducerManager).GetField("_schemaRegistryClient", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(manager,
             new Lazy<Confluent.SchemaRegistry.ISchemaRegistryClient>(() => null!));
 
-        var first = InvokePrivate<object>(manager, "GetOrCreateSerializationManager", typeof(SampleEntity));
-        var second = InvokePrivate<object>(manager, "GetOrCreateSerializationManager", typeof(SampleEntity));
+        var first = InvokePrivate<object>(manager, "GetOrCreateSerializationManager", new[] { typeof(SampleEntity) });
+        var second = InvokePrivate<object>(manager, "GetOrCreateSerializationManager", new[] { typeof(SampleEntity) });
         Assert.Same(first, second);
     }
 
@@ -85,7 +96,7 @@ public class KafkaProducerManagerTests
     {
         var manager = (KafkaProducerManager)FormatterServices.GetUninitializedObject(typeof(KafkaProducerManager));
         typeof(KafkaProducerManager).GetField("_serializationManagers", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(manager, new ConcurrentDictionary<Type, object>());
-        var model = InvokePrivate<KsqlDsl.Core.Abstractions.EntityModel>(manager, "GetEntityModel", typeof(SampleEntity));
+        var model = InvokePrivate<KsqlDsl.Core.Abstractions.EntityModel>(manager, "GetEntityModel", new[] { typeof(SampleEntity) });
         Assert.Equal(typeof(SampleEntity), model.EntityType);
         Assert.Single(model.KeyProperties);
         Assert.Equal("SampleEntity", model.TopicAttribute?.TopicName ?? model.EntityType.Name);
