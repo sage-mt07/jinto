@@ -2,6 +2,7 @@ using System;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
+using Confluent.SchemaRegistry;
 using static KsqlDsl.Tests.PrivateAccessor;
 using Microsoft.Extensions.Logging.Abstractions;
 using KsqlDsl.Configuration.Options;
