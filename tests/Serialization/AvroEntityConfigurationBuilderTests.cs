@@ -119,6 +119,7 @@ public class AvroEntityConfigurationBuilderTests
         var cfg = new AvroEntityConfiguration(typeof(Sample));
         var builder = new AvroEntityConfigurationBuilder<Sample>(cfg);
         var method = typeof(AvroEntityConfigurationBuilder<Sample>).GetMethod("ExtractProperties", BindingFlags.NonPublic | BindingFlags.Instance)!;
+        method = method.MakeGenericMethod(typeof(object));
         var props = (PropertyInfo[])method.Invoke(builder, new object[] { (System.Linq.Expressions.Expression<Func<Sample, object>>) (s => new { s.Id, s.Name }) })!;
         Assert.Equal(2, props.Length);
         Assert.Contains(props, p => p.Name == nameof(Sample.Id));
