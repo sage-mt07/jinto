@@ -18,6 +18,13 @@ public class ChildEntity
     public string Name { get; set; } = string.Empty;
 }
 
+public class GrandChildEntity
+{
+    public int Id { get; set; }
+    public int ChildId { get; set; }
+    public string Description { get; set; } = string.Empty;
+}
+
 public class WindowDef
 {
     public WindowDef TumblingWindow() => this;
