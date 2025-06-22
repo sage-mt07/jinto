@@ -7,6 +7,7 @@ using KsqlDsl.Configuration.Abstractions;
 using KsqlDsl.Core.Abstractions;
 using KsqlDsl.Serialization.Avro.Core;
 using KsqlDsl.Serialization.Abstractions;
+using static KsqlDsl.Tests.PrivateAccessor;
 using Xunit;
 
 namespace KsqlDsl.Tests.Serialization;
@@ -29,42 +30,35 @@ public class UnifiedSchemaGeneratorTests
         public string Ignore { get; set; } = string.Empty;
     }
 
-    private static object InvokePrivate(string name, params object[]? args)
-    {
-        var method = typeof(UnifiedSchemaGenerator).GetMethod(name, BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static)!;
-        return method.Invoke(null, args);
-    }
-
-    private static T InvokePrivate<T>(string name, params object[]? args) => (T)InvokePrivate(name, args)!;
 
     [Fact]
     public void ToPascalCase_Works_WithVariousDelimiters()
     {
-        var result = InvokePrivate<string>("ToPascalCase", "sample_topic-name.text");
+        var result = InvokePrivate<string>(typeof(UnifiedSchemaGenerator), "ToPascalCase", new[] { typeof(string) }, null, "sample_topic-name.text");
         Assert.Equal("SampleTopicNameText", result);
-        Assert.Equal(string.Empty, InvokePrivate<string>("ToPascalCase", ""));
+        Assert.Equal(string.Empty, InvokePrivate<string>(typeof(UnifiedSchemaGenerator), "ToPascalCase", new[] { typeof(string) }, null, ""));
     }
 
     [Fact]
     public void IsPrimitiveType_KnownTypes()
     {
-        Assert.True(InvokePrivate<bool>("IsPrimitiveType", typeof(string)));
-        Assert.False(InvokePrivate<bool>("IsPrimitiveType", typeof(DateTime)));
+        Assert.True(InvokePrivate<bool>(typeof(UnifiedSchemaGenerator), "IsPrimitiveType", new[] { typeof(Type) }, null, typeof(string)));
+        Assert.False(InvokePrivate<bool>(typeof(UnifiedSchemaGenerator), "IsPrimitiveType", new[] { typeof(Type) }, null, typeof(DateTime)));
     }
 
     [Fact]
     public void IsNullableProperty_DetectsNullableCorrectly()
     {
         var props = typeof(SampleEntity).GetProperties();
-        Assert.False(InvokePrivate<bool>("IsNullableProperty", props.First(p => p.Name == nameof(SampleEntity.Id))));
-        Assert.True(InvokePrivate<bool>("IsNullableProperty", props.First(p => p.Name == nameof(SampleEntity.OptionalNumber))));
-        Assert.True(InvokePrivate<bool>("IsNullableProperty", props.First(p => p.Name == nameof(SampleEntity.Name))));
+        Assert.False(InvokePrivate<bool>(typeof(UnifiedSchemaGenerator), "IsNullableProperty", new[] { typeof(PropertyInfo) }, null, props.First(p => p.Name == nameof(SampleEntity.Id))));
+        Assert.True(InvokePrivate<bool>(typeof(UnifiedSchemaGenerator), "IsNullableProperty", new[] { typeof(PropertyInfo) }, null, props.First(p => p.Name == nameof(SampleEntity.OptionalNumber))));
+        Assert.True(InvokePrivate<bool>(typeof(UnifiedSchemaGenerator), "IsNullableProperty", new[] { typeof(PropertyInfo) }, null, props.First(p => p.Name == nameof(SampleEntity.Name))));
     }
 
     [Fact]
     public void GetSerializableProperties_ExcludesIgnored()
     {
-        var props = InvokePrivate<PropertyInfo[]>("GetSerializableProperties", typeof(SampleEntity));
+        var props = InvokePrivate<PropertyInfo[]>(typeof(UnifiedSchemaGenerator), "GetSerializableProperties", new[] { typeof(Type) }, null, typeof(SampleEntity));
         Assert.DoesNotContain(props, p => p.Name == nameof(SampleEntity.Ignore));
         Assert.Contains(props, p => p.Name == nameof(SampleEntity.Name));
     }
@@ -72,7 +66,7 @@ public class UnifiedSchemaGeneratorTests
     [Fact]
     public void GetIgnoredProperties_ReturnsIgnored()
     {
-        var props = InvokePrivate<PropertyInfo[]>("GetIgnoredProperties", typeof(SampleEntity));
+        var props = InvokePrivate<PropertyInfo[]>(typeof(UnifiedSchemaGenerator), "GetIgnoredProperties", new[] { typeof(Type) }, null, typeof(SampleEntity));
         Assert.Single(props);
         Assert.Equal(nameof(SampleEntity.Ignore), props[0].Name);
     }
@@ -81,7 +75,7 @@ public class UnifiedSchemaGeneratorTests
     public void MapPropertyToAvroType_HandlesNullable()
     {
         var prop = typeof(SampleEntity).GetProperty(nameof(SampleEntity.Name))!;
-        var result = InvokePrivate<object>("MapPropertyToAvroType", prop);
+        var result = InvokePrivate<object>(typeof(UnifiedSchemaGenerator), "MapPropertyToAvroType", new[] { typeof(PropertyInfo) }, null, prop);
         Assert.IsType<object[]>(result);
     }
 
@@ -89,11 +83,11 @@ public class UnifiedSchemaGeneratorTests
     public void GetAvroType_MapsSpecialTypes()
     {
         var price = typeof(SampleEntity).GetProperty(nameof(SampleEntity.Price))!;
-        var avro = InvokePrivate<object>("GetAvroType", price);
+        var avro = InvokePrivate<object>(typeof(UnifiedSchemaGenerator), "GetAvroType", new[] { typeof(PropertyInfo) }, null, price);
         var json = JsonSerializer.Serialize(avro);
         Assert.Contains("logicalType", json);
         var dtProp = typeof(SampleEntity).GetProperty(nameof(SampleEntity.Date))!;
-        avro = InvokePrivate<object>("GetAvroType", dtProp);
+        avro = InvokePrivate<object>(typeof(UnifiedSchemaGenerator), "GetAvroType", new[] { typeof(PropertyInfo) }, null, dtProp);
         json = JsonSerializer.Serialize(avro);
         Assert.Contains("date", json);
     }
@@ -101,18 +95,18 @@ public class UnifiedSchemaGeneratorTests
     [Fact]
     public void GeneratePrimitiveKeySchema_PrimitiveTypes()
     {
-        var schema = InvokePrivate<string>("GeneratePrimitiveKeySchema", typeof(int));
+        var schema = InvokePrivate<string>(typeof(UnifiedSchemaGenerator), "GeneratePrimitiveKeySchema", new[] { typeof(Type) }, null, typeof(int));
         Assert.Equal("\"int\"", schema);
-        schema = InvokePrivate<string>("GeneratePrimitiveKeySchema", typeof(Guid));
+        schema = InvokePrivate<string>(typeof(UnifiedSchemaGenerator), "GeneratePrimitiveKeySchema", new[] { typeof(Type) }, null, typeof(Guid));
         Assert.Contains("uuid", schema);
     }
 
     [Fact]
     public void GenerateNullablePrimitiveKeySchema_PrimitiveTypes()
     {
-        var schema = InvokePrivate<string>("GenerateNullablePrimitiveKeySchema", typeof(int));
+        var schema = InvokePrivate<string>(typeof(UnifiedSchemaGenerator), "GenerateNullablePrimitiveKeySchema", new[] { typeof(Type) }, null, typeof(int));
         Assert.Contains("null", schema);
-        schema = InvokePrivate<string>("GenerateNullablePrimitiveKeySchema", typeof(Guid));
+        schema = InvokePrivate<string>(typeof(UnifiedSchemaGenerator), "GenerateNullablePrimitiveKeySchema", new[] { typeof(Type) }, null, typeof(Guid));
         Assert.Contains("uuid", schema);
     }
 
@@ -124,7 +118,7 @@ public class UnifiedSchemaGeneratorTests
             typeof(SampleEntity).GetProperty(nameof(SampleEntity.Id))!,
             typeof(SampleEntity).GetProperty(nameof(SampleEntity.GuidKey))!
         };
-        var json = InvokePrivate<string>("GenerateCompositeKeySchema", keys);
+        var json = InvokePrivate<string>(typeof(UnifiedSchemaGenerator), "GenerateCompositeKeySchema", new[] { typeof(PropertyInfo[]) }, null, (object)keys);
         Assert.Contains("CompositeKey", json);
         Assert.Contains("id", json);
         Assert.Contains("guidKey", json);
@@ -133,7 +127,7 @@ public class UnifiedSchemaGeneratorTests
     [Fact]
     public void GenerateFields_CreatesFields()
     {
-        var fields = InvokePrivate<List<AvroField>>("GenerateFields", typeof(SampleEntity));
+        var fields = InvokePrivate<List<AvroField>>(typeof(UnifiedSchemaGenerator), "GenerateFields", new[] { typeof(Type) }, null, typeof(SampleEntity));
         Assert.Contains(fields, f => f.Name == nameof(SampleEntity.Name));
         Assert.DoesNotContain(fields, f => f.Name == nameof(SampleEntity.Ignore));
     }
@@ -142,7 +136,7 @@ public class UnifiedSchemaGeneratorTests
     public void GenerateFieldsFromConfiguration_UsesConfiguration()
     {
         var cfg = new AvroEntityConfiguration(typeof(SampleEntity));
-        var fields = InvokePrivate<List<AvroField>>("GenerateFieldsFromConfiguration", cfg);
+        var fields = InvokePrivate<List<AvroField>>(typeof(UnifiedSchemaGenerator), "GenerateFieldsFromConfiguration", new[] { typeof(AvroEntityConfiguration) }, null, cfg);
         Assert.Contains(fields, f => f.Name == nameof(SampleEntity.Id));
     }
 
@@ -150,10 +144,10 @@ public class UnifiedSchemaGeneratorTests
     public void SerializeSchema_WorksWithOptions()
     {
         var schema = new AvroSchema { Type = "record", Name = "R" };
-        var json = InvokePrivate<string>("SerializeSchema", schema);
+        var json = InvokePrivate<string>(typeof(UnifiedSchemaGenerator), "SerializeSchema", new[] { typeof(AvroSchema) }, null, schema);
         Assert.Contains("\"type\":\"record\"", json);
         var opts = new SchemaGenerationOptions { PrettyFormat = false, UseKebabCase = true };
-        json = InvokePrivate<string>("SerializeSchema", schema, opts);
+        json = InvokePrivate<string>(typeof(UnifiedSchemaGenerator), "SerializeSchema", new[] { typeof(AvroSchema), typeof(SchemaGenerationOptions) }, null, schema, opts);
         Assert.Contains("type", json);
     }
 
