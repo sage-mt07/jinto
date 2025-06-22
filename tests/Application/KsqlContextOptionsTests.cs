@@ -1,0 +1,23 @@
+using KsqlDsl.Application;
+using Confluent.SchemaRegistry;
+using Xunit;
+
+namespace KsqlDsl.Tests.Application;
+
+public class KsqlContextOptionsTests
+{
+    [Fact]
+    public void Validate_WithMissingClient_Throws()
+    {
+        var options = new KsqlContextOptions { SchemaRegistryClient = null! };
+        var ex = Assert.Throws<InvalidOperationException>(() => options.Validate());
+        Assert.Contains("SchemaRegistryClient", ex.Message);
+    }
+
+    [Fact]
+    public void Validate_WithNonPositiveTimeout_Throws()
+    {
+        var options = new KsqlContextOptions { SchemaRegistryClient = new CachedSchemaRegistryClient(new SchemaRegistryConfig { Url = "url" }), SchemaRegistrationTimeout = System.TimeSpan.Zero };
+        Assert.Throws<InvalidOperationException>(() => options.Validate());
+    }
+}
