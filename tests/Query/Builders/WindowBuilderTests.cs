@@ -15,4 +15,11 @@ public class WindowBuilderTests
         var result = builder.Build(expr.Body);
         Assert.Equal("WINDOW TUMBLING (SIZE 1 MINUTES) EMIT FINAL", result);
     }
+
+    [Fact]
+    public void Build_NullExpression_ThrowsArgumentNullException()
+    {
+        var builder = new WindowBuilder();
+        Assert.Throws<ArgumentNullException>(() => builder.Build(null!));
+    }
 }

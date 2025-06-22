@@ -38,4 +38,11 @@ public class JoinBuilderTests
         var result = builder.Build(expr);
         Assert.Contains("JOIN構築エラー", result);
     }
+
+    [Fact]
+    public void Build_NullExpression_ThrowsArgumentNullException()
+    {
+        var builder = new JoinBuilder();
+        Assert.Throws<ArgumentNullException>(() => builder.Build(null!));
+    }
 }

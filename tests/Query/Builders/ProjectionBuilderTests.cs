@@ -24,4 +24,12 @@ public class ProjectionBuilderTests
         var result = builder.Build(expr.Body);
         Assert.Equal("SELECT *", result);
     }
+
+    [Fact]
+    public void Build_UnsupportedOperator_ThrowsNotSupportedException()
+    {
+        Expression<Func<TestEntity, object>> expr = e => e.Name ?? "unknown";
+        var builder = new ProjectionBuilder();
+        Assert.Throws<NotSupportedException>(() => builder.Build(expr.Body));
+    }
 }
