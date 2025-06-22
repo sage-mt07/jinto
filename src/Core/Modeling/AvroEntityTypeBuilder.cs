@@ -7,6 +7,13 @@ using System.Linq.Expressions;
 using System.Reflection;
 
 namespace KsqlDsl.Core.Modeling;
+/// <summary>
+/// 削除済み: AvroEntityTypeBuilder<T>
+/// 統合先: UnifiedSchemaGenerator
+/// 削除理由: 重複実装、UnifiedSchemaGeneratorで同等機能提供
+/// </summary>
+[Obsolete("AvroEntityTypeBuilder<T> は削除されました。UnifiedSchemaGenerator を使用してください。", true)]
+
 public class AvroEntityTypeBuilder<T> where T : class
 {
     private readonly AvroEntityConfiguration _configuration;
@@ -21,6 +28,7 @@ public class AvroEntityTypeBuilder<T> where T : class
     /// <summary>
     /// トピック名を設定
     /// </summary>
+    [Obsolete("ToTopic() は削除されました。AvroEntityConfiguration を使用してください。", true)]
     public AvroEntityTypeBuilder<T> ToTopic(string topicName)
     {
         if (string.IsNullOrWhiteSpace(topicName))
@@ -33,6 +41,7 @@ public class AvroEntityTypeBuilder<T> where T : class
     /// <summary>
     /// キープロパティを設定
     /// </summary>
+    [Obsolete("HasKey() は削除されました。AvroEntityConfiguration を使用してください。", true)]
     public AvroEntityTypeBuilder<T> HasKey<TKey>(Expression<Func<T, TKey>> keyExpression)
     {
         if (keyExpression == null)

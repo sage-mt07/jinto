@@ -1,14 +1,17 @@
 ﻿using KsqlDsl.Core.Abstractions;
-using KsqlDsl.Core.Validation;
+// ✅ 修正: 重複削除により ValidationResult を Core.Abstractions から参照
+// using KsqlDsl.Core.Validation; // ❌ 削除: 重複定義を参照していた
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
 namespace KsqlDsl.Core;
+
 /// <summary>
-/// Core層設計制約の検証
+/// Core層設計制約の検証 - Phase2修正版
 /// 設計理由：依存関係の一方向性確保
+/// 修正理由：重複削除による参照更新
 /// </summary>
 public static class CoreLayerValidation
 {
@@ -22,9 +25,9 @@ public static class CoreLayerValidation
         "KsqlDsl.Services"
     };
 
-    public static CoreValidationResult ValidateCoreDependencies()
+    public static ValidationResult ValidateCoreDependencies()  // ✅ 修正: Core.Abstractions.ValidationResult 使用
     {
-        var result = new CoreValidationResult { IsValid = true };
+        var result = new ValidationResult { IsValid = true };  // ✅ 修正: Core.Abstractions.ValidationResult 使用
         var coreAssembly = typeof(IKafkaContext).Assembly;
         var coreTypes = coreAssembly.GetTypes()
             .Where(t => t.Namespace?.StartsWith("KsqlDsl.Core") == true);
@@ -37,7 +40,7 @@ public static class CoreLayerValidation
         return result;
     }
 
-    private static void ValidateTypedependencies(Type type, CoreValidationResult result)
+    private static void ValidateTypedependencies(Type type, ValidationResult result)  // ✅ 修正: Core.Abstractions.ValidationResult 使用
     {
         var dependencies = type.GetReferencedTypes();
 
@@ -81,6 +84,4 @@ public static class CoreLayerValidation
 
         return referencedTypes.Where(t => t.Assembly != type.Assembly);
     }
-
-
 }

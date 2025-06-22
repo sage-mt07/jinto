@@ -2,6 +2,14 @@
 using System.Reflection;
 
 namespace KsqlDsl.Core.Modeling;
+
+/// <summary>
+/// 削除済み: AvroPropertyBuilder<T, TProperty>
+/// 統合先: UnifiedSchemaGenerator + 属性ベース設定
+/// 削除理由: 重複実装、属性ベース設定で同等機能提供
+/// </summary>
+[Obsolete("AvroPropertyBuilder<T, TProperty> は削除されました。属性ベース設定を使用してください。", true)]
+
 public class AvroPropertyBuilder<T, TProperty> where T : class
 {
     private readonly AvroEntityTypeBuilder<T> _entityBuilder;
@@ -16,6 +24,7 @@ public class AvroPropertyBuilder<T, TProperty> where T : class
     /// <summary>
     /// プロパティを必須に設定
     /// </summary>
+    [Obsolete("IsRequired() は削除されました。[Required] 属性を使用してください。", true)]
     public AvroPropertyBuilder<T, TProperty> IsRequired(bool required = true)
     {
         // Avro側での必須設定は将来的に実装
@@ -25,6 +34,7 @@ public class AvroPropertyBuilder<T, TProperty> where T : class
     /// <summary>
     /// 最大長を設定
     /// </summary>
+    [Obsolete("HasMaxLength() は削除されました。[MaxLength] 属性を使用してください。", true)]
     public AvroPropertyBuilder<T, TProperty> HasMaxLength(int maxLength)
     {
         if (maxLength <= 0)

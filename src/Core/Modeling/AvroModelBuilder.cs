@@ -6,6 +6,13 @@ using System.Collections.Generic;
 using System.Linq;
 
 namespace KsqlDsl.Core.Modeling;
+/// <summary>
+/// 削除済み: AvroModelBuilder
+/// 統合先: UnifiedSchemaGenerator
+/// 削除理由: 重複実装、UnifiedSchemaGeneratorで同等機能提供
+/// </summary>
+[Obsolete("AvroModelBuilder は削除されました。UnifiedSchemaGenerator を使用してください。", true)]
+
 public class AvroModelBuilder
 {
     private readonly Dictionary<Type, AvroEntityConfiguration> _configurations = new();
@@ -19,6 +26,7 @@ public class AvroModelBuilder
     /// <summary>
     /// エンティティの設定を開始
     /// </summary>
+    [Obsolete("Entity<T>() は削除されました。UnifiedSchemaGenerator.GenerateSchema<T>() を使用してください。", true)]
     public AvroEntityTypeBuilder<T> Entity<T>() where T : class
     {
         var entityType = typeof(T);
@@ -77,6 +85,7 @@ public class AvroModelBuilder
     /// <summary>
     /// 設定をビルドして取得
     /// </summary>
+    [Obsolete("Build() は削除されました。UnifiedSchemaGenerator の対応メソッドを使用してください。", true)]
     public IReadOnlyDictionary<Type, AvroEntityConfiguration> Build()
     {
         ValidateAllConfigurations();
