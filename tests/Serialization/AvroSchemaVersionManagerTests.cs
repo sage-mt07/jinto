@@ -1,4 +1,5 @@
 using System;
+using System.Reflection;
 using System.Threading.Tasks;
 using Confluent.SchemaRegistry;
 using KsqlDsl.Core.Abstractions;

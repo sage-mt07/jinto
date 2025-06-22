@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Threading.Tasks;
 using Confluent.SchemaRegistry;
 using KsqlDsl.Core.Abstractions;
-using KsqlDsl.Serialization.Abstractions;
 using KsqlDsl.Serialization.Avro.Management;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
