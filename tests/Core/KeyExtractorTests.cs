@@ -1,0 +1,99 @@
+using KsqlDsl.Core.Abstractions;
+using KsqlDsl.Core.Models;
+using KsqlDsl.Serialization.Abstractions;
+using System.Collections.Generic;
+using System.Reflection;
+using Xunit;
+
+namespace KsqlDsl.Tests.Core;
+
+public class KeyExtractorTests
+{
+    [Topic("sample-topic")]
+    private class SampleEntity
+    {
+        [Key(Order = 2)]
+        public string Name { get; set; } = string.Empty;
+        [Key(Order = 1)]
+        public int Id { get; set; }
+        public string Data { get; set; } = string.Empty;
+    }
+
+    private static EntityModel CreateModel()
+    {
+        return new EntityModel
+        {
+            EntityType = typeof(SampleEntity),
+            TopicAttribute = new TopicAttribute("sample-topic"),
+            KeyProperties = new[]
+            {
+                typeof(SampleEntity).GetProperty(nameof(SampleEntity.Id))!,
+                typeof(SampleEntity).GetProperty(nameof(SampleEntity.Name))!
+            },
+            AllProperties = typeof(SampleEntity).GetProperties()
+        };
+    }
+
+    [Fact]
+    public void IsCompositeKey_WithMultipleKeys_ReturnsTrue()
+    {
+        var model = CreateModel();
+        Assert.True(KeyExtractor.IsCompositeKey(model));
+    }
+
+    [Fact]
+    public void DetermineKeyType_WithCompositeKeys_ReturnsDictionaryType()
+    {
+        var model = CreateModel();
+        Assert.Equal(typeof(Dictionary<string, object>), KeyExtractor.DetermineKeyType(model));
+    }
+
+    [Fact]
+    public void ExtractKeyProperties_ReturnsOrderedProperties()
+    {
+        var props = KeyExtractor.ExtractKeyProperties(typeof(SampleEntity));
+        Assert.Equal(nameof(SampleEntity.Id), props[0].Name);
+        Assert.Equal(nameof(SampleEntity.Name), props[1].Name);
+    }
+
+    [Fact]
+    public void ExtractKeyValue_WithEntity_ReturnsDictionary()
+    {
+        var entity = new SampleEntity { Id = 1, Name = "A" };
+        var model = CreateModel();
+        var value = KeyExtractor.ExtractKeyValue(entity, model);
+        var dict = Assert.IsType<Dictionary<string, object>>(value);
+        Assert.Equal(1, dict[nameof(SampleEntity.Id)]);
+        Assert.Equal("A", dict[nameof(SampleEntity.Name)]);
+    }
+
+    [Fact]
+    public void KeyToString_WithDictionary_ReturnsConcatenatedString()
+    {
+        var dict = new Dictionary<string, object>
+        {
+            ["Id"] = 1,
+            ["Name"] = "A"
+        };
+        var str = KeyExtractor.KeyToString(dict);
+        Assert.Contains("Id=1", str);
+        Assert.Contains("Name=A", str);
+    }
+
+    [Fact]
+    public void IsSupportedKeyType_ReturnsExpectedResults()
+    {
+        Assert.True(KeyExtractor.IsSupportedKeyType(typeof(int)));
+        Assert.False(KeyExtractor.IsSupportedKeyType(typeof(decimal)));
+    }
+
+    [Fact]
+    public void ToAvroEntityConfiguration_MapsProperties()
+    {
+        var model = CreateModel();
+        var config = KeyExtractor.ToAvroEntityConfiguration(model);
+        Assert.Equal(model.EntityType, config.EntityType);
+        Assert.Equal("sample-topic", config.TopicName);
+        Assert.Equal(2, config.KeyProperties.Length);
+    }
+}
