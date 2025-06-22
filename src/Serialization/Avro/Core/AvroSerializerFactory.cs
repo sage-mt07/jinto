@@ -323,9 +323,9 @@ internal class AvroValueSerializer<T> : ISerializer<object> where T : class
     {
         if (data is T typedData)
         {
-            // ✅ 修正: Confluent.SchemaRegistry.Serdes.AvroSerializerを明示的に指定
-            var serializer = new Confluent.SchemaRegistry.Serdes.AvroSerializer<T>(_client);
-            return serializer.SerializeAsync(typedData, context).GetAwaiter().GetResult();
+            // Use simple JSON serialization for generic POCO types to avoid
+            // the Confluent Avro requirement of ISpecificRecord.
+            return System.Text.Json.JsonSerializer.SerializeToUtf8Bytes(typedData);
         }
         throw new InvalidOperationException($"Expected type {typeof(T).Name}");
     }
@@ -342,9 +342,13 @@ internal class AvroValueDeserializer<T> : IDeserializer<object> where T : class
 
     public object Deserialize(ReadOnlySpan<byte> data, bool isNull, SerializationContext context)
     {
-        // ✅ 修正: Confluent.SchemaRegistry.Serdes.AvroDeserializerを明示的に指定
-        var deserializer = new Confluent.SchemaRegistry.Serdes.AvroDeserializer<T>(_client);
-        var result = deserializer.DeserializeAsync(data.ToArray(), isNull, context).GetAwaiter().GetResult();
-        return result!;
+        if (isNull || data.IsEmpty)
+        {
+            // return default instance when null was sent
+            return Activator.CreateInstance<T>()!;
+        }
+
+        return System.Text.Json.JsonSerializer.Deserialize<T>(data)!
+            ?? throw new InvalidOperationException("Deserialization returned null");
     }
 }
