@@ -1,4 +1,4 @@
-﻿using KsqlDsl.Configuration;
+using KsqlDsl.Configuration;
 using KsqlDsl.Core.Abstractions;
 using KsqlDsl.Core.Extensions;
 using System;
@@ -15,7 +15,16 @@ internal class ModelBuilder
     {
         _validationMode = validationMode;
     }
-
+    public IEntityBuilder<T> Entity<T>() where T : class
+    {
+        AddEntityModel<T>();
+        var model = GetEntityModel<T>();
+        if (model == null)
+        {
+            throw new InvalidOperationException($"Failed to create entity model for {typeof(T).Name}");
+        }
+        return new EntityModelBuilder<T>(model);
+    }
     public EntityModel? GetEntityModel<T>() where T : class
     {
         return GetEntityModel(typeof(T));

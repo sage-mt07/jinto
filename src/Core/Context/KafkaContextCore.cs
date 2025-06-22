@@ -1,4 +1,5 @@
-﻿using KsqlDsl.Core.Abstractions;
+using KsqlDsl.Core.Abstractions;
+using KsqlDsl.Core.Modeling;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -30,7 +31,7 @@ public abstract class KafkaContextCore : IKafkaContext
         Options = options ?? throw new ArgumentNullException(nameof(options));
         InitializeEntityModels();
     }
-
+    protected virtual void OnModelCreating(IModelBuilder modelBuilder) { }
     // ✅ IKafkaContext実装: エンティティセット取得（純粋関数）
     public IEntitySet<T> Set<T>() where T : class
     {
@@ -83,8 +84,22 @@ public abstract class KafkaContextCore : IKafkaContext
     // ✅ 内部処理：モデル初期化（副作用なし）
     private void InitializeEntityModels()
     {
-        // サブクラスでOnModelCreatingを呼び出すための準備
-        // ❌ ログ出力なし: _logger?.LogDebug("Entity models initialization started");
+        var modelBuilder = new ModelBuilder(Options.ValidationMode);
+        OnModelCreating((IModelBuilder)modelBuilder);
+        ApplyModelBuilderSettings(modelBuilder);
+    }
+
+    private void ApplyModelBuilderSettings(ModelBuilder modelBuilder)
+    {
+        var models = modelBuilder.GetAllEntityModels();
+        foreach (var (type, model) in models)
+        {
+            if (_entityModels.ContainsKey(type))
+            {
+                // Stream/Table型のみ上書き
+                _entityModels[type].SetStreamTableType(model.GetExplicitStreamTableType());
+            }
+        }
     }
 
     // ✅ 内部処理：エンティティモデル取得・作成（純粋関数）

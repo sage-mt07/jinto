@@ -1,15 +1,26 @@
-﻿using KsqlDsl.Core.Abstractions;
+using KsqlDsl.Core.Abstractions;
+using KsqlDsl.Query.Abstractions;
 using System;
 
 namespace KsqlDsl.Core.Modeling;
 
-public class EntityModelBuilder<T> where T : class
+public class EntityModelBuilder<T>: IEntityBuilder<T> where T : class
 {
     private readonly EntityModel _entityModel;
 
     internal EntityModelBuilder(EntityModel entityModel)
     {
         _entityModel = entityModel ?? throw new ArgumentNullException(nameof(entityModel));
+    }
+    public IEntityBuilder<T> AsTable()
+    {
+        _entityModel.SetStreamTableType(StreamTableType.Table);
+        return this;
+    }
+    public IEntityBuilder<T> AsStream()
+    {
+        _entityModel.SetStreamTableType(StreamTableType.Stream);
+        return this;
     }
 
     public EntityModel GetModel()
