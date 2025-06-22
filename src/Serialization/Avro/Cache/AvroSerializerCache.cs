@@ -42,17 +42,6 @@ internal class AvroSerializerCache : IDisposable
         return newManager;
     }
 
-    public IAvroSerializer<T> GetOrCreateSerializer<T>() where T : class
-    {
-        _logger?.LogDebug("Creating Avro serializer for type {Type}", typeof(T).Name);
-        return _factory.CreateSerializer<T>();
-    }
-
-    public IAvroDeserializer<T> GetOrCreateDeserializer<T>() where T : class
-    {
-        _logger?.LogDebug("Creating Avro deserializer for type {Type}", typeof(T).Name);
-        return _factory.CreateDeserializer<T>();
-    }
 
     public void ClearCache<T>() where T : class
     {

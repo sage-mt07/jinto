@@ -2,7 +2,6 @@
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace KsqlDsl.Query.Pipeline;
 
@@ -12,7 +11,6 @@ namespace KsqlDsl.Query.Pipeline;
 /// </summary>
 internal class QueryDiagnostics
 {
-    private readonly List<string> _analysisSteps = new();
     private readonly Dictionary<string, object> _metadata = new();
     private readonly ILogger _logger;
     private DateTime _startTime;
@@ -40,8 +38,6 @@ internal class QueryDiagnostics
             message += $": {detail}";
         }
 
-        _analysisSteps.Add(message);
-
         _logger.LogDebug("Diagnostics step: {Step}", message);
     }
 
@@ -60,72 +56,8 @@ internal class QueryDiagnostics
     public void MarkComplete()
     {
         _analysisTime = DateTime.UtcNow - _startTime;
-        var completionMessage = $"Analysis completed in {_analysisTime.TotalMilliseconds:F2}ms";
-        LogStep(completionMessage);
-
         _logger.LogDebug("Query analysis completed in {AnalysisTimeMs:F2}ms", _analysisTime.TotalMilliseconds);
     }
 
-    /// <summary>
-    /// 診断レポート生成
-    /// </summary>
-    public string GenerateReport()
-    {
-        var report = new StringBuilder();
-
-        report.AppendLine("=== KSQL Query Diagnostics ===");
-        report.AppendLine($"Analysis Duration: {_analysisTime.TotalMilliseconds:F2}ms");
-        report.AppendLine();
-
-        // メタデータ出力
-        if (_metadata.Count > 0)
-        {
-            report.AppendLine("Metadata:");
-            foreach (var kvp in _metadata)
-            {
-                report.AppendLine($"  {kvp.Key}: {kvp.Value}");
-            }
-            report.AppendLine();
-        }
-
-        // ステップ履歴
-        report.AppendLine("Analysis Steps:");
-        foreach (var step in _analysisSteps)
-        {
-            report.AppendLine($"  {step}");
-        }
-
-        var reportText = report.ToString();
-        _logger.LogDebug("Diagnostics report generated with {StepCount} steps and {MetadataCount} metadata entries",
-            _analysisSteps.Count, _metadata.Count);
-
-        return reportText;
-    }
-
-    /// <summary>
-    /// 簡潔サマリ
-    /// </summary>
-    public string GetSummary()
-    {
-        var queryType = _metadata.TryGetValue("QueryType", out var qt) ? qt : "Unknown";
-        var isPullQuery = _metadata.TryGetValue("IsPullQuery", out var pq) ? pq : false;
-
-        var summary = $"Query: {queryType}, Pull: {isPullQuery}, Time: {_analysisTime.TotalMilliseconds:F1}ms";
-        _logger.LogDebug("Diagnostics summary: {Summary}", summary);
-
-        return summary;
-    }
-
-    /// <summary>
-    /// 診断情報のリセット（再利用時）
-    /// </summary>
-    public void Reset()
-    {
-        _analysisSteps.Clear();
-        _metadata.Clear();
-        _startTime = DateTime.UtcNow;
-        _analysisTime = TimeSpan.Zero;
-
-        _logger.LogDebug("QueryDiagnostics reset at {StartTime}", _startTime);
-    }
+    // Debug reporting APIs removed in Phase 1 cleanup
 }
