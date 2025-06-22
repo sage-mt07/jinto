@@ -73,7 +73,7 @@ public class KafkaProducerManagerExtraTests
         Assert.Equal("cert", config.SslCertificateLocation);
         Assert.Equal("key", config.SslKeyLocation);
         Assert.Equal("kp", config.SslKeyPassword);
-        Assert.True(config.TryGetValue("partitioner.class", out var part));
+        Assert.True(config.TryGet("partitioner.class", out var part));
         Assert.Equal("m", part);
     }
 
