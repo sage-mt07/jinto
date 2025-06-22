@@ -3,7 +3,7 @@ using Xunit;
 
 namespace KsqlDsl.Tests.Application;
 
-public class DummyContext : KafkaContext
+public class DummyContext : KsqlDsl.Application.KafkaContext
 {
     public DummyContext() : base() { }
     public DummyContext(KafkaContextOptions options) : base(options) { }
