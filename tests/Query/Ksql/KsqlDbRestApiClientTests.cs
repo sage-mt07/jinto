@@ -26,7 +26,7 @@ public class KsqlDbRestApiClientTests
         var result = await client.ExecuteQueryAsync("select * from t");
         Assert.Single(result.Header);
         Assert.Single(result.Rows);
-        Assert.Equal(1, result.Rows[0]["ID"]);
+        Assert.Equal(1, System.Convert.ToInt32(result.Rows[0]["ID"]));
     }
 
     [Fact]

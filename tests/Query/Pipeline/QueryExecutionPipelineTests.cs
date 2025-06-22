@@ -43,7 +43,7 @@ public class QueryExecutionPipelineTests
 
         var ksql = pipeline.GenerateKsqlQuery("Base", expr, true);
 
-        Assert.Matches("^SELECT * FROM Base_stream_\\d+_stream_\\d+$", ksql);
+        Assert.Matches("^SELECT \\* FROM Base_stream_\\d+_stream_\\d+$", ksql);
     }
 
     [Fact]
@@ -55,7 +55,7 @@ public class QueryExecutionPipelineTests
 
         var ksql = pipeline.GenerateKsqlQuery("Base", expr, false);
 
-        Assert.Matches("^SELECT * FROM Base_table_\\d+_table_\\d+ EMIT CHANGES$", ksql);
+        Assert.Matches("^SELECT \\* FROM Base_table_\\d+_table_\\d+ EMIT CHANGES$", ksql);
     }
 
     [Fact]
