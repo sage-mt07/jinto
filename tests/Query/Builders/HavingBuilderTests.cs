@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using KsqlDsl.Query.Builders;
 using Xunit;
 using static KsqlDsl.Tests.PrivateAccessor;
