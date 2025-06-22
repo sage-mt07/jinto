@@ -21,4 +21,11 @@ public class KsqlContextOptionsTests
         var options = new KsqlContextOptions { SchemaRegistryClient = new CachedSchemaRegistryClient(new SchemaRegistryConfig { Url = "url" }), SchemaRegistrationTimeout = System.TimeSpan.Zero };
         Assert.Throws<InvalidOperationException>(() => options.Validate());
     }
+
+    [Fact]
+    public void Validate_WithValidOptions_DoesNotThrow()
+    {
+        var options = new KsqlContextOptions { SchemaRegistryClient = new CachedSchemaRegistryClient(new SchemaRegistryConfig { Url = "url" }) };
+        options.Validate();
+    }
 }
