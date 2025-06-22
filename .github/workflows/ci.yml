@@ -39,9 +39,9 @@ jobs:
         name: coverage-report
         path: coverage-report
 
-    - name: Upload cobertura xml
+    - name: Upload cobertura xml as artifact
       uses: actions/upload-artifact@v4
       with:
         name: coverage-xml
-        path: TestResults/**/*.cobertura.xml
+        path: ./tests/TestResults/**/*.cobertura.xml
     
