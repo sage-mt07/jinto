@@ -11,7 +11,7 @@ namespace KsqlDsl.Query.Builders;
 /// JOIN句構築ビルダー - 本体実装版
 /// 設計理由：旧KsqlJoinBuilderへの中継を排除し、直接実装に移行
 /// </summary>
-public class JoinBuilder : IKsqlBuilder
+internal class JoinBuilder : IKsqlBuilder
 {
     public KsqlBuilderType BuilderType => KsqlBuilderType.Join;
 

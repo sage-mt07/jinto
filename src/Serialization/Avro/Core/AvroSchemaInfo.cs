@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace KsqlDsl.Serialization.Avro.Core
 {
-    public class AvroSchemaInfo
+    internal class AvroSchemaInfo
     {
         public Type EntityType { get; set; } = null!;
         public string TopicName { get; set; } = string.Empty;

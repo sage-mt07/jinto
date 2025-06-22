@@ -4,7 +4,7 @@ namespace KsqlDsl.Serialization.Avro.Core;
 
 
 
-public class AvroSchema
+internal class AvroSchema
 {
     public string Type { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;

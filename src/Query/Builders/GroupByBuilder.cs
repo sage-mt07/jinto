@@ -10,7 +10,7 @@ namespace KsqlDsl.Query.Builders;
 /// GROUP BY句構築ビルダー - 本体実装版
 /// 設計理由：旧KsqlGroupByBuilderへの中継を排除し、直接実装に移行
 /// </summary>
-public class GroupByBuilder : IKsqlBuilder
+internal class GroupByBuilder : IKsqlBuilder
 {
     public KsqlBuilderType BuilderType => KsqlBuilderType.GroupBy;
 

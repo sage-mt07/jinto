@@ -9,7 +9,7 @@ namespace KsqlDsl.Messaging.Producers.Core;
 /// <summary>
 /// プールされたProducer
 /// </summary>
-public class PooledProducer
+internal class PooledProducer
 {
     public IProducer<object, object> Producer { get; set; } = default!;
     public DateTime CreatedAt { get; set; }

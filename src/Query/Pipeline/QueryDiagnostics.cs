@@ -10,7 +10,7 @@ namespace KsqlDsl.Query.Pipeline;
 /// クエリ診断・デバッグ情報管理 - QueryExecutionPipeline用
 /// 設計理由：新アーキテクチャでの診断機能提供、既存QueryDiagnosticsを置き換え
 /// </summary>
-public class QueryDiagnostics
+internal class QueryDiagnostics
 {
     private readonly List<string> _analysisSteps = new();
     private readonly Dictionary<string, object> _metadata = new();

@@ -12,7 +12,7 @@ namespace KsqlDsl.Query.Pipeline
     /// IKsqlBuilder互換性：既存Builderクラスを内部で活用
     /// </summary>
 
-    public class DMLQueryGenerator : IDMLQueryGenerator
+    internal class DMLQueryGenerator : IDMLQueryGenerator
     {
         private readonly IKsqlBuilder _whereBuilder;
         private readonly IKsqlBuilder _projectionBuilder;

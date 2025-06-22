@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace KsqlDsl.Query.Pipeline
 {
-    public enum DerivedObjectType
+    internal enum DerivedObjectType
     {
         Stream,
         Table

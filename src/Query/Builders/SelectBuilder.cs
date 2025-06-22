@@ -10,7 +10,7 @@ namespace KsqlDsl.Query.Builders;
 /// WHERE句構築ビルダー - 本体実装版
 /// 設計理由：旧KsqlConditionBuilderへの中継を排除し、直接実装に移行
 /// </summary>
-public class SelectBuilder : IKsqlBuilder
+internal class SelectBuilder : IKsqlBuilder
 {
     public KsqlBuilderType BuilderType => KsqlBuilderType.Where;
 

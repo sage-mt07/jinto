@@ -7,7 +7,7 @@ namespace KsqlDsl.Messaging.Consumers.Core;
 /// <summary>
 /// プールされたConsumer
 /// </summary>
-public class PooledConsumer
+internal class PooledConsumer
 {
     public IConsumer<object, object> Consumer { get; set; } = default!;
     public DateTime CreatedAt { get; set; }

@@ -2,7 +2,7 @@
 
 namespace KsqlDsl.Core.Configuration;
 
-public class CoreSettings
+internal class CoreSettings
 {
     public ValidationMode ValidationMode { get; set; } = ValidationMode.Strict;
 

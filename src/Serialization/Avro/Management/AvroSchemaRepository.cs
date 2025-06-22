@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace KsqlDsl.Serialization.Avro.Management
 {
-    public class AvroSchemaRepository : IAvroSchemaRepository
+    internal class AvroSchemaRepository : IAvroSchemaRepository
     {
         private readonly ConcurrentDictionary<Type, AvroSchemaInfo> _schemasByType = new();
         private readonly ConcurrentDictionary<string, AvroSchemaInfo> _schemasByTopic = new();

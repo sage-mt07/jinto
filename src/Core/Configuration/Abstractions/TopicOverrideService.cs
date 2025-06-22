@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace KsqlDsl.Core.Configuration.Abstractions
 {
-    public class TopicOverrideService
+    internal class TopicOverrideService
     {
         private readonly Dictionary<string, string> _overrides = new();
 

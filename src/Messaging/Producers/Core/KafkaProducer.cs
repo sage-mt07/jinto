@@ -18,7 +18,7 @@ namespace KsqlDsl.Messaging.Producers.Core
     /// 統合型安全Producer - TypedKafkaProducer + KafkaProducer統合版
     /// 設計理由: Pool削除、Confluent.Kafka完全委譲、シンプル化
     /// </summary>
-    public class KafkaProducer<T> : IKafkaProducer<T> where T : class
+    internal class KafkaProducer<T> : IKafkaProducer<T> where T : class
     {
         private readonly IProducer<object, object> _producer;
         private readonly ISerializer<object> _keySerializer;

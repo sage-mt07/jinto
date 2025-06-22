@@ -18,7 +18,7 @@ namespace KsqlDsl.Messaging.Consumers.Core
     /// 統合型安全Consumer - TypedKafkaConsumer + KafkaConsumer統合版
     /// 設計理由: Pool削除、Confluent.Kafka完全委譲、シンプル化
     /// </summary>
-    public class KafkaConsumer<TValue, TKey> : IKafkaConsumer<TValue, TKey>
+    internal class KafkaConsumer<TValue, TKey> : IKafkaConsumer<TValue, TKey>
         where TValue : class
         where TKey : notnull
     {

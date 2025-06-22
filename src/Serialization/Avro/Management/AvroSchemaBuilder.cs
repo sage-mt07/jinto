@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace KsqlDsl.Serialization.Avro.Management
 {
-    public class AvroSchemaBuilder : IAvroSchemaProvider
+    internal class AvroSchemaBuilder : IAvroSchemaProvider
     {
         public Task<string> GetKeySchemaAsync<T>() where T : class
         {
