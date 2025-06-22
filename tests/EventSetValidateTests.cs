@@ -1,5 +1,6 @@
 using KsqlDsl.Core.Abstractions;
 using System;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace KsqlDsl.Tests;
