@@ -1,5 +1,6 @@
 using KsqlDsl.Core.Abstractions;
 using KsqlDsl.Core.Modeling;
+using KsqlDsl.Core.Extensions;
 using System;
 using System.Linq;
 using Xunit;

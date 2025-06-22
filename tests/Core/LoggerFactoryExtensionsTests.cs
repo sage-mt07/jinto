@@ -27,7 +27,7 @@ public class LoggerFactoryExtensionsTests
     [Fact]
     public void LogMethods_WithAndWithoutFactory()
     {
-        using var factory = LoggerFactory.Create(builder => builder.AddProvider(new NullLoggerProvider()));
+        using var factory = LoggerFactory.Create(builder => builder.AddProvider(NullLoggerProvider.Instance));
         var logger = factory.CreateLogger<LoggerFactoryExtensionsTests>();
         logger.LogDebugWithLegacySupport(factory, false, "d");
         logger.LogInformationWithLegacySupport(factory, false, "i");
