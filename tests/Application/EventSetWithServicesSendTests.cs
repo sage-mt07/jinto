@@ -1,6 +1,11 @@
 using KsqlDsl;
 using KsqlDsl.Core.Abstractions;
 using KsqlDsl.Core.Context;
+using KsqlDsl.Messaging.Abstractions;
+using KsqlDsl.Messaging.Producers.Core;
+using KsqlDsl.Configuration;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System;
 using System.Reflection;
 using System.Threading;
@@ -11,11 +16,22 @@ namespace KsqlDsl.Tests.Application;
 
 public class EventSetWithServicesSendTests
 {
-    private class StubProducerManager : IDisposable
+    private class StubProducer<T> : IKafkaProducer<T> where T : class
     {
-        public bool Sent; public bool Disposed;
-        public Task SendAsync<T>(T entity, CancellationToken ct = default) where T : class { Sent = true; return Task.CompletedTask; }
-        public void Dispose() { Disposed = true; }
+        public bool Sent;
+        public string TopicName => "t";
+        public Task<KafkaDeliveryResult> SendAsync(T message, KafkaMessageContext? context = null, CancellationToken cancellationToken = default)
+        {
+            Sent = true;
+            return Task.FromResult(new KafkaDeliveryResult());
+        }
+        public Task<KafkaBatchDeliveryResult> SendBatchAsync(IEnumerable<T> messages, KafkaMessageContext? context = null, CancellationToken cancellationToken = default)
+        {
+            Sent = true;
+            return Task.FromResult(new KafkaBatchDeliveryResult());
+        }
+        public Task FlushAsync(TimeSpan timeout) => Task.CompletedTask;
+        public void Dispose() { }
     }
 
     private class TestContext : KafkaContext
@@ -41,8 +57,17 @@ public class EventSetWithServicesSendTests
     public async Task SendEntityAsync_UsesProducerManager()
     {
         var ctx = new TestContext();
-        var stub = new StubProducerManager();
-        ctx.SetProducer(stub);
+        var manager = new KafkaProducerManager(
+            Microsoft.Extensions.Options.Options.Create(new KsqlDslOptions()),
+            null);
+        ctx.SetProducer(manager);
+
+        var stub = new StubProducer<Sample>();
+        var dict = (System.Collections.Concurrent.ConcurrentDictionary<Type, object>)
+            typeof(KafkaProducerManager).GetField("_producers", BindingFlags.NonPublic | BindingFlags.Instance)!
+                .GetValue(manager)!;
+        dict[typeof(Sample)] = stub;
+
         var set = new EventSetWithServices<Sample>(ctx, CreateModel());
         await PrivateAccessor.InvokePrivate<Task>(set, "SendEntityAsync", new[] { typeof(Sample), typeof(CancellationToken) }, args: new object?[] { new Sample(), CancellationToken.None });
         Assert.True(stub.Sent);
