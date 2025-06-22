@@ -1,11 +1,9 @@
 ﻿using System;
 
-namespace KsqlDsl.Core.Abstractions
+namespace KsqlDsl.Core.Abstractions;
+[AttributeUsage(AttributeTargets.Class)]
+public class KsqlTableAttribute : Attribute
 {
-    [AttributeUsage(AttributeTargets.Class)]
-    public class KsqlTableAttribute : Attribute
-    {
-        public string? TableName { get; set; }
-        public int? Partitions { get; set; }
-    }
+    public string? TableName { get; set; }
+    public int? Partitions { get; set; }
 }

@@ -1,12 +1,10 @@
 ﻿using System.Threading.Tasks;
 
-namespace KsqlDsl.Serialization.Avro.Management
+namespace KsqlDsl.Serialization.Avro.Management;
+public interface IAvroSchemaProvider
 {
-    public interface IAvroSchemaProvider
-    {
-        Task<string> GetKeySchemaAsync<T>() where T : class;
-        Task<string> GetValueSchemaAsync<T>() where T : class;
-        Task<(string keySchema, string valueSchema)> GetSchemasAsync<T>() where T : class;
-        Task<bool> ValidateSchemaAsync(string schema);
-    }
+    Task<string> GetKeySchemaAsync<T>() where T : class;
+    Task<string> GetValueSchemaAsync<T>() where T : class;
+    Task<(string keySchema, string valueSchema)> GetSchemasAsync<T>() where T : class;
+    Task<bool> ValidateSchemaAsync(string schema);
 }
