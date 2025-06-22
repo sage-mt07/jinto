@@ -24,6 +24,28 @@ public class KafkaProducerManagerTests
     private static T InvokePrivate<T>(object obj, string name, params object[]? args)
     {
         var method = obj.GetType().GetMethod(name, BindingFlags.Instance | BindingFlags.NonPublic)!;
+
+        if (method.ContainsGenericParameters)
+        {
+            var genericArgs = new List<Type>();
+            var invokeArgs = new List<object?>();
+
+            foreach (var arg in args ?? Array.Empty<object?>())
+            {
+                if (arg is Type type && genericArgs.Count < method.GetGenericArguments().Length)
+                {
+                    genericArgs.Add(type);
+                }
+                else
+                {
+                    invokeArgs.Add(arg);
+                }
+            }
+
+            method = method.MakeGenericMethod(genericArgs.ToArray());
+            args = invokeArgs.ToArray();
+        }
+
         return (T)method.Invoke(obj, args)!;
     }
 
