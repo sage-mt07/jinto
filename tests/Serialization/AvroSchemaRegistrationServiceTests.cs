@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
+using ConfluentClient = Confluent.SchemaRegistry.ISchemaRegistryClient;
+using KsqlAbstractionClient = KsqlDsl.Serialization.Abstractions.ISchemaRegistryClient;
 using Confluent.SchemaRegistry;
 using KsqlDsl.Core.Abstractions;
 using KsqlDsl.Serialization.Abstractions;
@@ -22,7 +24,7 @@ public class AvroSchemaRegistrationServiceTests
 
     private static (AvroSchemaRegistrationService svc, FakeSchemaRegistryClient fake) CreateService()
     {
-        var proxy = DispatchProxy.Create<ISchemaRegistryClient, FakeSchemaRegistryClient>();
+        var proxy = DispatchProxy.Create<ConfluentClient, FakeSchemaRegistryClient>();
         var fake = (FakeSchemaRegistryClient)proxy!;
         var svc = new AvroSchemaRegistrationService(proxy, new NullLoggerFactory());
         return (svc, fake);
