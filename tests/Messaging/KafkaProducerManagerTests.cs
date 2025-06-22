@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.Serialization;
+using System.Linq;
 using Confluent.Kafka;
 using KsqlDsl.Configuration;
 using KsqlDsl.Messaging.Configuration;
@@ -24,6 +25,14 @@ public class KafkaProducerManagerTests
     private static T InvokePrivate<T>(object obj, string name, params object[]? args)
     {
         var method = obj.GetType().GetMethod(name, BindingFlags.Instance | BindingFlags.NonPublic)!;
+
+        if (method.IsGenericMethodDefinition)
+        {
+            var genericType = (Type)args![0];
+            method = method.MakeGenericMethod(genericType);
+            args = args.Skip(1).ToArray();
+        }
+
         return (T)method.Invoke(obj, args)!;
     }
 
