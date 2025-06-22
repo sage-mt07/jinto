@@ -46,7 +46,7 @@ public class CoreExceptionsTests
     {
         var ex1 = new EntityModelException(typeof(string), "bad");
         Assert.Equal(typeof(string), ex1.EntityType);
-        Assert.Contains("string", ex1.Message);
+        Assert.Contains("String", ex1.Message);
         var inner = new Exception("i");
         var ex2 = new EntityModelException(typeof(int), "x", inner);
         Assert.Equal(inner, ex2.InnerException);

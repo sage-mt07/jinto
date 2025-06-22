@@ -16,7 +16,7 @@ public class ConsumerInstanceTests
             RentedAt = System.DateTime.UtcNow,
             IsActive = true
         };
-        Assert.Equal("string:t:g", inst.ConsumerKey.ToString());
+        Assert.Equal("String:t:g", inst.ConsumerKey.ToString());
         Assert.NotNull(inst.PooledConsumer);
         Assert.True(inst.IsActive);
         Assert.True(inst.RentedAt <= System.DateTime.UtcNow);
