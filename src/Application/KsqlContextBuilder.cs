@@ -65,6 +65,22 @@ public class KsqlContextBuilder
     public T BuildContext<T>() where T : KafkaContext
     {
         var options = Build();
+
+        // Prefer constructor with KsqlContextOptions if available
+        var ctor = typeof(T).GetConstructor(new[] { typeof(KsqlContextOptions) });
+        if (ctor != null)
+        {
+            return (T)ctor.Invoke(new object[] { options });
+        }
+
+        // Fallback to parameterless constructor
+        ctor = typeof(T).GetConstructor(Type.EmptyTypes);
+        if (ctor != null)
+        {
+            return (T)ctor.Invoke(null);
+        }
+
+        // Last resort: try original Activator (may throw)
         return (T)Activator.CreateInstance(typeof(T), options)!;
     }
 }

@@ -287,7 +287,10 @@ internal class KsqlDbRestApiClient : IDisposable
         return element.ValueKind switch
         {
             JsonValueKind.String => element.GetString() ?? "",
-            JsonValueKind.Number => element.TryGetInt64(out var longVal) ? longVal : element.GetDouble(),
+            JsonValueKind.Number =>
+                element.TryGetInt32(out var intVal) ? intVal :
+                element.TryGetInt64(out var longVal) ? longVal :
+                element.GetDouble(),
             JsonValueKind.True => true,
             JsonValueKind.False => false,
             JsonValueKind.Null => null!,
