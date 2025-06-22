@@ -62,4 +62,55 @@ public class SchemaRegistryTests
         Assert.Contains("CREATE STREAM", executor.DdlQueries.First());
         Assert.True(registry.IsRegistered(typeof(StreamEntity)));
     }
+    [Fact]
+    public async Task UnregisterSchemaAsync_RemovesRegistration()
+    {
+        var executor = new FakeExecutor();
+        var ddl = new DDLQueryGenerator(new NullLoggerFactory());
+        var registry = new SchemaRegistry(executor, ddl, new NullLoggerFactory());
+        var model = new EntityModel { EntityType = typeof(TestEntity), AllProperties = typeof(TestEntity).GetProperties() };
+        await registry.RegisterSchemaAsync<TestEntity>(model);
+        await registry.UnregisterSchemaAsync<TestEntity>();
+        Assert.False(registry.IsRegistered(typeof(TestEntity)));
+        Assert.Equal(2, executor.DdlQueries.Count);
+    }
+
+    [Fact]
+    public async Task UnregisterAllSchemasAsync_RemovesAll()
+    {
+        var executor = new FakeExecutor();
+        var ddl = new DDLQueryGenerator(new NullLoggerFactory());
+        var registry = new SchemaRegistry(executor, ddl, new NullLoggerFactory());
+        var model = new EntityModel { EntityType = typeof(TestEntity), AllProperties = typeof(TestEntity).GetProperties() };
+        await registry.RegisterSchemaAsync<TestEntity>(model);
+        await registry.RegisterSchemaAsync<StreamEntity>(new EntityModel { EntityType = typeof(StreamEntity), AllProperties = typeof(StreamEntity).GetProperties() });
+        await registry.UnregisterAllSchemasAsync();
+        Assert.False(registry.IsRegistered(typeof(TestEntity)));
+        Assert.False(registry.IsRegistered(typeof(StreamEntity)));
+        Assert.Equal(4, executor.DdlQueries.Count);
+    }
+
+    [Fact]
+    public async Task Dispose_CallsCleanup()
+    {
+        var executor = new FakeExecutor();
+        var ddl = new DDLQueryGenerator(new NullLoggerFactory());
+        var registry = new SchemaRegistry(executor, ddl, new NullLoggerFactory());
+        var model = new EntityModel { EntityType = typeof(TestEntity), AllProperties = typeof(TestEntity).GetProperties() };
+        await registry.RegisterSchemaAsync<TestEntity>(model);
+        registry.Dispose();
+        Assert.Empty(registry.GetType().GetField("_registeredSchemas", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!.GetValue(registry) as System.Collections.IDictionary);
+    }
+
+    [Fact]
+    public async Task GetObjectName_ReturnsName()
+    {
+        var executor = new FakeExecutor();
+        var ddl = new DDLQueryGenerator(new NullLoggerFactory());
+        var registry = new SchemaRegistry(executor, ddl, new NullLoggerFactory());
+        var model = new EntityModel { EntityType = typeof(TestEntity), AllProperties = typeof(TestEntity).GetProperties() };
+        await registry.RegisterSchemaAsync<TestEntity>(model);
+        var name = registry.GetObjectName<TestEntity>();
+        Assert.Equal("testentity_base", name);
+    }
 }

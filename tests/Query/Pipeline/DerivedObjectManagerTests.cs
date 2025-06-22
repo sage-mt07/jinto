@@ -51,4 +51,46 @@ public class DerivedObjectManagerTests
         await manager.CleanupDerivedObjectsAsync();
         Assert.Empty(manager.GetType().GetField("_derivedObjects", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!.GetValue(manager) as System.Collections.IDictionary);
     }
+    [Fact]
+    public async Task CreateDerivedStreamAsync_AddsObject()
+    {
+        var executor = new FakeExecutor();
+        var ddl = new DDLQueryGenerator(new NullLoggerFactory());
+        var analyzer = new StreamTableAnalyzer(new NullLoggerFactory());
+        var manager = new DerivedObjectManager(executor, ddl, analyzer, new NullLoggerFactory());
+        IQueryable<TestEntity> src = new List<TestEntity>().AsQueryable();
+        var name = await manager.CreateDerivedStreamAsync("Base", src.Expression);
+        Assert.Single(executor.ExecutedQueries);
+        Assert.Contains("CREATE STREAM", executor.ExecutedQueries[0]);
+        Assert.False(string.IsNullOrEmpty(name));
+    }
+
+    [Fact]
+    public async Task CreateDerivedTableAsync_AddsObject()
+    {
+        var executor = new FakeExecutor();
+        var ddl = new DDLQueryGenerator(new NullLoggerFactory());
+        var analyzer = new StreamTableAnalyzer(new NullLoggerFactory());
+        var manager = new DerivedObjectManager(executor, ddl, analyzer, new NullLoggerFactory());
+        IQueryable<TestEntity> src = new List<TestEntity>().AsQueryable();
+        var name = await manager.CreateDerivedTableAsync("Base", src.Expression);
+        Assert.Single(executor.ExecutedQueries);
+        Assert.Contains("CREATE TABLE", executor.ExecutedQueries[0]);
+        Assert.False(string.IsNullOrEmpty(name));
+    }
+
+    [Fact]
+    public void CleanupDerivedObjects_Synchronous()
+    {
+        var executor = new FakeExecutor();
+        var ddl = new DDLQueryGenerator(new NullLoggerFactory());
+        var analyzer = new StreamTableAnalyzer(new NullLoggerFactory());
+        var manager = new DerivedObjectManager(executor, ddl, analyzer, new NullLoggerFactory());
+        IQueryable<TestEntity> src = new List<TestEntity>().AsQueryable();
+        manager.CreateDerivedStream("Base", src.Expression);
+        manager.CreateDerivedTable("Base", src.Expression);
+        manager.CleanupDerivedObjects();
+        var dict = manager.GetType().GetField("_derivedObjects", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!.GetValue(manager) as System.Collections.IDictionary;
+        Assert.Empty(dict!);
+    }
 }
