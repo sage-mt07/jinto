@@ -15,8 +15,8 @@ public class SchemaRegistryClientWrapperTests
         public bool Disposed { get; private set; }
         public List<string> RegisterSubjects { get; } = new();
         public List<string> CompatibilitySubjects { get; } = new();
-        public Func<IList<string>> SubjectsProvider { get; set; } = () => new List<string>();
-        public Func<IList<int>> VersionsProvider { get; set; } = () => new List<int>();
+        public Func<List<string>> SubjectsProvider { get; set; } = () => new List<string>();
+        public Func<List<int>> VersionsProvider { get; set; } = () => new List<int>();
         public Func<int> RegisterReturn { get; set; } = () => 1;
         public Func<bool> CompatibleReturn { get; set; } = () => true;
 
