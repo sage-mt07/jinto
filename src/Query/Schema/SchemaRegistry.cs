@@ -18,7 +18,8 @@ internal class SchemaRegistry : IDisposable
 {
     private readonly DDLQueryGenerator _ddlGenerator;
     private readonly KsqlDbExecutor _executor;
-    private readonly ConcurrentDictionary<Type, string> _registeredSchemas;
+    private readonly record struct RegisteredSchemaInfo(string ObjectName, KsqlDsl.Query.Abstractions.StreamTableType ObjectType);
+    private readonly ConcurrentDictionary<Type, RegisteredSchemaInfo> _registeredSchemas;
     private readonly ILogger _logger;
     private bool _disposed = false;
 
@@ -26,7 +27,7 @@ internal class SchemaRegistry : IDisposable
     {
         _executor = executor ?? throw new ArgumentNullException(nameof(executor));
         _ddlGenerator = ddlGenerator ?? throw new ArgumentNullException(nameof(ddlGenerator));
-        _registeredSchemas = new ConcurrentDictionary<Type, string>();
+        _registeredSchemas = new ConcurrentDictionary<Type, RegisteredSchemaInfo>();
         _logger = loggerFactory.CreateLoggerOrNull<SchemaRegistry>();
     }
 
@@ -63,7 +64,7 @@ internal class SchemaRegistry : IDisposable
         try
         {
             await _executor.ExecuteDDLAsync(createQuery);
-            _registeredSchemas.TryAdd(entityType, objectName);
+            _registeredSchemas.TryAdd(entityType, new RegisteredSchemaInfo(objectName, streamTableType));
 
             _logger.LogInformation("Successfully registered schema for {EntityType} as {ObjectName}",
                 entityType.Name, objectName);
@@ -79,10 +80,10 @@ internal class SchemaRegistry : IDisposable
     {
         var entityType = typeof(T);
 
-        if (_registeredSchemas.TryGetValue(entityType, out var name))
+        if (_registeredSchemas.TryGetValue(entityType, out var info))
         {
-            _logger.LogDebug("Retrieved object name for {EntityType}: {ObjectName}", entityType.Name, name);
-            return name;
+            _logger.LogDebug("Retrieved object name for {EntityType}: {ObjectName}", entityType.Name, info.ObjectName);
+            return info.ObjectName;
         }
 
         _logger.LogError("Schema not registered for {EntityType}", entityType.Name);
@@ -91,10 +92,10 @@ internal class SchemaRegistry : IDisposable
 
     public string GetObjectName(Type entityType)
     {
-        if (_registeredSchemas.TryGetValue(entityType, out var name))
+        if (_registeredSchemas.TryGetValue(entityType, out var info))
         {
-            _logger.LogDebug("Retrieved object name for {EntityType}: {ObjectName}", entityType.Name, name);
-            return name;
+            _logger.LogDebug("Retrieved object name for {EntityType}: {ObjectName}", entityType.Name, info.ObjectName);
+            return info.ObjectName;
         }
 
         _logger.LogError("Schema not registered for {EntityType}", entityType.Name);
@@ -122,22 +123,21 @@ internal class SchemaRegistry : IDisposable
     {
         var entityType = typeof(T);
 
-        if (!_registeredSchemas.TryRemove(entityType, out var objectName))
+        if (!_registeredSchemas.TryRemove(entityType, out var info))
         {
             _logger.LogWarning("Attempted to unregister non-existent schema for {EntityType}", entityType.Name);
             return;
         }
 
+        var objectName = info.ObjectName;
+        var objectType = info.ObjectType;
         _logger.LogDebug("Unregistering schema for {EntityType}: {ObjectName}", entityType.Name, objectName);
 
         try
         {
-            // Determine object type for DROP statement
-            var dropQuery = $"DROP STREAM IF EXISTS {objectName}";
-            await _executor.ExecuteDDLAsync(dropQuery);
-
-            // Also try TABLE in case it was registered as a table
-            dropQuery = $"DROP TABLE IF EXISTS {objectName}";
+            string dropQuery = objectType == KsqlDsl.Query.Abstractions.StreamTableType.Stream
+                ? $"DROP STREAM IF EXISTS {objectName}"
+                : $"DROP TABLE IF EXISTS {objectName}";
             await _executor.ExecuteDDLAsync(dropQuery);
 
             _logger.LogInformation("Successfully unregistered schema for {EntityType}: {ObjectName}",
@@ -148,7 +148,7 @@ internal class SchemaRegistry : IDisposable
             _logger.LogError(ex, "Failed to unregister schema for {EntityType}: {ObjectName}",
                 entityType.Name, objectName);
             // Re-add to registry if drop failed
-            _registeredSchemas.TryAdd(entityType, objectName);
+            _registeredSchemas.TryAdd(entityType, info);
             throw;
         }
     }
@@ -162,9 +162,9 @@ internal class SchemaRegistry : IDisposable
         foreach (var kvp in _registeredSchemas)
         {
             var entityType = kvp.Key;
-            var objectName = kvp.Value;
+            var info = kvp.Value;
 
-            tasks.Add(UnregisterSchemaInternalAsync(entityType, objectName));
+            tasks.Add(UnregisterSchemaInternalAsync(entityType, info));
         }
 
         try
@@ -181,15 +181,17 @@ internal class SchemaRegistry : IDisposable
         }
     }
 
-    private async Task UnregisterSchemaInternalAsync(Type entityType, string objectName)
+    private async Task UnregisterSchemaInternalAsync(Type entityType, RegisteredSchemaInfo info)
     {
+        var objectName = info.ObjectName;
+        var objectType = info.ObjectType;
         try
         {
-            var dropStreamQuery = $"DROP STREAM IF EXISTS {objectName}";
-            await _executor.ExecuteDDLAsync(dropStreamQuery);
+            string dropQuery = objectType == KsqlDsl.Query.Abstractions.StreamTableType.Stream
+                ? $"DROP STREAM IF EXISTS {objectName}"
+                : $"DROP TABLE IF EXISTS {objectName}";
 
-            var dropTableQuery = $"DROP TABLE IF EXISTS {objectName}";
-            await _executor.ExecuteDDLAsync(dropTableQuery);
+            await _executor.ExecuteDDLAsync(dropQuery);
 
             _logger.LogDebug("Unregistered schema for {EntityType}: {ObjectName}", entityType.Name, objectName);
         }
