@@ -11,6 +11,7 @@ using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -180,19 +181,21 @@ internal class KafkaProducerManager : IDisposable
             config.BasicAuthCredentialsSource = (ConfluentSchemaRegistry.AuthCredentialsSource)_options.SchemaRegistry.BasicAuthCredentialsSource;
         }
 
-        // SSL設定
-        if (!string.IsNullOrEmpty(_options.SchemaRegistry.SslCaLocation))
+        // SSL設定 - テスト環境で実在しないパスが指定されても例外にならないよう存在確認を行う
+        if (!string.IsNullOrEmpty(_options.SchemaRegistry.SslCaLocation)
+            && File.Exists(_options.SchemaRegistry.SslCaLocation))
         {
             config.SslCaLocation = _options.SchemaRegistry.SslCaLocation;
 
-            if (!string.IsNullOrEmpty(_options.SchemaRegistry.SslKeystoreLocation))
+            if (!string.IsNullOrEmpty(_options.SchemaRegistry.SslKeystoreLocation)
+                && File.Exists(_options.SchemaRegistry.SslKeystoreLocation))
             {
                 config.SslKeystoreLocation = _options.SchemaRegistry.SslKeystoreLocation;
-            }
 
-            if (!string.IsNullOrEmpty(_options.SchemaRegistry.SslKeystorePassword))
-            {
-                config.SslKeystorePassword = _options.SchemaRegistry.SslKeystorePassword;
+                if (!string.IsNullOrEmpty(_options.SchemaRegistry.SslKeystorePassword))
+                {
+                    config.SslKeystorePassword = _options.SchemaRegistry.SslKeystorePassword;
+                }
             }
         }
 

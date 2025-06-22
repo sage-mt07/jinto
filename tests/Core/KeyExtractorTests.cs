@@ -81,6 +81,28 @@ public class KeyExtractorTests
     }
 
     [Fact]
+    public void KeyToString_WithNull_ReturnsEmpty()
+    {
+        var result = KeyExtractor.KeyToString(null!);
+        Assert.Equal(string.Empty, result);
+    }
+
+    [Fact]
+    public void KeyToString_WithString_ReturnsSameString()
+    {
+        var result = KeyExtractor.KeyToString("abc");
+        Assert.Equal("abc", result);
+    }
+
+    [Fact]
+    public void KeyToString_WithObject_UsesToString()
+    {
+        var obj = new { X = 1 };
+        var result = KeyExtractor.KeyToString(obj);
+        Assert.Contains("X = 1", result);
+    }
+
+    [Fact]
     public void IsSupportedKeyType_ReturnsExpectedResults()
     {
         Assert.True(KeyExtractor.IsSupportedKeyType(typeof(int)));
