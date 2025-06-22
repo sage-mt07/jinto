@@ -1,4 +1,5 @@
 using KsqlDsl.Application;
+using KsqlDsl.Core.Context;
 using Xunit;
 
 namespace KsqlDsl.Tests.Application;
