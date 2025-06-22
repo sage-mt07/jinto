@@ -18,7 +18,7 @@ public class KafkaContextExtraTests
         public IReadOnlyDictionary<Type, AvroEntityConfiguration> CallConvert(Dictionary<Type, EntityModel> models)
             => PrivateAccessor.InvokePrivate<IReadOnlyDictionary<Type, AvroEntityConfiguration>>(this,
                 "ConvertToAvroConfigurations",
-                new[] { typeof(Dictionary<Type, EntityModel>) },
+                new[] { models.GetType() },
                 args: new object?[] { models });
     }
 
