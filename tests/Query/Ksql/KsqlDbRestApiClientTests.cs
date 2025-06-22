@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
+using System; // For Func
 using System.Threading;
 using System.Threading.Tasks;
 using KsqlDsl.Query.Ksql;
