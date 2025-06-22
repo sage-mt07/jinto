@@ -54,6 +54,11 @@ public class JoinBuilderTests
         public object Value { get; }
     }
 
+    private class SettableHolder
+    {
+        public object? Value { get; set; }
+    }
+
     [Fact]
     public void FindJoinCall_ReturnsMethodCallFromNewExpression()
     {
@@ -75,6 +80,32 @@ public class JoinBuilderTests
         Expression<Func<object>> lambda = () => outer.Join(inner, o => o.Id, c => c.ParentId, (o, c) => new { o.Id });
         var builder = new JoinBuilder();
         var result = InvokePrivate<MethodCallExpression?>(builder, "FindJoinCall", new[] { typeof(Expression) }, null, lambda);
+        Assert.NotNull(result);
+    }
+
+    [Fact]
+    public void FindJoinCall_ReturnsMethodCallFromMemberInit()
+    {
+        IQueryable<TestEntity> outer = new List<TestEntity>().AsQueryable();
+        IQueryable<ChildEntity> inner = new List<ChildEntity>().AsQueryable();
+        var joinExpr = outer.Join(inner, o => o.Id, c => c.ParentId, (o, c) => new { o.Id }).Expression;
+        var memberInit = Expression.MemberInit(
+            Expression.New(typeof(SettableHolder)),
+            Expression.Bind(typeof(SettableHolder).GetProperty(nameof(SettableHolder.Value))!, joinExpr));
+        var builder = new JoinBuilder();
+        var result = InvokePrivate<MethodCallExpression?>(builder, "FindJoinCall", new[] { typeof(Expression) }, null, memberInit);
+        Assert.NotNull(result);
+    }
+
+    [Fact]
+    public void FindJoinCall_ReturnsMethodCallFromInvocation()
+    {
+        IQueryable<TestEntity> outer = new List<TestEntity>().AsQueryable();
+        IQueryable<ChildEntity> inner = new List<ChildEntity>().AsQueryable();
+        Expression<Func<object>> lambda = () => outer.Join(inner, o => o.Id, c => c.ParentId, (o, c) => new { o.Id });
+        var invoke = Expression.Invoke(lambda);
+        var builder = new JoinBuilder();
+        var result = InvokePrivate<MethodCallExpression?>(builder, "FindJoinCall", new[] { typeof(Expression) }, null, invoke);
         Assert.NotNull(result);
     }
 }
