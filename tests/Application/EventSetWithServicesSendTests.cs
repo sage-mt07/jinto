@@ -1,0 +1,75 @@
+using KsqlDsl;
+using KsqlDsl.Core.Abstractions;
+using KsqlDsl.Core.Context;
+using KsqlDsl.Messaging.Abstractions;
+using KsqlDsl.Messaging.Producers.Core;
+using KsqlDsl.Configuration;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System;
+using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
+using Xunit;
+
+namespace KsqlDsl.Tests.Application;
+
+public class EventSetWithServicesSendTests
+{
+    private class StubProducer<T> : IKafkaProducer<T> where T : class
+    {
+        public bool Sent;
+        public string TopicName => "t";
+        public Task<KafkaDeliveryResult> SendAsync(T message, KafkaMessageContext? context = null, CancellationToken cancellationToken = default)
+        {
+            Sent = true;
+            return Task.FromResult(new KafkaDeliveryResult());
+        }
+        public Task<KafkaBatchDeliveryResult> SendBatchAsync(IEnumerable<T> messages, KafkaMessageContext? context = null, CancellationToken cancellationToken = default)
+        {
+            Sent = true;
+            return Task.FromResult(new KafkaBatchDeliveryResult());
+        }
+        public Task FlushAsync(TimeSpan timeout) => Task.CompletedTask;
+        public void Dispose() { }
+    }
+
+    private class TestContext : KafkaContext
+    {
+        public TestContext() : base() { }
+        public void SetProducer(object manager)
+        {
+            typeof(KafkaContext).GetField("_producerManager", BindingFlags.NonPublic | BindingFlags.Instance)!.SetValue(this, manager);
+        }
+    }
+
+    private class Sample { public int Id { get; set; } }
+
+    private static EntityModel CreateModel() => new()
+    {
+        EntityType = typeof(Sample),
+        TopicAttribute = new TopicAttribute("t"),
+        AllProperties = typeof(Sample).GetProperties(),
+        KeyProperties = new[] { typeof(Sample).GetProperty(nameof(Sample.Id))! }
+    };
+
+    [Fact]
+    public async Task SendEntityAsync_UsesProducerManager()
+    {
+        var ctx = new TestContext();
+        var manager = new KafkaProducerManager(
+            Microsoft.Extensions.Options.Options.Create(new KsqlDslOptions()),
+            null);
+        ctx.SetProducer(manager);
+
+        var stub = new StubProducer<Sample>();
+        var dict = (System.Collections.Concurrent.ConcurrentDictionary<Type, object>)
+            typeof(KafkaProducerManager).GetField("_producers", BindingFlags.NonPublic | BindingFlags.Instance)!
+                .GetValue(manager)!;
+        dict[typeof(Sample)] = stub;
+
+        var set = new EventSetWithServices<Sample>(ctx, CreateModel());
+        await PrivateAccessor.InvokePrivate<Task>(set, "SendEntityAsync", new[] { typeof(Sample), typeof(CancellationToken) }, args: new object?[] { new Sample(), CancellationToken.None });
+        Assert.True(stub.Sent);
+    }
+}
