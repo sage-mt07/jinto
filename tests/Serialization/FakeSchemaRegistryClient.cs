@@ -30,8 +30,13 @@ internal class FakeSchemaRegistryClient : DispatchProxy
                 var subject = (string)args![0]!;
                 var version = (int)args[1]!;
                 var regType = typeof(Schema).Assembly.GetType("Confluent.SchemaRegistry.RegisteredSchema")!;
-                var obj = Activator.CreateInstance(regType, subject, version, RegisterReturn, SchemaString, SchemaType.Avro, null)!;
-                return Task.FromResult(obj);
+                var schemaVersion = version == -1 ? LatestVersion : version;
+                var obj = Activator.CreateInstance(regType, subject, schemaVersion, RegisterReturn, SchemaString, SchemaType.Avro, null)!;
+                var fromResult = typeof(Task)
+                    .GetMethod("FromResult")!
+                    .MakeGenericMethod(regType)
+                    .Invoke(null, new[] { obj });
+                return fromResult!;
             case nameof(IDisposable.Dispose):
                 return null;
         }
