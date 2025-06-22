@@ -21,10 +21,10 @@ public class AvroSchemaBuilderTests
     }
 
     [Fact]
-    public void ValidateSchemaAsync_InvalidSchema_ReturnsFalse()
+    public async Task ValidateSchemaAsync_InvalidSchema_ReturnsFalse()
     {
         var builder = new AvroSchemaBuilder();
-        var result = builder.ValidateSchemaAsync("{ invalid }").Result;
+        var result = await builder.ValidateSchemaAsync("{ invalid }");
         Assert.False(result);
     }
 }
