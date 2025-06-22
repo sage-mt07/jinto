@@ -1,5 +1,6 @@
 using Confluent.SchemaRegistry;
 using KsqlDsl.Configuration;
+using KsqlDsl.Messaging.Configuration;
 using KsqlDsl.Messaging.Producers;
 using Microsoft.Extensions.Options;
 using Xunit;
