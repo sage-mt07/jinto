@@ -73,8 +73,8 @@ public class KafkaProducerManagerExtraTests
         Assert.Equal("cert", config.SslCertificateLocation);
         Assert.Equal("key", config.SslKeyLocation);
         Assert.Equal("kp", config.SslKeyPassword);
-        Assert.True(config.TryGet("partitioner.class", out var part));
-        Assert.Equal("m", part);
+        var entries = (System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string, string>>)config;
+        Assert.True(System.Linq.Enumerable.Any(entries, kv => kv.Key == "partitioner.class" && kv.Value == "m"));
     }
 
     [Fact]
@@ -88,7 +88,7 @@ public class KafkaProducerManagerExtraTests
                 MaxCachedSchemas = 1,
                 RequestTimeoutMs = 5,
                 BasicAuthUserInfo = "x:y",
-                BasicAuthCredentialsSource = SchemaRegistryAuthCredentialsSource.UserInfo,
+                BasicAuthCredentialsSource = BasicAuthCredentialsSource.UserInfo,
                 SslCaLocation = "ca",
                 SslKeystoreLocation = "ks",
                 SslKeystorePassword = "pw",
