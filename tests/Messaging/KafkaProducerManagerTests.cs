@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.Serialization;
 using Confluent.Kafka;
+using Confluent.SchemaRegistry;
 using KsqlDsl.Configuration;
 using KsqlDsl.Messaging.Configuration;
 using KsqlDsl.Messaging.Producers;
@@ -15,6 +16,12 @@ namespace KsqlDsl.Tests.Messaging;
 
 public class KafkaProducerManagerTests
 {
+    private readonly ISchemaRegistryClient _dummyClient;
+
+    public KafkaProducerManagerTests()
+    {
+        _dummyClient = new CachedSchemaRegistryClient(new SchemaRegistryConfig { Url = "http://localhost" });
+    }
     private class SampleEntity
     {
         [KsqlDsl.Core.Abstractions.Key]
@@ -25,6 +32,15 @@ public class KafkaProducerManagerTests
     {
         var method = obj.GetType().GetMethod(name, BindingFlags.Instance | BindingFlags.NonPublic)!;
         return (T)method.Invoke(obj, args)!;
+    }
+
+    private KafkaProducerManager CreateManager(KsqlDslOptions options)
+    {
+        var manager = new KafkaProducerManager(Options.Create(options), new NullLoggerFactory());
+        typeof(KafkaProducerManager)
+            .GetField("_schemaRegistryClient", BindingFlags.Instance | BindingFlags.NonPublic)!
+            .SetValue(manager, new Lazy<ISchemaRegistryClient>(() => _dummyClient));
+        return manager;
     }
 
     [Fact]
@@ -50,7 +66,7 @@ public class KafkaProducerManagerTests
                 }
             }
         };
-        var manager = new KafkaProducerManager(Options.Create(options), new NullLoggerFactory());
+        var manager = CreateManager(options);
         var config = InvokePrivate<ProducerConfig>(manager, "BuildProducerConfig", "topic");
 
         Assert.Equal("server", config.BootstrapServers);
@@ -73,7 +89,7 @@ public class KafkaProducerManagerTests
         typeof(KafkaProducerManager).GetField("_loggerFactory", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(manager, new NullLoggerFactory());
         typeof(KafkaProducerManager).GetField("_serializationManagers", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(manager, new ConcurrentDictionary<Type, object>());
         typeof(KafkaProducerManager).GetField("_schemaRegistryClient", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(manager,
-            new Lazy<Confluent.SchemaRegistry.ISchemaRegistryClient>(() => null!));
+            new Lazy<ISchemaRegistryClient>(() => _dummyClient));
 
         var first = InvokePrivate<object>(manager, "GetOrCreateSerializationManager", typeof(SampleEntity));
         var second = InvokePrivate<object>(manager, "GetOrCreateSerializationManager", typeof(SampleEntity));
@@ -85,6 +101,8 @@ public class KafkaProducerManagerTests
     {
         var manager = (KafkaProducerManager)FormatterServices.GetUninitializedObject(typeof(KafkaProducerManager));
         typeof(KafkaProducerManager).GetField("_serializationManagers", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(manager, new ConcurrentDictionary<Type, object>());
+        typeof(KafkaProducerManager).GetField("_schemaRegistryClient", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(manager,
+            new Lazy<ISchemaRegistryClient>(() => _dummyClient));
         var model = InvokePrivate<KsqlDsl.Core.Abstractions.EntityModel>(manager, "GetEntityModel", typeof(SampleEntity));
         Assert.Equal(typeof(SampleEntity), model.EntityType);
         Assert.Single(model.KeyProperties);
