@@ -72,8 +72,10 @@ public class KafkaProducerManagerTests
         typeof(KafkaProducerManager).GetField("_options", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(manager, options);
         typeof(KafkaProducerManager).GetField("_loggerFactory", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(manager, new NullLoggerFactory());
         typeof(KafkaProducerManager).GetField("_serializationManagers", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(manager, new ConcurrentDictionary<Type, object>());
+        var dummyClient = (Confluent.SchemaRegistry.ISchemaRegistryClient)FormatterServices
+            .GetUninitializedObject(typeof(Confluent.SchemaRegistry.CachedSchemaRegistryClient));
         typeof(KafkaProducerManager).GetField("_schemaRegistryClient", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(manager,
-            new Lazy<Confluent.SchemaRegistry.ISchemaRegistryClient>(() => null!));
+            new Lazy<Confluent.SchemaRegistry.ISchemaRegistryClient>(() => dummyClient));
 
         var first = InvokePrivate<object>(manager, "GetOrCreateSerializationManager", typeof(SampleEntity));
         var second = InvokePrivate<object>(manager, "GetOrCreateSerializationManager", typeof(SampleEntity));
