@@ -12,11 +12,19 @@ internal static class PrivateAccessor
         Type[]? genericTypes = null,
         params object?[]? args)
     {
-        var type = target as Type ?? target.GetType();
+        var startType = target as Type ?? target.GetType();
+        var type = startType;
         var flags = BindingFlags.NonPublic | (target is Type ? BindingFlags.Static : BindingFlags.Instance);
-        var method = type.GetMethod(name, flags, binder: null, types: parameterTypes, modifiers: null);
+        MethodInfo? method = null;
+        while (type != null)
+        {
+            method = type.GetMethod(name, flags, binder: null, types: parameterTypes, modifiers: null);
+            if (method != null)
+                break;
+            type = type.BaseType;
+        }
         if (method == null)
-            throw new ArgumentException($"Method '{name}' with specified parameters not found on type '{type.FullName}'.");
+            throw new ArgumentException($"Method '{name}' with specified parameters not found on type '{startType.FullName}'.");
         if (genericTypes != null && method.IsGenericMethodDefinition)
         {
             method = method.MakeGenericMethod(genericTypes);
