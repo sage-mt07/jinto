@@ -11,7 +11,7 @@ internal class FakeSchemaRegistryClient : DispatchProxy
     public List<string> RegisterSubjects { get; } = new();
     public int RegisterReturn { get; set; } = 1;
     public bool CompatibilityResult { get; set; } = true;
-    public IList<int> VersionsResult { get; set; } = new List<int>();
+    public List<int> VersionsResult { get; set; } = new();
     public int LatestVersion { get; set; } = 1;
     public string SchemaString { get; set; } = "schema";
 
