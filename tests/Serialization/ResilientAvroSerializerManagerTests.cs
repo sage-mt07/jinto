@@ -1,6 +1,8 @@
 using System;
 using System.Reflection;
 using System.Runtime.Serialization;
+using System.Threading.Tasks;
+using Confluent.SchemaRegistry;
 using static KsqlDsl.Tests.PrivateAccessor;
 using Microsoft.Extensions.Logging.Abstractions;
 using KsqlDsl.Configuration.Options;
@@ -56,5 +58,52 @@ public class ResilientAvroSerializerManagerTests
         var delay2 = InvokePrivate<TimeSpan>(mgr, "CalculateDelay", new[] { typeof(AvroRetryPolicy), typeof(int) }, null, policy, 3);
         Assert.Equal(TimeSpan.FromMilliseconds(100), delay1);
         Assert.Equal(TimeSpan.FromMilliseconds(400), delay2);
+}
+
+    private static ResilientAvroSerializerManager CreateManager(FakeSchemaRegistryClient fake)
+    {
+        var options = new AvroOperationRetrySettings
+        {
+            SchemaRegistration = new AvroRetryPolicy { MaxAttempts = 1 },
+            SchemaRetrieval = new AvroRetryPolicy { MaxAttempts = 1 },
+            CompatibilityCheck = new AvroRetryPolicy { MaxAttempts = 1 }
+        };
+        var proxy = DispatchProxy.Create<ISchemaRegistryClient, FakeSchemaRegistryClient>();
+        var proxyFake = (FakeSchemaRegistryClient)proxy!;
+        // copy settings from provided fake
+        proxyFake.RegisterReturn = fake.RegisterReturn;
+        proxyFake.CompatibilityResult = fake.CompatibilityResult;
+        proxyFake.VersionsResult = fake.VersionsResult;
+        proxyFake.SchemaString = fake.SchemaString;
+        var mgr = new ResilientAvroSerializerManager(proxy, Microsoft.Extensions.Options.Options.Create(options), NullLogger<ResilientAvroSerializerManager>.Instance);
+        return mgr;
+    }
+
+    [Fact]
+    public async Task RegisterSchemaWithRetryAsync_ReturnsId()
+    {
+        var fake = new FakeSchemaRegistryClient { RegisterReturn = 42 };
+        var mgr = CreateManager(fake);
+        var id = await mgr.RegisterSchemaWithRetryAsync("s", "sc");
+        Assert.Equal(42, id);
+    }
+
+    [Fact]
+    public async Task GetSchemaWithRetryAsync_ReturnsInfo()
+    {
+        var fake = new FakeSchemaRegistryClient { RegisterReturn = 5, SchemaString = "abc" };
+        var mgr = CreateManager(fake);
+        var info = await mgr.GetSchemaWithRetryAsync("topic-value", 1);
+        Assert.Equal(5, info.ValueSchemaId);
+        Assert.Equal("abc", info.ValueSchema);
+    }
+
+    [Fact]
+    public async Task CheckCompatibilityWithRetryAsync_ReturnsValue()
+    {
+        var fake = new FakeSchemaRegistryClient { CompatibilityResult = false };
+        var mgr = CreateManager(fake);
+        var result = await mgr.CheckCompatibilityWithRetryAsync("s", "sc");
+        Assert.False(result);
     }
 }
