@@ -15,6 +15,15 @@ public class KsqlContextOptionsExtensionsTests
     }
 
     [Fact]
+    public void UseSchemaRegistry_WithConfig_ConfiguresClient()
+    {
+        var options = new KsqlContextOptions();
+        var config = new Confluent.SchemaRegistry.SchemaRegistryConfig { Url = "u" };
+        options.UseSchemaRegistry(config);
+        Assert.NotNull(options.SchemaRegistryClient);
+    }
+
+    [Fact]
     public void EnableLogging_SetsLoggerFactory()
     {
         var options = new KsqlContextOptions();
