@@ -29,14 +29,14 @@ internal class StreamTableAnalyzer
             },
             ["Select"] = new OperationCharacteristics
             {
-                ResultType =StreamTableType.Stream,
+                ResultType = StreamTableType.Stream,
                 RequiresDerivedObject = true,
                 CanChain = true,
                 DependsOnAggregation = true
             },
             ["GroupBy"] = new OperationCharacteristics
             {
-                ResultType =StreamTableType.Table,
+                ResultType = StreamTableType.Table,
                 RequiresDerivedObject = true,
                 CanChain = false,
                 IsAggregation = true
@@ -49,7 +49,7 @@ internal class StreamTableAnalyzer
             },
             ["Skip"] = new OperationCharacteristics
             {
-                ResultType =StreamTableType.Stream,
+                ResultType = StreamTableType.Stream,
                 RequiresDerivedObject = false,
                 CanChain = false
             }

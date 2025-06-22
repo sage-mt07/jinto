@@ -3,7 +3,6 @@ using KsqlDsl.Core.Abstractions;
 using KsqlDsl.Core.Extensions;
 using KsqlDsl.Core.Models;
 using KsqlDsl.Messaging.Abstractions;
-using KsqlDsl.Messaging.Producers.Core;
 using KsqlDsl.Messaging.Producers.Exception;
 using Microsoft.Extensions.Logging;
 using System;

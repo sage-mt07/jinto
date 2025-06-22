@@ -2,26 +2,14 @@
 // 重複削除、未実装参照削除、Monitoring初期化除去済み
 
 using KsqlDsl.Configuration;
-using KsqlDsl.Configuration.Abstractions;
 using KsqlDsl.Core.Abstractions;
 using KsqlDsl.Core.Context;
-using KsqlDsl.Core.Extensions;
-using KsqlDsl.Core.Modeling;
 using KsqlDsl.Messaging.Consumers;
-using KsqlDsl.Messaging.Producers;
 using KsqlDsl.Serialization.Abstractions;
-using KsqlDsl.Serialization.Avro.Abstractions;
-using KsqlDsl.Serialization.Avro.Cache;
-using KsqlDsl.Serialization.Avro.Core;
-using KsqlDsl.Serialization.Avro.Management;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using ConfluentSchemaRegistry = Confluent.SchemaRegistry;
 
 namespace KsqlDsl.Application;
 
@@ -75,7 +63,7 @@ public abstract class KafkaContext : KafkaContextCore
     internal KafkaProducerManager GetProducerManager() => _producerManager;
     internal KafkaConsumerManager GetConsumerManager() => _consumerManager;
 
- 
+
     private IReadOnlyDictionary<Type, AvroEntityConfiguration> ConvertToAvroConfigurations(
     Dictionary<Type, EntityModel> entityModels)
     {
@@ -149,5 +137,5 @@ internal class EventSetWithSimplifiedServices<T> : EventSet<T> where T : class
             throw new InvalidOperationException($"簡素化統合: Entity送信失敗 - {typeof(T).Name}", ex);
         }
     }
-   
+
 }

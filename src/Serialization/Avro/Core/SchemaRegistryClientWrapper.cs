@@ -1,5 +1,4 @@
-﻿using KsqlDsl.Serialization.Avro.Cache;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using ConfluentSchemaRegistry = Confluent.SchemaRegistry;
@@ -57,7 +56,7 @@ internal class SchemaRegistryClientWrapper : IDisposable
         return await _client.GetSubjectVersionsAsync(subject);
     }
 
-  
+
 
     public async Task<IList<string>> GetAllSubjectsAsync()
     {

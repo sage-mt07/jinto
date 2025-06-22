@@ -1,9 +1,9 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using KsqlDsl.Core.Extensions;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Concurrent;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
-using KsqlDsl.Core.Extensions;
 namespace KsqlDsl.Query.Pipeline;
 
 internal class DerivedObjectManager : IDerivedObjectManager

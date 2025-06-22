@@ -1,8 +1,8 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using KsqlDsl.Core.Extensions;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using KsqlDsl.Core.Extensions;
 namespace KsqlDsl.Query.Pipeline;
 public abstract class KsqlDbExecutor : IDisposable
 {

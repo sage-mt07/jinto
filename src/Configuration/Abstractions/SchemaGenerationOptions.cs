@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace KsqlDsl.Configuration.Abstractions;
+﻿namespace KsqlDsl.Configuration.Abstractions;
 public class SchemaGenerationOptions
 {
     public string? CustomName { get; set; }

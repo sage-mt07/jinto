@@ -11,7 +11,7 @@ internal static class CoreDependencyConfiguration
 {
     public static IServiceCollection AddKsqlDslCore(this IServiceCollection services)
     {
-    
+
         return services;
     }
 

@@ -1,12 +1,9 @@
-﻿using KsqlDsl.Application;
-using KsqlDsl.Serialization.Abstractions;
+﻿using KsqlDsl.Serialization.Abstractions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace KsqlDsl.Core.Modeling;
 public class AvroModelBuilder

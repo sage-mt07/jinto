@@ -171,7 +171,7 @@ internal class KafkaConsumer<TValue, TKey> : IKafkaConsumer<TValue, TKey>
         }
         catch (Exception ex)
         {
-            _logger?.LogError(ex, "Failed to seek to offset: {EntityType} -> {TopicPartitionOffset}", typeof(   TValue).Name, offset);
+            _logger?.LogError(ex, "Failed to seek to offset: {EntityType} -> {TopicPartitionOffset}", typeof(TValue).Name, offset);
             throw;
         }
     }

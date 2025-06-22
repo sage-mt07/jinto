@@ -16,7 +16,7 @@ internal class CoreSettings
 
     public void Validate()
     {
-       
+
     }
 
 

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace KsqlDsl.Core.Abstractions;
 
@@ -12,5 +11,5 @@ public class KafkaMessageContext
     public Dictionary<string, object> Headers { get; set; } = new();
     public Dictionary<string, object> Tags { get; set; } = new();
 
-   
+
 }

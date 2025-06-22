@@ -28,7 +28,7 @@ public interface IKafkaProducer<T> : IDisposable where T : class
     /// </summary>
     Task<KafkaBatchDeliveryResult> SendBatchAsync(IEnumerable<T> messages, KafkaMessageContext? context = null, CancellationToken cancellationToken = default);
 
- 
+
 
     /// <summary>
     /// 保留中メッセージのフラッシュ

@@ -1,10 +1,6 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Confluent.SchemaRegistry;
+using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Confluent.SchemaRegistry;
 namespace KsqlDsl.Application;
 public static class KsqlContextOptionsExtensions
 {

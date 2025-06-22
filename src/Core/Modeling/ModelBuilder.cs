@@ -1,10 +1,10 @@
 ﻿using KsqlDsl.Configuration;
 using KsqlDsl.Core.Abstractions;
+using KsqlDsl.Core.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using KsqlDsl.Core.Extensions;
 namespace KsqlDsl.Core.Modeling;
 internal class ModelBuilder
 {
