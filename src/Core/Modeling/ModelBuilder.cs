@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 namespace KsqlDsl.Core.Modeling;
-internal class ModelBuilder
+internal class ModelBuilder : IModelBuilder
 {
     private readonly Dictionary<Type, EntityModel> _entityModels = new();
     private readonly ValidationMode _validationMode;
