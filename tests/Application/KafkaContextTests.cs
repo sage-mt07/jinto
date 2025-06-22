@@ -1,6 +1,7 @@
 using KsqlDsl;
 using KsqlDsl.Core.Abstractions;
 using KsqlDsl.Core.Context;
+using KsqlDsl.Messaging.Consumers;
 using System;
 using Xunit;
 
