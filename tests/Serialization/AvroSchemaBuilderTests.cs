@@ -1,4 +1,5 @@
 using KsqlDsl.Serialization.Avro.Management;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace KsqlDsl.Tests.Serialization;
