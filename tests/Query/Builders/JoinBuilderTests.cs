@@ -46,3 +46,4 @@ public class JoinBuilderTests
         Assert.Throws<ArgumentNullException>(() => builder.Build(null!));
     }
 }
+
