@@ -1,5 +1,6 @@
 using System;
 using System.Reflection;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Confluent.SchemaRegistry;
 using KsqlDsl.Core.Abstractions;
@@ -68,7 +69,7 @@ public class AvroSchemaVersionManagerTests
     public async Task GetVersionHistoryAsync_ReturnsValues()
     {
         var (mgr, fake) = CreateManager();
-        fake.VersionsResult = new int[] { 1, 2 };
+        fake.VersionsResult = new List<int> { 1, 2 };
         var list = await mgr.GetVersionHistoryAsync<Sample>();
         Assert.Equal(2, list.Count);
     }
