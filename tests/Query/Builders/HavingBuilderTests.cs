@@ -3,6 +3,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using KsqlDsl.Query.Builders;
 using Xunit;
+using static KsqlDsl.Tests.PrivateAccessor;
 
 namespace KsqlDsl.Tests.Query.Builders;
 
@@ -31,5 +32,34 @@ public class HavingBuilderTests
     {
         var builder = new HavingBuilder();
         Assert.Throws<ArgumentNullException>(() => builder.Build(null!));
+    }
+
+    [Theory]
+    [InlineData("LATESTBYOFFSET", "LATEST_BY_OFFSET")]
+    [InlineData("EARLIESTBYOFFSET", "EARLIEST_BY_OFFSET")]
+    [InlineData("COLLECTLIST", "COLLECT_LIST")]
+    [InlineData("COLLECTSET", "COLLECT_SET")]
+    [InlineData("AVERAGE", "AVG")]
+    public void TransformMethodName_ReturnsExpected(string original, string expected)
+    {
+        var result = InvokePrivate<string>(typeof(HavingBuilder), "TransformMethodName", new[] { typeof(string) }, null, original);
+        Assert.Equal(expected, result);
+    }
+
+    [Theory]
+    [InlineData(ExpressionType.Equal, "=")]
+    [InlineData(ExpressionType.AndAlso, "AND")]
+    public void GetSqlOperator_ReturnsExpected(ExpressionType type, string expected)
+    {
+        var result = InvokePrivate<string>(typeof(HavingBuilder), "GetSqlOperator", new[] { typeof(ExpressionType) }, null, type);
+        Assert.Equal(expected, result);
+    }
+
+    [Fact]
+    public void GetSqlOperator_Unsupported_Throws()
+    {
+        var ex = Assert.Throws<TargetInvocationException>(() =>
+            InvokePrivate<string>(typeof(HavingBuilder), "GetSqlOperator", new[] { typeof(ExpressionType) }, null, ExpressionType.ArrayIndex));
+        Assert.IsType<NotSupportedException>(ex.InnerException);
     }
 }

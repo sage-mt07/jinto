@@ -172,4 +172,48 @@ public class AvroSchemaBuilderDetailedTests
         var valid = InvokePrivate<bool>(builder, "ValidateAvroSchema", new[] { typeof(string) }, null, schema);
         Assert.False(valid);
     }
+
+    [Fact]
+    public void ValidateAvroSchema_ReturnsFalseForEmpty()
+    {
+        var builder = new AvroSchemaBuilder();
+        var valid = InvokePrivate<bool>(builder, "ValidateAvroSchema", new[] { typeof(string) }, null, "");
+        Assert.False(valid);
+    }
+
+    [Fact]
+    public void ValidateAvroSchema_ReturnsFalseForInvalidJson()
+    {
+        var builder = new AvroSchemaBuilder();
+        var valid = InvokePrivate<bool>(builder, "ValidateAvroSchema", new[] { typeof(string) }, null, "{");
+        Assert.False(valid);
+    }
+
+    [Fact]
+    public void ValidateAvroSchema_ReturnsTrueForPrimitiveString()
+    {
+        var builder = new AvroSchemaBuilder();
+        var valid = InvokePrivate<bool>(builder, "ValidateAvroSchema", new[] { typeof(string) }, null, "\"int\"");
+        Assert.True(valid);
+    }
+
+    [Fact]
+    public void ValidateAvroSchema_ReturnsTrueForArray()
+    {
+        var builder = new AvroSchemaBuilder();
+        var valid = InvokePrivate<bool>(builder, "ValidateAvroSchema", new[] { typeof(string) }, null, "[1]");
+        Assert.True(valid);
+    }
+
+    [Theory]
+    [InlineData(typeof(decimal), "decimal")]
+    [InlineData(typeof(DateTime), "timestamp-millis")]
+    [InlineData(typeof(Guid), "uuid")]
+    [InlineData(typeof(string), "string")]
+    public void GeneratePrimitiveSchema_ReturnsExpected(Type type, string expected)
+    {
+        var builder = new AvroSchemaBuilder();
+        var json = InvokePrivate<string>(builder, "GeneratePrimitiveSchema", new[] { typeof(Type) }, null, type);
+        Assert.Contains(expected, json);
+    }
 }
