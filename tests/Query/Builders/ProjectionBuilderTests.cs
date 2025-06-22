@@ -45,6 +45,45 @@ public class ProjectionBuilderTests
     }
 
     [Fact]
+    public void Build_ToUpperMethod_ConvertsToFunction()
+    {
+        Expression<Func<TestEntity, object>> expr = e => e.Name.ToUpper();
+        var builder = new ProjectionBuilder();
+        var result = builder.Build(expr.Body);
+        Assert.Equal("SELECT UCASE(Name)", result); // branch: TOUPPER
+    }
+
+    [Fact]
+    public void Build_SubstringMethod_ConvertsToFunction()
+    {
+        Expression<Func<TestEntity, object>> expr = e => e.Name.Substring(1, 2);
+        var builder = new ProjectionBuilder();
+        var result = builder.Build(expr.Body);
+        Assert.Equal("SELECT SUBSTRING(Name, 1, 2)", result);
+    }
+
+    private static string Custom(string v1) => v1;
+
+    [Fact]
+    public void Build_UnknownMethod_OutputsFunctionName()
+    {
+        Expression<Func<TestEntity, object>> expr = e => Custom(e.Name);
+        var builder = new ProjectionBuilder();
+        var result = builder.Build(expr.Body);
+        Assert.Equal("SELECT CUSTOM(Name)", result); // default branch
+    }
+
+    [Theory]
+    [InlineData(ExpressionType.Add, "+")]
+    [InlineData(ExpressionType.Equal, "=")]
+    public void GetSqlOperator_ReturnsExpected(ExpressionType type, string expected)
+    {
+        var visitorType = typeof(ProjectionBuilder).GetNestedType("ProjectionExpressionVisitor", BindingFlags.NonPublic)!;
+        var result = InvokePrivate<string>(visitorType, "GetSqlOperator", new[] { typeof(ExpressionType) }, null, type);
+        Assert.Equal(expected, result);
+    }
+
+    [Fact]
     public void GetSqlOperator_UnsupportedOperator_Throws()
     {
         var visitorType = typeof(ProjectionBuilder).GetNestedType("ProjectionExpressionVisitor", BindingFlags.NonPublic)!;
