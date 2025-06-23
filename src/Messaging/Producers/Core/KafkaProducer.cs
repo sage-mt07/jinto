@@ -1,4 +1,4 @@
-﻿using Confluent.Kafka;
+using Confluent.Kafka;
 using KsqlDsl.Core.Abstractions;
 using KsqlDsl.Core.Extensions;
 using KsqlDsl.Core.Models;
@@ -112,11 +112,11 @@ internal class KafkaProducer<T> : IKafkaProducer<T> where T : class
             try
             {
                 var result = await SendAsync(message, context, cancellationToken);
-                return new { Index = index, Result = result, Error = (Error?)null };
+                return new { Index = index, Result = (KafkaDeliveryResult?)result, Error = (Error?)null };
             }
             catch (ProduceException<object, object> ex)
             {
-                return new { Index = index, Result = (KafkaDeliveryResult?)null, Error = ex.Error };
+                return new { Index = index, Result = (KafkaDeliveryResult?)null, Error = (Error?)ex.Error };
             }
         });
 
