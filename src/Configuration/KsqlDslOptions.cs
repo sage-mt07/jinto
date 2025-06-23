@@ -1,4 +1,4 @@
-﻿using KsqlDsl.Messaging.Configuration;
+using KsqlDsl.Messaging.Configuration;
 using System.Collections.Generic;
 
 namespace KsqlDsl.Configuration;
@@ -23,4 +23,6 @@ public class KsqlDslOptions
     /// Schema Registry設定
     /// </summary>
     public SchemaRegistrySection SchemaRegistry { get; init; } = new();
+
+    public List<EntityConfiguration> Entities { get; init; } = new();
 }
