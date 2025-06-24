@@ -3,6 +3,7 @@ using KsqlDsl.Configuration;
 using KsqlDsl.Core.Abstractions;
 using KsqlDsl.Core.Context;
 using KsqlDsl.Messaging.Consumers;
+using KsqlDsl.Serialization.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -51,6 +52,35 @@ public abstract class KafkaContext : KafkaContextCore
     // Core層統合API
     internal KafkaProducerManager GetProducerManager() => _producerManager;
     internal KafkaConsumerManager GetConsumerManager() => _consumerManager;
+
+    /// <summary>
+    /// EntityModel の情報を AvroEntityConfiguration へ変換する。
+    /// </summary>
+    /// <param name="entityModels">変換対象のモデル一覧</param>
+    /// <returns>変換後の AvroEntityConfiguration マップ</returns>
+    /// <remarks>
+    /// テストからリフレクションで呼び出されるためアクセスレベルを
+    /// <c>protected</c> に変更する。
+    /// </remarks>
+    protected IReadOnlyDictionary<Type, AvroEntityConfiguration> ConvertToAvroConfigurations(
+        Dictionary<Type, EntityModel> entityModels)
+    {
+        var avroConfigs = new Dictionary<Type, AvroEntityConfiguration>();
+
+        foreach (var kvp in entityModels)
+        {
+            var entityModel = kvp.Value;
+            var avroConfig = new AvroEntityConfiguration(entityModel.EntityType)
+            {
+                TopicName = entityModel.TopicAttribute?.TopicName,
+                KeyProperties = entityModel.KeyProperties
+            };
+
+            avroConfigs[kvp.Key] = avroConfig;
+        }
+
+        return avroConfigs;
+    }
 
     protected override void Dispose(bool disposing)
     {
