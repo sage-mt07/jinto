@@ -7,7 +7,7 @@ using Xunit;
 
 namespace Kafka.Ksql.Linq.Tests.Query.Builders;
 
-private record OrderCustomerInfo(DateTime OrderDate, decimal TotalAmount, string? Region);
+public record OrderCustomerInfo(DateTime OrderDate, decimal TotalAmount, string? Region);
 
 public class BigBangScenarioTests
 {
