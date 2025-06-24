@@ -7,6 +7,8 @@ using Xunit;
 
 namespace Kafka.Ksql.Linq.Tests.Query.Builders;
 
+private record OrderCustomerInfo(DateTime OrderDate, decimal TotalAmount, string? Region);
+
 public class BigBangScenarioTests
 {
     [Fact]
@@ -19,17 +21,17 @@ public class BigBangScenarioTests
         var joinExpr = orders.Join(customers,
             o => o.CustomerId,
             c => c.Id,
-            (o, c) => new { o.OrderDate, o.TotalAmount, c.Region }).Expression;
+            (o, c) => new OrderCustomerInfo(o.OrderDate, o.TotalAmount, c.Region)).Expression;
         var joinBuilder = new JoinBuilder();
         var joinSql = joinBuilder.Build(joinExpr);
 
         // where clause
-        Expression<Func<dynamic, bool>> whereExp = x => x.TotalAmount > 100 && x.Region != null;
+        Expression<Func<OrderCustomerInfo, bool>> whereExp = x => x.TotalAmount > 100 && x.Region != null;
         var whereBuilder = new SelectBuilder();
         var whereSql = whereBuilder.Build(whereExp.Body);
 
         // group by
-        Expression<Func<dynamic, object>> groupExp = x => x.OrderDate;
+        Expression<Func<OrderCustomerInfo, object>> groupExp = x => x.OrderDate;
         var groupBuilder = new GroupByBuilder();
         var groupSql = groupBuilder.Build(groupExp.Body);
 
