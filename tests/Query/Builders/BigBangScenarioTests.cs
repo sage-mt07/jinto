@@ -43,7 +43,7 @@ public class BigBangScenarioTests
         var final = $"{joinSql} {whereSql} {windowSql} {groupSql}";
 
         Assert.Contains("JOIN Customer", final);
-        Assert.Contains("WHERE ((TotalAmount > 100) AND (Region <> NULL))", final);
+        Assert.Contains("WHERE ((TotalAmount > 100) AND Region IS NOT NULL)", final);
         Assert.Contains("WINDOW TUMBLING (SIZE 1 DAYS)", final);
         Assert.Contains("GROUP BY OrderDate", final);
     }
