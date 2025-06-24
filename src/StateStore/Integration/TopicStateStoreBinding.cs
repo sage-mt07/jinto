@@ -29,7 +29,7 @@ internal class TopicStateStoreBinding<T> : IDisposable where T : class
     private volatile bool _disposed = false;
     private readonly object _lock = new();
     private readonly SemaphoreSlim _startSemaphore = new(1, 1);
-
+    private readonly ILoggerFactory? _loggerFactory;
     // Ready状態監視
     private ReadyStateMonitor? _readyMonitor;
     private volatile bool _isReady = false;
@@ -53,6 +53,7 @@ internal class TopicStateStoreBinding<T> : IDisposable where T : class
         _topicName = entityModel.TopicAttribute?.TopicName ?? entityModel.EntityType.Name;
         _logger = loggerFactory?.CreateLogger<TopicStateStoreBinding<T>>()
                  ?? Microsoft.Extensions.Logging.Abstractions.NullLogger<TopicStateStoreBinding<T>>.Instance;
+        _loggerFactory = loggerFactory;
     }
 
     /// <summary>
@@ -283,7 +284,7 @@ internal class TopicStateStoreBinding<T> : IDisposable where T : class
             if (rawConsumer != null)
             {
                 _readyMonitor = new ReadyStateMonitor(rawConsumer, _topicName,
-                    _logger.LoggerFactory);
+                    _loggerFactory);
 
                 _readyMonitor.ReadyStateChanged += OnReadyStateChanged;
 

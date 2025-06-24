@@ -1,4 +1,5 @@
 using Confluent.Kafka;
+using KsqlDsl.Core.Extensions;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
