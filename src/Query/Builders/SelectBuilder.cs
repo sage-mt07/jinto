@@ -52,37 +52,82 @@ internal class SelectBuilder : IKsqlBuilder
 
         protected override Expression VisitBinary(BinaryExpression node)
         {
-            // Handle composite key joins: new { a.Id, a.Type } equals new { b.Id, b.Type }
-            if (node.NodeType == ExpressionType.Equal &&
-                node.Left is NewExpression leftNew &&
-                node.Right is NewExpression rightNew)
+            // NULL比較の処理（統合版）
+            if (node.NodeType == ExpressionType.Equal || node.NodeType == ExpressionType.NotEqual)
             {
-                BuildCompositeKeyCondition(leftNew, rightNew);
-                return node;
+                // パターン1: property == null / property != null
+                if (IsNullConstant(node.Right) && node.Left is MemberExpression leftMember)
+                {
+                    Visit(node.Left);
+                    _sb.Append(node.NodeType == ExpressionType.NotEqual ? " IS NOT NULL" : " IS NULL");
+                    return node;
+                }
+
+                // パターン2: null == property / null != property
+                if (IsNullConstant(node.Left) && node.Right is MemberExpression rightMember)
+                {
+                    Visit(node.Right);
+                    _sb.Append(node.NodeType == ExpressionType.NotEqual ? " IS NOT NULL" : " IS NULL");
+                    return node;
+                }
+
+                // パターン3: Nullable<T>.HasValue プロパティアクセス
+                if (IsHasValuePropertyAccess(node.Left) || IsHasValuePropertyAccess(node.Right))
+                {
+                    HandleHasValueComparison(node);
+                    return node;
+                }
             }
 
-            // Special case: bool member == true (avoid double bool processing)
-            if (node.NodeType == ExpressionType.Equal &&
-                node.Left is MemberExpression leftMember &&
-                (leftMember.Type == typeof(bool) || leftMember.Type == typeof(bool?)) &&
-                node.Right is ConstantExpression rightConstant &&
-                rightConstant.Value is bool boolValue)
-            {
-                string memberName = GetMemberName(leftMember);
-                _sb.Append("(");
-                _sb.Append(memberName);
-                _sb.Append(boolValue ? " = true" : " = false");
-                _sb.Append(")");
-                return node;
-            }
-
-            // Handle regular binary expressions
+            // 通常の比較処理
             _sb.Append("(");
             Visit(node.Left);
             _sb.Append(" " + GetSqlOperator(node.NodeType) + " ");
             Visit(node.Right);
             _sb.Append(")");
             return node;
+        }
+
+        private bool IsHasValuePropertyAccess(Expression expr)
+        {
+            return expr is MemberExpression member &&
+                   member.Member.Name == "HasValue" &&
+                   member.Expression != null &&
+                   Nullable.GetUnderlyingType(member.Expression.Type) != null;
+        }
+
+        private void HandleHasValueComparison(BinaryExpression node)
+        {
+            // x.HasValue == true → x IS NOT NULL
+            // x.HasValue == false → x IS NULL
+            var hasValueExpr = IsHasValuePropertyAccess(node.Left) ? node.Left : node.Right;
+            var constantExpr = IsHasValuePropertyAccess(node.Left) ? node.Right : node.Left;
+
+            var memberExpr = ((MemberExpression)hasValueExpr).Expression;
+            Visit(memberExpr);
+
+            bool expectsNotNull = constantExpr is ConstantExpression constant &&
+                                 constant.Value is bool boolValue && boolValue;
+
+            if (node.NodeType == ExpressionType.NotEqual)
+                expectsNotNull = !expectsNotNull;
+
+            _sb.Append(expectsNotNull ? " IS NOT NULL" : " IS NULL");
+        }
+
+
+        private bool IsNullConstant(Expression expr)
+        {
+            return expr is ConstantExpression constant && constant.Value == null;
+        }
+
+        private void HandleNullComparison(BinaryExpression node)
+        {
+            var memberExpr = IsNullConstant(node.Left) ? node.Right : node.Left;
+            var isNotEqual = node.NodeType == ExpressionType.NotEqual;
+
+            Visit(memberExpr);
+            _sb.Append(isNotEqual ? " IS NOT NULL" : " IS NULL");
         }
 
         private void BuildCompositeKeyCondition(NewExpression leftNew, NewExpression rightNew)
