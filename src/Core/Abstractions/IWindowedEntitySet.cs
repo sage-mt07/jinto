@@ -71,7 +71,7 @@ public interface IWindowCollection<T> where T : class
 /// <summary>
 /// ウィンドウ集約の設定情報
 /// </summary>
-public class WindowAggregationConfig
+public record WindowAggregationConfig
 {
     /// <summary>
     /// ウィンドウサイズ
