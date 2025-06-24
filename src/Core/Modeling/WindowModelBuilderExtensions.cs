@@ -1,4 +1,5 @@
-using Kafka.Ksql.Linq.Core.Abstractions.Kafka.Ksql.Linq.Core.Abstractions;
+using Kafka.Ksql.Linq.Core.Abstractions;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;

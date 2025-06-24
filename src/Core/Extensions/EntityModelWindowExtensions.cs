@@ -1,45 +1,30 @@
 using Kafka.Ksql.Linq.Core.Abstractions;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Kafka.Ksql.Linq.Core.Extensions;
 
-public static class EntityModelWindowExtensions
+internal static class EntityModelWindowExtensions
 {
-    /// <summary>
-    /// [AvroTimestamp]属性を持つプロパティを取得
-    /// </summary>
-    public static PropertyInfo? GetTimestampProperty(this EntityModel entityModel)
+    internal static PropertyInfo? GetTimestampProperty(this EntityModel entityModel)
     {
         return entityModel.AllProperties
             .FirstOrDefault(p => p.GetCustomAttribute<AvroTimestampAttribute>() != null);
     }
 
-    /// <summary>
-    /// エンティティがウィンドウ処理に対応しているかチェック
-    /// </summary>
-    public static bool IsWindowCapable(this EntityModel entityModel)
+    internal static bool IsWindowCapable(this EntityModel entityModel)
     {
         return entityModel.GetTimestampProperty() != null;
     }
 
-    /// <summary>
-    /// ウィンドウ設定が存在するかチェック
-    /// </summary>
-    public static bool HasWindowConfiguration(this EntityModel entityModel)
+    internal static bool HasWindowConfiguration(this EntityModel entityModel)
     {
         return entityModel.ValidationResult?.Warnings
             .Any(w => w.Contains("Window configuration")) == true;
     }
 
-    /// <summary>
-    /// タイムスタンププロパティの検証
-    /// </summary>
-    public static ValidationResult ValidateWindowSupport(this EntityModel entityModel)
+    internal static ValidationResult ValidateWindowSupport(this EntityModel entityModel)
     {
         var result = new ValidationResult { IsValid = true };
 
@@ -51,7 +36,6 @@ public static class EntityModelWindowExtensions
             return result;
         }
 
-        // タイムスタンププロパティの型チェック
         var propType = timestampProperty.PropertyType;
         var validTypes = new[] { typeof(DateTime), typeof(DateTime?), typeof(DateTimeOffset), typeof(DateTimeOffset?) };
 

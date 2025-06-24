@@ -1,20 +1,18 @@
 using Kafka.Ksql.Linq.Core.Abstractions;
+using Kafka.Ksql.Linq.Core.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
-using System.Threading.Tasks;
+
 
 namespace Kafka.Ksql.Linq.Query.Pipeline;
 
-public static class WindowDDLExtensions
+internal static class WindowDDLExtensions
 {
-    /// <summary>
-    /// ウィンドウテーブル作成のCREATE TABLE AS SELECT文を生成
-    /// </summary>
-    public static string GenerateCreateWindowTable(
+    internal static string GenerateCreateWindowTable(
         this DDLQueryGenerator generator,
         string windowTableName,
         string sourceTableName,
@@ -25,13 +23,8 @@ public static class WindowDDLExtensions
     {
         var gracePeriodSeconds = gracePeriod?.TotalSeconds ?? 3;
 
-        // SELECT句の生成
         var selectClause = GenerateWindowSelectClause(aggregationExpression);
-
-        // GROUP BY句の生成
         var groupByClause = GenerateWindowGroupByClause(groupByExpression);
-
-        // WINDOW句の生成
         var windowClause = $"WINDOW TUMBLING (SIZE {windowMinutes} MINUTES, GRACE PERIOD {gracePeriodSeconds} SECONDS)";
 
         var query = new StringBuilder();
@@ -50,9 +43,6 @@ public static class WindowDDLExtensions
         return query.ToString();
     }
 
-    /// <summary>
-    /// ウィンドウ用のSELECT句生成
-    /// </summary>
     private static string GenerateWindowSelectClause(Expression? aggregationExpression)
     {
         if (aggregationExpression == null)
@@ -60,7 +50,6 @@ public static class WindowDDLExtensions
             return "*";
         }
 
-        // 集約式を解析してSELECT句を生成
         var visitor = new WindowSelectExpressionVisitor();
         visitor.Visit(aggregationExpression);
 
@@ -74,9 +63,6 @@ public static class WindowDDLExtensions
         return string.Join(", ", selectColumns);
     }
 
-    /// <summary>
-    /// ウィンドウ用のGROUP BY句生成
-    /// </summary>
     private static string GenerateWindowGroupByClause(Expression? groupByExpression)
     {
         if (groupByExpression == null)
@@ -97,10 +83,7 @@ public static class WindowDDLExtensions
         return $"GROUP BY {string.Join(", ", groupByColumns)}";
     }
 
-    /// <summary>
-    /// 既存のEntityModelからウィンドウ対応のAvroスキーマ情報を生成
-    /// </summary>
-    public static string GenerateWindowAvroSchema(
+    internal static string GenerateWindowAvroSchema(
         this DDLQueryGenerator generator,
         EntityModel entityModel,
         string windowTableName)
@@ -123,7 +106,6 @@ public static class WindowDDLExtensions
             .Select(p => GenerateAvroField(p))
             .ToList();
 
-        // ウィンドウ固有フィールドを追加
         fields.Add("    {\"name\": \"WINDOWSTART\", \"type\": {\"type\": \"long\", \"logicalType\": \"timestamp-millis\"}}");
         fields.Add("    {\"name\": \"WINDOWEND\", \"type\": {\"type\": \"long\", \"logicalType\": \"timestamp-millis\"}}");
 
@@ -134,12 +116,11 @@ public static class WindowDDLExtensions
         return schema.ToString();
     }
 
-    private static string GenerateAvroField(System.Reflection.PropertyInfo property)
+    private static string GenerateAvroField(PropertyInfo property)
     {
         var fieldName = property.Name;
         var avroType = MapPropertyTypeToAvroType(property);
 
-        // [AvroTimestamp]属性の場合
         if (property.GetCustomAttribute<AvroTimestampAttribute>() != null)
         {
             return $"    {{\"name\": \"{fieldName}\", \"type\": {{\"type\": \"long\", \"logicalType\": \"timestamp-millis\"}}}}";
@@ -148,7 +129,7 @@ public static class WindowDDLExtensions
         return $"    {{\"name\": \"{fieldName}\", \"type\": \"{avroType}\"}}";
     }
 
-    private static string MapPropertyTypeToAvroType(System.Reflection.PropertyInfo property)
+    private static string MapPropertyTypeToAvroType(PropertyInfo property)
     {
         var type = Nullable.GetUnderlyingType(property.PropertyType) ?? property.PropertyType;
 
@@ -170,14 +151,11 @@ public static class WindowDDLExtensions
     }
 }
 
-/// <summary>
-/// ウィンドウ集約SELECT句解析用Visitor
-/// </summary>
 internal class WindowSelectExpressionVisitor : ExpressionVisitor
 {
-    private readonly System.Collections.Generic.List<string> _selectColumns = new();
+    private readonly List<string> _selectColumns = new();
 
-    public System.Collections.Generic.List<string> GetSelectColumns() => _selectColumns;
+    internal List<string> GetSelectColumns() => _selectColumns;
 
     protected override Expression VisitNew(NewExpression node)
     {
@@ -222,7 +200,6 @@ internal class WindowSelectExpressionVisitor : ExpressionVisitor
 
     private string ExtractAggregationColumn(string function, MethodCallExpression methodCall)
     {
-        // g.Sum(x => x.Property) のようなパターンを解析
         if (methodCall.Arguments.Count > 0)
         {
             var arg = methodCall.Arguments[0];
@@ -237,24 +214,20 @@ internal class WindowSelectExpressionVisitor : ExpressionVisitor
 
     private string ExtractKeyExpression(MethodCallExpression methodCall)
     {
-        // IGrouping<TKey, T>.Key の場合、グループキーを返す
         if (methodCall.Object != null)
         {
-            return "GROUPKEY"; // 実際の実装では適切なキー名を返す
+            return "GROUPKEY";
         }
 
         return "KEY";
     }
 }
 
-/// <summary>
-/// ウィンドウGROUP BY句解析用Visitor
-/// </summary>
 internal class WindowGroupByExpressionVisitor : ExpressionVisitor
 {
-    private readonly System.Collections.Generic.List<string> _groupByColumns = new();
+    private readonly List<string> _groupByColumns = new();
 
-    public System.Collections.Generic.List<string> GetGroupByColumns() => _groupByColumns;
+    internal List<string> GetGroupByColumns() => _groupByColumns;
 
     protected override Expression VisitMember(MemberExpression node)
     {

@@ -1,3 +1,4 @@
+using Kafka.Ksql.Linq.Core.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -65,9 +66,7 @@ public interface IWindowCollection<T> where T : class
 }
 
 // src/Core/Abstractions/WindowAggregationConfig.cs
-using System;
 
-namespace Kafka.Ksql.Linq.Core.Abstractions;
 
 /// <summary>
 /// ウィンドウ集約の設定情報
