@@ -1,6 +1,6 @@
 ﻿using System.Linq.Expressions;
 
-namespace KsqlDsl.Query.Pipeline;
+namespace Kafka.Ksql.Linq.Query.Pipeline;
 
 public interface IDMLQueryGenerator
 {

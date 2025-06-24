@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace KsqlDsl.Core.Configuration;
+namespace Kafka.Ksql.Linq.Core.Configuration;
 internal class CoreSettingsProvider : ICoreSettingsProvider
 {
     private CoreSettings _settings = new();

@@ -1,7 +1,7 @@
-using KsqlDsl.Core.Abstractions;
-using KsqlDsl.Messaging.Consumers;
-using KsqlDsl.StateStore.Core;
-using KsqlDsl.StateStore.Monitoring;
+using Kafka.Ksql.Linq.Core.Abstractions;
+using Kafka.Ksql.Linq.Messaging.Consumers;
+using Kafka.Ksql.Linq.StateStore.Core;
+using Kafka.Ksql.Linq.StateStore.Monitoring;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -10,7 +10,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace KsqlDsl.StateStore.Integration;
+namespace Kafka.Ksql.Linq.StateStore.Integration;
 /// <summary>
 /// KafkaトピックとRocksDBStateStoreの双方向バインディング
 /// KTable準拠でトピックの状態変化をStateStoreに反映

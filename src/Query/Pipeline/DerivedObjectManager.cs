@@ -1,10 +1,10 @@
-﻿using KsqlDsl.Core.Extensions;
+﻿using Kafka.Ksql.Linq.Core.Extensions;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Concurrent;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
-namespace KsqlDsl.Query.Pipeline;
+namespace Kafka.Ksql.Linq.Query.Pipeline;
 
 internal class DerivedObjectManager : IDerivedObjectManager
 {

@@ -1,13 +1,13 @@
-using KsqlDsl.Configuration;
-using KsqlDsl.Core.Abstractions;
-using KsqlDsl.StateStore.Management;
+using Kafka.Ksql.Linq.Configuration;
+using Kafka.Ksql.Linq.Core.Abstractions;
+using Kafka.Ksql.Linq.StateStore.Management;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace KsqlDsl.StateStore;
+namespace Kafka.Ksql.Linq.StateStore;
 
 internal static class WindowExtensions
 {

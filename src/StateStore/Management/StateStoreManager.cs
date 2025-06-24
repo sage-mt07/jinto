@@ -1,6 +1,6 @@
-using KsqlDsl.Configuration;
-using KsqlDsl.StateStore.Configuration;
-using KsqlDsl.StateStore.Core;
+using Kafka.Ksql.Linq.Configuration;
+using Kafka.Ksql.Linq.StateStore.Configuration;
+using Kafka.Ksql.Linq.StateStore.Core;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
@@ -8,7 +8,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace KsqlDsl.StateStore.Management;
+namespace Kafka.Ksql.Linq.StateStore.Management;
 internal class StateStoreManager : IStateStoreManager
 {
     private readonly KsqlDslOptions _options;

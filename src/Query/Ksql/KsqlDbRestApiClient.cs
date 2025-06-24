@@ -7,7 +7,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace KsqlDsl.Query.Ksql;
+namespace Kafka.Ksql.Linq.Query.Ksql;
 
 internal class KsqlDbRestApiClient : IDisposable
 {

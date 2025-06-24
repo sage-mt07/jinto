@@ -1,8 +1,8 @@
-using KsqlDsl.Configuration.Abstractions;
+using Kafka.Ksql.Linq.Configuration.Abstractions;
 using System;
 using Xunit;
 
-namespace KsqlDsl.Tests.Configuration;
+namespace Kafka.Ksql.Linq.Tests.Configuration;
 
 public class KafkaBatchOptionsTests
 {

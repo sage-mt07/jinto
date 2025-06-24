@@ -1,9 +1,9 @@
-using KsqlDsl.Messaging.Producers.Core;
+using Kafka.Ksql.Linq.Messaging.Producers.Core;
 using System;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace KsqlDsl.Tests.Messaging;
+namespace Kafka.Ksql.Linq.Tests.Messaging;
 
 public class KafkaBatchTests
 {

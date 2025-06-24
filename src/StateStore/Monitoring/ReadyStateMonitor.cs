@@ -1,5 +1,5 @@
 using Confluent.Kafka;
-using KsqlDsl.Core.Extensions;
+using Kafka.Ksql.Linq.Core.Extensions;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace KsqlDsl.StateStore.Monitoring;
+namespace Kafka.Ksql.Linq.StateStore.Monitoring;
 
 internal class ReadyStateMonitor : IDisposable
 {

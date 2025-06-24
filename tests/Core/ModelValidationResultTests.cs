@@ -1,9 +1,9 @@
-using KsqlDsl.Core.Modeling;
+using Kafka.Ksql.Linq.Core.Modeling;
 using System;
 using System.Collections.Generic;
 using Xunit;
 
-namespace KsqlDsl.Tests.Core;
+namespace Kafka.Ksql.Linq.Tests.Core;
 
 public class ModelValidationResultTests
 {

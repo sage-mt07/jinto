@@ -1,7 +1,7 @@
-﻿using KsqlDsl.Core.Exceptions;
-using KsqlDsl.Messaging.Producers.Core;
+﻿using Kafka.Ksql.Linq.Core.Exceptions;
+using Kafka.Ksql.Linq.Messaging.Producers.Core;
 
-namespace KsqlDsl.Messaging.Producers.Exception;
+namespace Kafka.Ksql.Linq.Messaging.Producers.Exception;
 
 
 /// <summary>

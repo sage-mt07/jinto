@@ -1,6 +1,6 @@
 ﻿using System.Linq.Expressions;
 
-namespace KsqlDsl.Query.Builders.Common;
+namespace Kafka.Ksql.Linq.Query.Builders.Common;
 
 /// <summary>
 /// Builder共通ユーティリティ

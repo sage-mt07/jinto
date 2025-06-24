@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace KsqlDsl.Messaging.Consumers.Core;
+namespace Kafka.Ksql.Linq.Messaging.Consumers.Core;
 
 /// <summary>
 /// プールされたConsumer

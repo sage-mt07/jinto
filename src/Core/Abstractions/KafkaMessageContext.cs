@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace KsqlDsl.Core.Abstractions;
+namespace Kafka.Ksql.Linq.Core.Abstractions;
 
 
 public class KafkaMessageContext

@@ -1,9 +1,9 @@
-﻿using KsqlDsl.Serialization.Avro.Core;
+﻿using Kafka.Ksql.Linq.Serialization.Avro.Core;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace KsqlDsl.Serialization.Abstractions;
+namespace Kafka.Ksql.Linq.Serialization.Abstractions;
 internal interface ISchemaRegistryClient : IDisposable
 {
     Task<(int keySchemaId, int valueSchemaId)> RegisterTopicSchemasAsync(string topicName, string keySchema, string valueSchema);

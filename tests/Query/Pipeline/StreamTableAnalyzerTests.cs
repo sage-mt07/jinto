@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Extensions.Logging.Abstractions;
-using KsqlDsl.Query.Pipeline;
+using Kafka.Ksql.Linq.Query.Pipeline;
 using Xunit;
 
-namespace KsqlDsl.Tests.Query.Pipeline;
+namespace Kafka.Ksql.Linq.Tests.Query.Pipeline;
 
 public class StreamTableAnalyzerTests
 {

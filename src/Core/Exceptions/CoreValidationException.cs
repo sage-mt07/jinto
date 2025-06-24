@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace KsqlDsl.Core.Exceptions;
+namespace Kafka.Ksql.Linq.Core.Exceptions;
 public class CoreValidationException : CoreException
 {
     public List<string> ValidationErrors { get; }

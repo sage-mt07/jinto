@@ -2,7 +2,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using System;
 
-namespace KsqlDsl.Core.Extensions;
+namespace Kafka.Ksql.Linq.Core.Extensions;
 /// <summary>
 /// ILoggerFactory の汎用化拡張メソッド - Option 2完全版
 /// 設計理由: KafkaContext依存を排除し、Core層として適切なレイヤー設計を実現

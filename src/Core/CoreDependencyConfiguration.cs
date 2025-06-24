@@ -1,8 +1,8 @@
-﻿using KsqlDsl.Core.Abstractions;
+﻿using Kafka.Ksql.Linq.Core.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 
-namespace KsqlDsl.Core;
+namespace Kafka.Ksql.Linq.Core;
 /// <summary>
 /// Core層の依存関係設定
 /// 設計理由：Core層の抽象定義と実装の分離

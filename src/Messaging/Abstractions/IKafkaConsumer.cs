@@ -1,13 +1,13 @@
 ﻿using Confluent.Kafka;
-using KsqlDsl.Configuration.Abstractions;
-using KsqlDsl.Core.Abstractions;
-using KsqlDsl.Messaging.Producers.Core;
+using Kafka.Ksql.Linq.Configuration.Abstractions;
+using Kafka.Ksql.Linq.Core.Abstractions;
+using Kafka.Ksql.Linq.Messaging.Producers.Core;
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace KsqlDsl.Messaging.Abstractions;
+namespace Kafka.Ksql.Linq.Messaging.Abstractions;
 
 /// <summary>
 /// 型安全Consumer インターフェース

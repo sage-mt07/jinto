@@ -2,7 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace KsqlDsl.Serialization.Abstractions;
+namespace Kafka.Ksql.Linq.Serialization.Abstractions;
 public interface IAvroSerializationManager<T> : IDisposable where T : class
 {
     Task<SerializerPair<T>> GetSerializersAsync(CancellationToken cancellationToken = default);

@@ -1,7 +1,7 @@
 ﻿
-using KsqlDsl.Core.Exceptions;
+using Kafka.Ksql.Linq.Core.Exceptions;
 
-namespace KsqlDsl.Messaging.Producers.Exception;
+namespace Kafka.Ksql.Linq.Messaging.Producers.Exception;
 
 /// <summary>
 /// Producerプール例外

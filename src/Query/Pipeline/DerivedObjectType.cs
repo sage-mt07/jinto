@@ -1,4 +1,4 @@
-﻿namespace KsqlDsl.Query.Pipeline;
+﻿namespace Kafka.Ksql.Linq.Query.Pipeline;
 internal enum DerivedObjectType
 {
     Stream,

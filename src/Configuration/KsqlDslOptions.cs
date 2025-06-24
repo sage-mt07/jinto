@@ -1,7 +1,7 @@
-using KsqlDsl.Messaging.Configuration;
+using Kafka.Ksql.Linq.Messaging.Configuration;
 using System.Collections.Generic;
 
-namespace KsqlDsl.Configuration;
+namespace Kafka.Ksql.Linq.Configuration;
 public class KsqlDslOptions
 {
     /// <summary>

@@ -1,8 +1,8 @@
-using KsqlDsl.Core.Abstractions;
-using KsqlDsl.Core.Modeling;
+using Kafka.Ksql.Linq.Core.Abstractions;
+using Kafka.Ksql.Linq.Core.Modeling;
 using Xunit;
 
-namespace KsqlDsl.Tests.Core;
+namespace Kafka.Ksql.Linq.Tests.Core;
 
 public class EntityModelBuilderTests
 {

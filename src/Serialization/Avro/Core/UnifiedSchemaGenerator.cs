@@ -1,13 +1,13 @@
-﻿using KsqlDsl.Configuration.Abstractions;
-using KsqlDsl.Core.Abstractions;
-using KsqlDsl.Serialization.Abstractions;
+﻿using Kafka.Ksql.Linq.Configuration.Abstractions;
+using Kafka.Ksql.Linq.Core.Abstractions;
+using Kafka.Ksql.Linq.Serialization.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text.Json;
 
-namespace KsqlDsl.Serialization.Avro.Core;
+namespace Kafka.Ksql.Linq.Serialization.Avro.Core;
 internal static class UnifiedSchemaGenerator
 {
     #region Core Schema Generation
@@ -32,7 +32,7 @@ internal static class UnifiedSchemaGenerator
         {
             Type = "record",
             Name = type.Name,
-            Namespace = type.Namespace ?? "KsqlDsl.Generated",
+            Namespace = type.Namespace ?? "Kafka.Ksql.Linq.Generated",
             Fields = GenerateFields(type)
         };
 
@@ -53,7 +53,7 @@ internal static class UnifiedSchemaGenerator
         {
             Type = "record",
             Name = options.CustomName ?? type.Name,
-            Namespace = options.Namespace ?? type.Namespace ?? "KsqlDsl.Generated",
+            Namespace = options.Namespace ?? type.Namespace ?? "Kafka.Ksql.Linq.Generated",
             Doc = options.Documentation,
             Fields = GenerateFields(type)
         };
@@ -121,7 +121,7 @@ internal static class UnifiedSchemaGenerator
         {
             Type = "record",
             Name = $"{keyType.Name}Key",
-            Namespace = keyType.Namespace ?? "KsqlDsl.Generated",
+            Namespace = keyType.Namespace ?? "Kafka.Ksql.Linq.Generated",
             Fields = GenerateFields(keyType)
         };
 
@@ -235,7 +235,7 @@ internal static class UnifiedSchemaGenerator
         var valueOptions = new SchemaGenerationOptions
         {
             CustomName = $"{ToPascalCase(topicName)}_value",
-            Namespace = valueType.Namespace ?? "KsqlDsl.Generated"
+            Namespace = valueType.Namespace ?? "Kafka.Ksql.Linq.Generated"
         };
         var valueSchema = GenerateSchema(valueType, valueOptions);
 

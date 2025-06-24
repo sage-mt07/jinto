@@ -1,10 +1,10 @@
-using KsqlDsl;
-using KsqlDsl.Core.Abstractions;
-using KsqlDsl.Core.Context;
+using Kafka.Ksql.Linq;
+using Kafka.Ksql.Linq.Core.Abstractions;
+using Kafka.Ksql.Linq.Core.Context;
 using System.Linq.Expressions;
 using Xunit;
 
-namespace KsqlDsl.Tests.Application;
+namespace Kafka.Ksql.Linq.Tests.Application;
 
 public class EventSetWithServicesTests
 {

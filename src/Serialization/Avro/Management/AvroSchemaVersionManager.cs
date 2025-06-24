@@ -1,12 +1,12 @@
 ﻿using Confluent.SchemaRegistry;
-using KsqlDsl.Serialization.Avro.Core;
+using Kafka.Ksql.Linq.Serialization.Avro.Core;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using System;
 using System.Reflection;
 using System.Threading.Tasks;
 
-namespace KsqlDsl.Serialization.Avro.Management;
+namespace Kafka.Ksql.Linq.Serialization.Avro.Management;
 
 public class AvroSchemaVersionManager
 {
@@ -134,7 +134,7 @@ public class AvroSchemaVersionManager
 
     private string GetTopicName(Type entityType)
     {
-        var topicAttribute = entityType.GetCustomAttribute<KsqlDsl.Core.Abstractions.TopicAttribute>();
+        var topicAttribute = entityType.GetCustomAttribute<Kafka.Ksql.Linq.Core.Abstractions.TopicAttribute>();
         return topicAttribute?.TopicName ?? entityType.Name.ToLowerInvariant();
     }
 }

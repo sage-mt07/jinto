@@ -1,10 +1,10 @@
-﻿using KsqlDsl.Core.Extensions;
-using KsqlDsl.Query.Abstractions;
-using KsqlDsl.Query.Builders;
+﻿using Kafka.Ksql.Linq.Core.Extensions;
+using Kafka.Ksql.Linq.Query.Abstractions;
+using Kafka.Ksql.Linq.Query.Builders;
 using Microsoft.Extensions.Logging;
 using System.Linq.Expressions;
 
-namespace KsqlDsl.Query.Pipeline;
+namespace Kafka.Ksql.Linq.Query.Pipeline;
 /// <summary>
 /// DMLクエリ生成器 - SELECT文の生成
 /// 設計理由：query_redesign.mdの新アーキテクチャに準拠

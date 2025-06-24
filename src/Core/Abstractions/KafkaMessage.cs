@@ -1,7 +1,7 @@
 ﻿using Confluent.Kafka;
 using System;
 
-namespace KsqlDsl.Core.Abstractions;
+namespace Kafka.Ksql.Linq.Core.Abstractions;
 
 
 public class KafkaMessage<TValue, TKey>

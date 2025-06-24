@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace KsqlDsl.Messaging.Heartbeat;
+namespace Kafka.Ksql.Linq.Messaging.Heartbeat;
 
 
 internal class HeartbeatMessage

@@ -3,13 +3,13 @@ using System.Reflection;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using Confluent.SchemaRegistry;
-using static KsqlDsl.Tests.PrivateAccessor;
+using static Kafka.Ksql.Linq.Tests.PrivateAccessor;
 using Microsoft.Extensions.Logging.Abstractions;
-using KsqlDsl.Configuration.Options;
-using KsqlDsl.Serialization.Avro;
+using Kafka.Ksql.Linq.Configuration.Options;
+using Kafka.Ksql.Linq.Serialization.Avro;
 using Xunit;
 
-namespace KsqlDsl.Tests.Serialization;
+namespace Kafka.Ksql.Linq.Tests.Serialization;
 
 public class ResilientAvroSerializerManagerTests
 {

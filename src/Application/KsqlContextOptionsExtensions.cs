@@ -1,7 +1,7 @@
 ﻿using Confluent.SchemaRegistry;
 using Microsoft.Extensions.Logging;
 using System;
-namespace KsqlDsl.Application;
+namespace Kafka.Ksql.Linq.Application;
 public static class KsqlContextOptionsExtensions
 {
     public static KsqlContextOptions UseSchemaRegistry(

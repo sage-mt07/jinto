@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace KsqlDsl.Messaging.Configuration;
+namespace Kafka.Ksql.Linq.Messaging.Configuration;
 
 /// <summary>
 /// トピック別設定（Producer/Consumer両方の設定を含む）

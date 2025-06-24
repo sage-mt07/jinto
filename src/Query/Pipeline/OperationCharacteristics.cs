@@ -1,6 +1,6 @@
-﻿using KsqlDsl.Query.Abstractions;
+﻿using Kafka.Ksql.Linq.Query.Abstractions;
 
-namespace KsqlDsl.Query.Pipeline;
+namespace Kafka.Ksql.Linq.Query.Pipeline;
 
 internal class OperationCharacteristics
 {

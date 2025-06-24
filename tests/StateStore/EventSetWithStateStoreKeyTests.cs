@@ -1,12 +1,12 @@
-using KsqlDsl;
-using KsqlDsl.Core.Abstractions;
-using KsqlDsl.StateStore;
+using Kafka.Ksql.Linq;
+using Kafka.Ksql.Linq.Core.Abstractions;
+using Kafka.Ksql.Linq.StateStore;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace KsqlDsl.Tests.StateStore;
+namespace Kafka.Ksql.Linq.Tests.StateStore;
 
 public class EventSetWithStateStoreKeyTests
 {

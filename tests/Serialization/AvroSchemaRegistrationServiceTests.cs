@@ -3,15 +3,15 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
 using ConfluentClient = Confluent.SchemaRegistry.ISchemaRegistryClient;
-using KsqlAbstractionClient = KsqlDsl.Serialization.Abstractions.ISchemaRegistryClient;
+using KsqlAbstractionClient = Kafka.Ksql.Linq.Serialization.Abstractions.ISchemaRegistryClient;
 using Confluent.SchemaRegistry;
-using KsqlDsl.Core.Abstractions;
-using KsqlDsl.Serialization.Abstractions;
-using KsqlDsl.Serialization.Avro.Management;
+using Kafka.Ksql.Linq.Core.Abstractions;
+using Kafka.Ksql.Linq.Serialization.Abstractions;
+using Kafka.Ksql.Linq.Serialization.Avro.Management;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
-namespace KsqlDsl.Tests.Serialization;
+namespace Kafka.Ksql.Linq.Tests.Serialization;
 
 public class AvroSchemaRegistrationServiceTests
 {

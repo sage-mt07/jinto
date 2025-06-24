@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace KsqlDsl.Core.Abstractions;
+namespace Kafka.Ksql.Linq.Core.Abstractions;
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
 public class TopicAttribute : Attribute
 {

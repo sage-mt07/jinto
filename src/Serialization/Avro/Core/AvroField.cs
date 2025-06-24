@@ -1,4 +1,4 @@
-﻿namespace KsqlDsl.Serialization.Avro.Core;
+﻿namespace Kafka.Ksql.Linq.Serialization.Avro.Core;
 
 
 internal class AvroField

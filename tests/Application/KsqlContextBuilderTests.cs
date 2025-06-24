@@ -1,10 +1,10 @@
-using KsqlDsl.Application;
-using KsqlDsl.Core.Context;
+using Kafka.Ksql.Linq.Application;
+using Kafka.Ksql.Linq.Core.Context;
 using Xunit;
 
-namespace KsqlDsl.Tests.Application;
+namespace Kafka.Ksql.Linq.Tests.Application;
 
-public class DummyContext : KsqlDsl.Application.KafkaContext
+public class DummyContext : Kafka.Ksql.Linq.Application.KafkaContext
 {
     public DummyContext() : base() { }
     public DummyContext(KafkaContextOptions options) : base(options) { }

@@ -1,11 +1,11 @@
-using KsqlDsl.Core.Extensions;
+using Kafka.Ksql.Linq.Core.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using System;
 using System.IO;
 using Xunit;
 
-namespace KsqlDsl.Tests.Core;
+namespace Kafka.Ksql.Linq.Tests.Core;
 
 public class LoggerFactoryExtensionsTests
 {

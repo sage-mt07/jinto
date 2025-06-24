@@ -1,8 +1,8 @@
-using KsqlDsl.Core.Abstractions;
-using KsqlDsl.Query.Abstractions;
+using Kafka.Ksql.Linq.Core.Abstractions;
+using Kafka.Ksql.Linq.Query.Abstractions;
 using System;
 
-namespace KsqlDsl.Core.Modeling;
+namespace Kafka.Ksql.Linq.Core.Modeling;
 
 public class EntityModelBuilder<T>: IEntityBuilder<T> where T : class
 {

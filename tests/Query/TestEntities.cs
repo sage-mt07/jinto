@@ -1,6 +1,6 @@
 using System;
 
-namespace KsqlDsl.Tests;
+namespace Kafka.Ksql.Linq.Tests;
 
 public class TestEntity
 {

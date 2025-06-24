@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace KsqlDsl.Serialization.Avro.Exceptions;
+namespace Kafka.Ksql.Linq.Serialization.Avro.Exceptions;
 /// <summary>
 /// Fail-Fast設計用のスキーマ登録致命的例外
 /// 人間の介入が必要な状態を示し、アプリケーションの即座終了を要求

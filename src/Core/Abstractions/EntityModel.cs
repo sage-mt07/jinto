@@ -1,9 +1,9 @@
-﻿using KsqlDsl.Query.Abstractions;
+﻿using Kafka.Ksql.Linq.Query.Abstractions;
 using System;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Reflection;
 
-namespace KsqlDsl.Core.Abstractions;
+namespace Kafka.Ksql.Linq.Core.Abstractions;
 
 public class EntityModel
 {

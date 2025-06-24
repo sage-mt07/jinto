@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 
-namespace KsqlDsl.Tests.Query;
+namespace Kafka.Ksql.Linq.Tests.Query;
 
 public class JoinBuilderTests
 {

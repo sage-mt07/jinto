@@ -5,21 +5,21 @@ using System.Reflection;
 using System.Runtime.Serialization;
 using Confluent.Kafka;
 using Confluent.SchemaRegistry;
-using KsqlDsl.Configuration;
-using KsqlDsl.Messaging.Configuration;
-using KsqlDsl.Messaging.Producers;
+using Kafka.Ksql.Linq.Configuration;
+using Kafka.Ksql.Linq.Messaging.Configuration;
+using Kafka.Ksql.Linq.Messaging.Producers;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
-using static KsqlDsl.Tests.PrivateAccessor;
+using static Kafka.Ksql.Linq.Tests.PrivateAccessor;
 using Xunit;
 
-namespace KsqlDsl.Tests.Messaging;
+namespace Kafka.Ksql.Linq.Tests.Messaging;
 
 public class KafkaProducerManagerTests
 {
     private class SampleEntity
     {
-        [KsqlDsl.Core.Abstractions.Key]
+        [Kafka.Ksql.Linq.Core.Abstractions.Key]
         public int Id { get; set; }
     }
 
@@ -83,7 +83,7 @@ public class KafkaProducerManagerTests
     {
         var manager = (KafkaProducerManager)FormatterServices.GetUninitializedObject(typeof(KafkaProducerManager));
         typeof(KafkaProducerManager).GetField("_serializationManagers", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(manager, new ConcurrentDictionary<Type, object>());
-        var model = InvokePrivate<KsqlDsl.Core.Abstractions.EntityModel>(manager, "GetEntityModel", Type.EmptyTypes, new[] { typeof(SampleEntity) });
+        var model = InvokePrivate<Kafka.Ksql.Linq.Core.Abstractions.EntityModel>(manager, "GetEntityModel", Type.EmptyTypes, new[] { typeof(SampleEntity) });
         Assert.Equal(typeof(SampleEntity), model.EntityType);
         Assert.Single(model.KeyProperties);
         Assert.Equal("SampleEntity", model.TopicAttribute?.TopicName ?? model.EntityType.Name);

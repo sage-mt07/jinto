@@ -4,7 +4,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Confluent.SchemaRegistry;
 
-namespace KsqlDsl.Tests.Serialization;
+namespace Kafka.Ksql.Linq.Tests.Serialization;
 
 internal class FakeSchemaRegistryClient : DispatchProxy
 {

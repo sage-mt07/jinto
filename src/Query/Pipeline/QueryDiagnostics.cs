@@ -1,9 +1,9 @@
-﻿using KsqlDsl.Core.Extensions;
+﻿using Kafka.Ksql.Linq.Core.Extensions;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 
-namespace KsqlDsl.Query.Pipeline;
+namespace Kafka.Ksql.Linq.Query.Pipeline;
 
 /// <summary>
 /// クエリ診断・デバッグ情報管理 - QueryExecutionPipeline用

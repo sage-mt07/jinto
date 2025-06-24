@@ -1,7 +1,7 @@
-﻿using KsqlDsl.Core.Abstractions;
-using KsqlDsl.Core.Extensions;
-using KsqlDsl.Query.Abstractions;
-using KsqlDsl.Query.Builders;
+﻿using Kafka.Ksql.Linq.Core.Abstractions;
+using Kafka.Ksql.Linq.Core.Extensions;
+using Kafka.Ksql.Linq.Query.Abstractions;
+using Kafka.Ksql.Linq.Query.Builders;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -10,7 +10,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 
-namespace KsqlDsl.Query.Pipeline;
+namespace Kafka.Ksql.Linq.Query.Pipeline;
 
 /// <summary>
 /// DDLクエリ生成器 - CREATE STREAM/TABLE文の生成
@@ -203,4 +203,4 @@ internal class DDLQueryGenerator : IDDLQueryGenerator
 
 
 
-// StreamTableType enumは KsqlDsl.Query.Abstractions.StreamTableType を使用
+// StreamTableType enumは Kafka.Ksql.Linq.Query.Abstractions.StreamTableType を使用

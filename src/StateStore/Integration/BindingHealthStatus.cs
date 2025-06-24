@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace KsqlDsl.StateStore.Integration;
+namespace Kafka.Ksql.Linq.StateStore.Integration;
 
 internal class BindingHealthStatus
 {

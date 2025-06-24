@@ -1,9 +1,9 @@
-using KsqlDsl.Core.Configuration;
-using KsqlDsl.Configuration;
+using Kafka.Ksql.Linq.Core.Configuration;
+using Kafka.Ksql.Linq.Configuration;
 using System;
 using Xunit;
 
-namespace KsqlDsl.Tests.Core;
+namespace Kafka.Ksql.Linq.Tests.Core;
 
 public class CoreSettingsProviderTests
 {

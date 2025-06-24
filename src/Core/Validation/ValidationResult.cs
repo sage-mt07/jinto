@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace KsqlDsl.Core.Validation;
+namespace Kafka.Ksql.Linq.Core.Validation;
 /// <summary>
 /// 削除済み: CoreValidationResult (重複定義)
 /// メイン定義: Core/Abstractions/ValidationResult.cs

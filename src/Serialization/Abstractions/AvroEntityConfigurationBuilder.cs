@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace KsqlDsl.Serialization.Abstractions;
+namespace Kafka.Ksql.Linq.Serialization.Abstractions;
 
 public class AvroEntityConfigurationBuilder<T> where T : class
 {

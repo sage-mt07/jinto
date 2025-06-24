@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace KsqlDsl.Core.Exceptions;
+namespace Kafka.Ksql.Linq.Core.Exceptions;
 public class CoreConfigurationException : CoreException
 {
     public CoreConfigurationException(string message) : base(message) { }

@@ -2,7 +2,7 @@
 using System;
 using System.Threading.Tasks;
 
-namespace KsqlDsl.Serialization.Abstractions;
+namespace Kafka.Ksql.Linq.Serialization.Abstractions;
 public interface IAvroSchemaProvider
 {
     Task<string> GetKeySchemaAsync<T>() where T : class;

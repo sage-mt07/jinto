@@ -1,9 +1,9 @@
 using System;
 using System.Linq.Expressions;
-using KsqlDsl.Query.Builders;
+using Kafka.Ksql.Linq.Query.Builders;
 using Xunit;
 
-namespace KsqlDsl.Tests.Query.Builders;
+namespace Kafka.Ksql.Linq.Tests.Query.Builders;
 
 public class GroupByBuilderTests
 {

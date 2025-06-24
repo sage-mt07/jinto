@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace KsqlDsl.Core.Attributes;
+namespace Kafka.Ksql.Linq.Core.Attributes;
 
 [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
 public class MaxLengthAttribute : Attribute

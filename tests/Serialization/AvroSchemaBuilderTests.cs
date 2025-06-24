@@ -1,14 +1,14 @@
-using KsqlDsl.Serialization.Avro.Management;
+using Kafka.Ksql.Linq.Serialization.Avro.Management;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace KsqlDsl.Tests.Serialization;
+namespace Kafka.Ksql.Linq.Tests.Serialization;
 
 public class AvroSchemaBuilderTests
 {
     private class Sample
     {
-        [KsqlDsl.Core.Abstractions.Key]
+        [Kafka.Ksql.Linq.Core.Abstractions.Key]
         public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
     }

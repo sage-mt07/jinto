@@ -2,10 +2,10 @@ using System;
 using System.Reflection;
 using Confluent.SchemaRegistry;
 using Confluent.Kafka;
-using KsqlDsl.Serialization.Avro.Core;
+using Kafka.Ksql.Linq.Serialization.Avro.Core;
 using Xunit;
 
-namespace KsqlDsl.Tests.Serialization;
+namespace Kafka.Ksql.Linq.Tests.Serialization;
 
 public class AvroCoreInternalTests
 {

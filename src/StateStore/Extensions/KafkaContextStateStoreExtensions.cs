@@ -1,11 +1,11 @@
-using KsqlDsl.Configuration;
-using KsqlDsl.Core.Abstractions;
-using KsqlDsl.StateStore.Management;
+using Kafka.Ksql.Linq.Configuration;
+using Kafka.Ksql.Linq.Core.Abstractions;
+using Kafka.Ksql.Linq.StateStore.Management;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 
-namespace KsqlDsl.StateStore.Extensions;
+namespace Kafka.Ksql.Linq.StateStore.Extensions;
 
 internal static class KafkaContextStateStoreExtensions
 {

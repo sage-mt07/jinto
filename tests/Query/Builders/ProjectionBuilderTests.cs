@@ -1,11 +1,11 @@
 using System;
 using System.Linq.Expressions;
 using System.Reflection;
-using KsqlDsl.Query.Builders;
+using Kafka.Ksql.Linq.Query.Builders;
 using Xunit;
-using static KsqlDsl.Tests.PrivateAccessor;
+using static Kafka.Ksql.Linq.Tests.PrivateAccessor;
 
-namespace KsqlDsl.Tests.Query.Builders;
+namespace Kafka.Ksql.Linq.Tests.Query.Builders;
 
 public class ProjectionBuilderTests
 {

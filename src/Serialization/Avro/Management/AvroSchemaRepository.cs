@@ -1,10 +1,10 @@
-﻿using KsqlDsl.Serialization.Avro.Core;
+﻿using Kafka.Ksql.Linq.Serialization.Avro.Core;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace KsqlDsl.Serialization.Avro.Management;
+namespace Kafka.Ksql.Linq.Serialization.Avro.Management;
 internal class AvroSchemaRepository : IAvroSchemaRepository
 {
     private readonly ConcurrentDictionary<Type, AvroSchemaInfo> _schemasByType = new();

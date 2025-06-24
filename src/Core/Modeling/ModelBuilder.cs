@@ -1,11 +1,11 @@
-using KsqlDsl.Configuration;
-using KsqlDsl.Core.Abstractions;
-using KsqlDsl.Core.Extensions;
+using Kafka.Ksql.Linq.Configuration;
+using Kafka.Ksql.Linq.Core.Abstractions;
+using Kafka.Ksql.Linq.Core.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-namespace KsqlDsl.Core.Modeling;
+namespace Kafka.Ksql.Linq.Core.Modeling;
 internal class ModelBuilder : IModelBuilder
 {
     private readonly Dictionary<Type, EntityModel> _entityModels = new();

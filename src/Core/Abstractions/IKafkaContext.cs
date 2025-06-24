@@ -1,8 +1,8 @@
-﻿//using KsqlDsl.Core.Modeling;
+﻿//using Kafka.Ksql.Linq.Core.Modeling;
 using System;
 using System.Collections.Generic;
 
-namespace KsqlDsl.Core.Abstractions;
+namespace Kafka.Ksql.Linq.Core.Abstractions;
 
 /// <summary>
 /// KafkaContextの抽象定義

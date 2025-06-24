@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace KsqlDsl.StateStore.Configuration
+namespace Kafka.Ksql.Linq.StateStore.Configuration
 {
     internal class StateStoreOptions
     {

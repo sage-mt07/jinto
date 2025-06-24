@@ -1,10 +1,10 @@
-using KsqlDsl.Core.Abstractions;
-using KsqlDsl.StateStore.Extensions;
+using Kafka.Ksql.Linq.Core.Abstractions;
+using Kafka.Ksql.Linq.StateStore.Extensions;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace KsqlDsl.StateStore;
+namespace Kafka.Ksql.Linq.StateStore;
 
 internal class EventSetWithStateStore<T> : EventSet<T> where T : class
 {

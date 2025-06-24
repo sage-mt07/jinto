@@ -1,11 +1,11 @@
-using KsqlDsl;
-using KsqlDsl.Core.Abstractions;
-using KsqlDsl.Core.Context;
-using KsqlDsl.Messaging.Consumers;
+using Kafka.Ksql.Linq;
+using Kafka.Ksql.Linq.Core.Abstractions;
+using Kafka.Ksql.Linq.Core.Context;
+using Kafka.Ksql.Linq.Messaging.Consumers;
 using System;
 using Xunit;
 
-namespace KsqlDsl.Tests.Application;
+namespace Kafka.Ksql.Linq.Tests.Application;
 
 public class KafkaContextTests
 {

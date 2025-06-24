@@ -1,4 +1,4 @@
-﻿using KsqlDsl.Core.Abstractions;
+﻿using Kafka.Ksql.Linq.Core.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,7 +6,7 @@ using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace KsqlDsl.Query.Abstractions;
+namespace Kafka.Ksql.Linq.Query.Abstractions;
 
 /// <summary>
 /// EventSet操作の共通インターフェース

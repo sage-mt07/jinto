@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace KsqlDsl.Core.Models;
+namespace Kafka.Ksql.Linq.Core.Models;
 
 
 internal class ProducerKey : IEquatable<ProducerKey>

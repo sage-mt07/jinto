@@ -1,12 +1,12 @@
 ﻿
-using KsqlDsl.Core.Abstractions;
+using Kafka.Ksql.Linq.Core.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace KsqlDsl;
+namespace Kafka.Ksql.Linq;
 
 /// <summary>
 /// Core層IEntitySet<T>実装（Phase3 簡素化ログフリー版）

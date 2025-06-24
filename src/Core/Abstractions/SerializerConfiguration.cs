@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace KsqlDsl.Core.Abstractions;
+namespace Kafka.Ksql.Linq.Core.Abstractions;
 public class SerializerConfiguration<T> where T : class
 {
     public object KeySerializer { get; set; } = default!;

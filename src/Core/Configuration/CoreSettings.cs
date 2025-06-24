@@ -1,6 +1,6 @@
-﻿using KsqlDsl.Configuration;
+﻿using Kafka.Ksql.Linq.Configuration;
 
-namespace KsqlDsl.Core.Configuration;
+namespace Kafka.Ksql.Linq.Core.Configuration;
 
 internal class CoreSettings
 {

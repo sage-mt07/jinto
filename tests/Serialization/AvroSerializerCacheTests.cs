@@ -4,14 +4,14 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Confluent.Kafka;
 using Confluent.SchemaRegistry;
-using KsqlDsl.Core.Abstractions;
-using KsqlDsl.Serialization.Avro.Cache;
-using KsqlDsl.Serialization.Avro.Core;
+using Kafka.Ksql.Linq.Core.Abstractions;
+using Kafka.Ksql.Linq.Serialization.Avro.Cache;
+using Kafka.Ksql.Linq.Serialization.Avro.Core;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
-using static KsqlDsl.Tests.PrivateAccessor;
+using static Kafka.Ksql.Linq.Tests.PrivateAccessor;
 
-namespace KsqlDsl.Tests.Serialization;
+namespace Kafka.Ksql.Linq.Tests.Serialization;
 
 public class AvroSerializerCacheTests
 {

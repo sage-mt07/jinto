@@ -1,8 +1,8 @@
-﻿using KsqlDsl.Messaging.Producers.Exception;
+﻿using Kafka.Ksql.Linq.Messaging.Producers.Exception;
 using System;
 using System.Collections.Generic;
 
-namespace KsqlDsl.Messaging.Producers.Core;
+namespace Kafka.Ksql.Linq.Messaging.Producers.Core;
 
 /// <summary>
 /// バッチ送信結果

@@ -1,12 +1,12 @@
 ﻿using Confluent.Kafka;
-using KsqlDsl.Configuration;
-using KsqlDsl.Configuration.Abstractions;
-using KsqlDsl.Core.Abstractions;
-using KsqlDsl.Core.Extensions;
-using KsqlDsl.Messaging.Abstractions;
-using KsqlDsl.Messaging.Configuration;
-using KsqlDsl.Messaging.Consumers.Core;
-using KsqlDsl.Serialization.Abstractions;
+using Kafka.Ksql.Linq.Configuration;
+using Kafka.Ksql.Linq.Configuration.Abstractions;
+using Kafka.Ksql.Linq.Core.Abstractions;
+using Kafka.Ksql.Linq.Core.Extensions;
+using Kafka.Ksql.Linq.Messaging.Abstractions;
+using Kafka.Ksql.Linq.Messaging.Configuration;
+using Kafka.Ksql.Linq.Messaging.Consumers.Core;
+using Kafka.Ksql.Linq.Serialization.Abstractions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
@@ -18,7 +18,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using ConfluentSchemaRegistry = Confluent.SchemaRegistry;
 
-namespace KsqlDsl.Messaging.Consumers;
+namespace Kafka.Ksql.Linq.Messaging.Consumers;
 /// <summary>
 /// 型安全Consumer管理 - Pool削除、直接管理、型安全性強化版
 /// 設計理由: EF風API、事前確定管理、型安全性確保

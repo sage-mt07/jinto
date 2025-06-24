@@ -1,10 +1,10 @@
-﻿using KsqlDsl.Serialization.Abstractions;
-using KsqlDsl.Serialization.Avro.Core;
+﻿using Kafka.Ksql.Linq.Serialization.Abstractions;
+using Kafka.Ksql.Linq.Serialization.Avro.Core;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace KsqlDsl.Serialization.Avro.Management;
+namespace Kafka.Ksql.Linq.Serialization.Avro.Management;
 internal interface IAvroSchemaRegistrationService
 {
     /// <summary>

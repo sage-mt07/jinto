@@ -1,9 +1,9 @@
 ﻿using Confluent.Kafka;
-using KsqlDsl.Configuration.Abstractions;
-using KsqlDsl.Core.Abstractions;
-using KsqlDsl.Core.Extensions;
-using KsqlDsl.Messaging.Abstractions;
-using KsqlDsl.Messaging.Producers.Core;
+using Kafka.Ksql.Linq.Configuration.Abstractions;
+using Kafka.Ksql.Linq.Core.Abstractions;
+using Kafka.Ksql.Linq.Core.Extensions;
+using Kafka.Ksql.Linq.Messaging.Abstractions;
+using Kafka.Ksql.Linq.Messaging.Producers.Core;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -12,7 +12,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace KsqlDsl.Messaging.Consumers.Core;
+namespace Kafka.Ksql.Linq.Messaging.Consumers.Core;
 /// <summary>
 /// 統合型安全Consumer - TypedKafkaConsumer + KafkaConsumer統合版
 /// 設計理由: Pool削除、Confluent.Kafka完全委譲、シンプル化

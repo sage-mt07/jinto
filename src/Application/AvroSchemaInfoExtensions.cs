@@ -1,6 +1,6 @@
-﻿using KsqlDsl.Serialization.Avro.Core;
+﻿using Kafka.Ksql.Linq.Serialization.Avro.Core;
 
-namespace KsqlDsl.Application;
+namespace Kafka.Ksql.Linq.Application;
 
 internal static class AvroSchemaInfoExtensions
 {

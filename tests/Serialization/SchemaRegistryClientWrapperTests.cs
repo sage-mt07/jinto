@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
 using Confluent.SchemaRegistry;
-using KsqlDsl.Serialization.Avro.Core;
+using Kafka.Ksql.Linq.Serialization.Avro.Core;
 using Xunit;
 
-namespace KsqlDsl.Tests.Serialization;
+namespace Kafka.Ksql.Linq.Tests.Serialization;
 
 public class SchemaRegistryClientWrapperTests
 {

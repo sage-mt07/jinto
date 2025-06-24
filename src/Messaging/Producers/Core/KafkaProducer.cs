@@ -1,9 +1,9 @@
 using Confluent.Kafka;
-using KsqlDsl.Core.Abstractions;
-using KsqlDsl.Core.Extensions;
-using KsqlDsl.Core.Models;
-using KsqlDsl.Messaging.Abstractions;
-using KsqlDsl.Messaging.Producers.Exception;
+using Kafka.Ksql.Linq.Core.Abstractions;
+using Kafka.Ksql.Linq.Core.Extensions;
+using Kafka.Ksql.Linq.Core.Models;
+using Kafka.Ksql.Linq.Messaging.Abstractions;
+using Kafka.Ksql.Linq.Messaging.Producers.Exception;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -11,7 +11,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace KsqlDsl.Messaging.Producers.Core;
+namespace Kafka.Ksql.Linq.Messaging.Producers.Core;
 /// <summary>
 /// 統合型安全Producer - TypedKafkaProducer + KafkaProducer統合版
 /// 設計理由: Pool削除、Confluent.Kafka完全委譲、シンプル化

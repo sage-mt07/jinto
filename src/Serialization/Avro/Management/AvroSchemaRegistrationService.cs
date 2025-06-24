@@ -1,17 +1,17 @@
 ﻿// src/Serialization/Avro/Management/AvroSchemaRegistrationService.cs
 // インターフェース準拠修正版
 
-using KsqlDsl.Core.Extensions;
-using KsqlDsl.Serialization.Abstractions;
-using KsqlDsl.Serialization.Avro.Core;
-using KsqlDsl.Serialization.Avro.Exceptions;
+using Kafka.Ksql.Linq.Core.Extensions;
+using Kafka.Ksql.Linq.Serialization.Abstractions;
+using Kafka.Ksql.Linq.Serialization.Avro.Core;
+using Kafka.Ksql.Linq.Serialization.Avro.Exceptions;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using ConfluentSchemaRegistry = Confluent.SchemaRegistry;
 
-namespace KsqlDsl.Serialization.Avro.Management;
+namespace Kafka.Ksql.Linq.Serialization.Avro.Management;
 internal class AvroSchemaRegistrationService : IAvroSchemaRegistrationService
 {
     private readonly ConfluentSchemaRegistry.ISchemaRegistryClient _schemaRegistryClient;

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace KsqlDsl.Configuration
+namespace Kafka.Ksql.Linq.Configuration
 {
     public class EntityConfiguration
     {

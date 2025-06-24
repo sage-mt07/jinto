@@ -1,9 +1,9 @@
-﻿using KsqlDsl.Core.Abstractions;
+﻿using Kafka.Ksql.Linq.Core.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace KsqlDsl.Messaging.Producers.Core;
+namespace Kafka.Ksql.Linq.Messaging.Producers.Core;
 /// <summary>
 /// バッチコンテナ
 /// </summary>

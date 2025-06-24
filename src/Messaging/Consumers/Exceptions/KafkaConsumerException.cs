@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace KsqlDsl.Messaging.Consumers.Exceptions;
+namespace Kafka.Ksql.Linq.Messaging.Consumers.Exceptions;
 public class KafkaConsumerException : Exception
 {
     public KafkaConsumerException(string message) : base(message) { }

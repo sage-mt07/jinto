@@ -1,6 +1,6 @@
-﻿using KsqlDsl.Configuration;
+﻿using Kafka.Ksql.Linq.Configuration;
 
-namespace KsqlDsl.Core.Context;
+namespace Kafka.Ksql.Linq.Core.Context;
 
 public class KafkaContextOptions
 {

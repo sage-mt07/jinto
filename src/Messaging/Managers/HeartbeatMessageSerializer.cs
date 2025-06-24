@@ -1,9 +1,9 @@
 using Confluent.Kafka;
-using KsqlDsl.Messaging.Heartbeat;
+using Kafka.Ksql.Linq.Messaging.Heartbeat;
 using System;
 using System.Text.Json;
 
-namespace KsqlDsl.Messaging.Managers;
+namespace Kafka.Ksql.Linq.Messaging.Managers;
 
 
 internal class HeartbeatMessageSerializer : ISerializer<HeartbeatMessage>

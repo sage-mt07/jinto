@@ -1,10 +1,10 @@
 using System;
-using KsqlDsl.Messaging.Consumers.Exceptions;
-using KsqlDsl.Messaging.Producers.Exception;
-using KsqlDsl.Messaging.Producers.Core;
+using Kafka.Ksql.Linq.Messaging.Consumers.Exceptions;
+using Kafka.Ksql.Linq.Messaging.Producers.Exception;
+using Kafka.Ksql.Linq.Messaging.Producers.Core;
 using Xunit;
 
-namespace KsqlDsl.Tests.Messaging;
+namespace Kafka.Ksql.Linq.Tests.Messaging;
 
 public class MessagingExceptionTests
 {

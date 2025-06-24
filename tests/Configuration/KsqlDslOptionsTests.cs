@@ -1,7 +1,7 @@
-using KsqlDsl.Configuration;
+using Kafka.Ksql.Linq.Configuration;
 using Xunit;
 
-namespace KsqlDsl.Tests.Configuration;
+namespace Kafka.Ksql.Linq.Tests.Configuration;
 
 public class KsqlDslOptionsTests
 {

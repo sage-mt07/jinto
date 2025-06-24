@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace KsqlDsl.Messaging.Configuration;
+namespace Kafka.Ksql.Linq.Messaging.Configuration;
 
 /// <summary>
 /// Schema Registry設定（Confluent.Kafka仕様準拠）

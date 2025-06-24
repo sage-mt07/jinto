@@ -1,10 +1,10 @@
 using System;
 using System.Linq;
-using KsqlDsl.Core.Abstractions;
-using KsqlDsl.Serialization.Abstractions;
+using Kafka.Ksql.Linq.Core.Abstractions;
+using Kafka.Ksql.Linq.Serialization.Abstractions;
 using Xunit;
 
-namespace KsqlDsl.Tests.Serialization;
+namespace Kafka.Ksql.Linq.Tests.Serialization;
 
 public class AvroEntityConfigurationTests
 {
