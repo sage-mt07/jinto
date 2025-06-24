@@ -48,7 +48,7 @@ public class TopicAttribute : Attribute
             config["max.message.bytes"] = MaxMessageBytes.Value;
 
         if (SegmentBytes.HasValue)
-            config["segment.bytes"] = SegmentBytes.Value;
+            config["segment.bytes"] = (int)SegmentBytes.Value;
 
         return config;
     }
