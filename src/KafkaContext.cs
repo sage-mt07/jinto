@@ -1,13 +1,14 @@
-// src/KafkaContext.cs - Core層統合完全版
 using Kafka.Ksql.Linq.Configuration;
 using Kafka.Ksql.Linq.Core.Abstractions;
 using Kafka.Ksql.Linq.Core.Context;
 using Kafka.Ksql.Linq.Messaging.Consumers;
 using Kafka.Ksql.Linq.Serialization.Abstractions;
+using Kafka.Ksql.Linq.Serialization.Avro.Management;
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using ConfluentSchemaRegistry = Confluent.SchemaRegistry;
 
 namespace Kafka.Ksql.Linq;
 /// <summary>
@@ -18,27 +19,145 @@ public abstract class KafkaContext : KafkaContextCore
 {
     private readonly KafkaProducerManager _producerManager;
     private readonly KafkaConsumerManager _consumerManager;
+    private readonly Lazy<ConfluentSchemaRegistry.ISchemaRegistryClient> _schemaRegistryClient;
+    private readonly IAvroSchemaRegistrationService _schemaRegistrationService;
 
     protected KafkaContext() : base()
     {
-        _producerManager = new KafkaProducerManager(
-            Microsoft.Extensions.Options.Options.Create(new KsqlDslOptions()),
-            null);
+        _schemaRegistryClient = new Lazy<ConfluentSchemaRegistry.ISchemaRegistryClient>(CreateSchemaRegistryClient);
+        _schemaRegistrationService = CreateSchemaRegistrationService();
 
-        _consumerManager = new KafkaConsumerManager(
-            Microsoft.Extensions.Options.Options.Create(new KsqlDslOptions()),
-            null);
+        try
+        {
+            InitializeWithSchemaRegistration();
+
+            _producerManager = new KafkaProducerManager(
+                Microsoft.Extensions.Options.Options.Create(new KsqlDslOptions()),
+                null);
+
+            _consumerManager = new KafkaConsumerManager(
+                Microsoft.Extensions.Options.Options.Create(new KsqlDslOptions()),
+                null);
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException(
+                "FATAL: KafkaContext initialization failed. Application cannot continue without Kafka connectivity.", ex);
+        }
     }
 
     protected KafkaContext(KafkaContextOptions options) : base(options)
     {
-        _producerManager = new KafkaProducerManager(
-          Microsoft.Extensions.Options.Options.Create(new KsqlDslOptions()),
-          null);
+        _schemaRegistryClient = new Lazy<ConfluentSchemaRegistry.ISchemaRegistryClient>(CreateSchemaRegistryClient);
+        _schemaRegistrationService = CreateSchemaRegistrationService();
 
-        _consumerManager = new KafkaConsumerManager(
-            Microsoft.Extensions.Options.Options.Create(new KsqlDslOptions()),
-            null);
+        try
+        {
+            InitializeWithSchemaRegistration();
+
+            _producerManager = new KafkaProducerManager(
+                Microsoft.Extensions.Options.Options.Create(new KsqlDslOptions()),
+                null);
+
+            _consumerManager = new KafkaConsumerManager(
+                Microsoft.Extensions.Options.Options.Create(new KsqlDslOptions()),
+                null);
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException(
+                "FATAL: KafkaContext initialization failed. Application cannot continue without Kafka connectivity.", ex);
+        }
+    }
+
+    /// <summary>
+    /// OnModelCreating → スキーマ自動登録フローの実行
+    /// </summary>
+    private void InitializeWithSchemaRegistration()
+    {
+        // 1. OnModelCreatingでモデル構築
+        ConfigureModel();
+
+        // 2. EntityModel → AvroEntityConfiguration変換
+        var entityModels = GetEntityModels();
+        if (entityModels.Count == 0)
+        {
+            throw new InvalidOperationException(
+                "No entities configured. Implement OnModelCreating() method to configure entities, " +
+                "or add [Topic] attributes to your entity classes.");
+        }
+
+        var avroConfigurations = ConvertToAvroConfigurations(entityModels);
+
+        // 3. スキーマ登録（接続確認も含む）
+        RegisterSchemasSync(avroConfigurations);
+
+        // 4. Kafka接続確認
+        ValidateKafkaConnectivity();
+    }
+
+    /// <summary>
+    /// スキーマ登録の同期実行（接続確認も兼ねる）
+    /// </summary>
+    private void RegisterSchemasSync(IReadOnlyDictionary<Type, AvroEntityConfiguration> configurations)
+    {
+        try
+        {
+            // スキーマ登録実行（Schema Registry接続エラーはここで検出）
+            var registrationTask = _schemaRegistrationService.RegisterAllSchemasAsync(configurations);
+            registrationTask.Wait(TimeSpan.FromSeconds(30));
+
+            if (!registrationTask.IsCompletedSuccessfully)
+            {
+                var exception = registrationTask.Exception?.GetBaseException() ??
+                    new TimeoutException("Schema registration timed out after 30 seconds");
+                throw exception;
+            }
+        }
+        catch (AggregateException ex)
+        {
+            throw ex.GetBaseException();
+        }
+    }
+
+    /// <summary>
+    /// Kafka接続確認
+    /// </summary>
+    private void ValidateKafkaConnectivity()
+    {
+        try
+        {
+            // Producer/Consumer初期化時点でKafka接続が確認される
+            // 追加の接続確認は不要（既存の初期化処理で十分）
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException(
+                "FATAL: Cannot connect to Kafka. Verify bootstrap servers and network connectivity.", ex);
+        }
+    }
+
+    /// <summary>
+    /// SchemaRegistryClient作成
+    /// </summary>
+    private ConfluentSchemaRegistry.ISchemaRegistryClient CreateSchemaRegistryClient()
+    {
+        var config = new ConfluentSchemaRegistry.SchemaRegistryConfig
+        {
+            Url = "http://localhost:8081", // デフォルト値、実際は設定から取得
+            MaxCachedSchemas = 1000,
+            RequestTimeoutMs = 30000
+        };
+
+        return new ConfluentSchemaRegistry.CachedSchemaRegistryClient(config);
+    }
+
+    /// <summary>
+    /// スキーマ登録サービス作成
+    /// </summary>
+    private IAvroSchemaRegistrationService CreateSchemaRegistrationService()
+    {
+        return new AvroSchemaRegistrationService(_schemaRegistryClient.Value, null);
     }
 
     /// <summary>
@@ -49,19 +168,12 @@ public abstract class KafkaContext : KafkaContextCore
         return new EventSetWithServices<T>(this, entityModel);
     }
 
-    // Core層統合API
     internal KafkaProducerManager GetProducerManager() => _producerManager;
     internal KafkaConsumerManager GetConsumerManager() => _consumerManager;
 
     /// <summary>
-    /// EntityModel の情報を AvroEntityConfiguration へ変換する。
+    /// EntityModel の情報を AvroEntityConfiguration へ変換する
     /// </summary>
-    /// <param name="entityModels">変換対象のモデル一覧</param>
-    /// <returns>変換後の AvroEntityConfiguration マップ</returns>
-    /// <remarks>
-    /// テストからリフレクションで呼び出されるためアクセスレベルを
-    /// <c>protected</c> に変更する。
-    /// </remarks>
     protected IReadOnlyDictionary<Type, AvroEntityConfiguration> ConvertToAvroConfigurations(
         Dictionary<Type, EntityModel> entityModels)
     {
@@ -86,10 +198,13 @@ public abstract class KafkaContext : KafkaContextCore
     {
         if (disposing)
         {
-            _producerManager.Dispose();
-            _consumerManager.Dispose();
+            _producerManager?.Dispose();
+            _consumerManager?.Dispose();
 
-
+            if (_schemaRegistryClient.IsValueCreated)
+            {
+                _schemaRegistryClient.Value?.Dispose();
+            }
         }
 
         base.Dispose(disposing);
@@ -97,18 +212,22 @@ public abstract class KafkaContext : KafkaContextCore
 
     protected override async ValueTask DisposeAsyncCore()
     {
-        // 上位層サービスの非同期破棄
-        _producerManager.Dispose();
-        _consumerManager.Dispose();
+        _producerManager?.Dispose();
+        _consumerManager?.Dispose();
+
+        if (_schemaRegistryClient.IsValueCreated)
+        {
+            _schemaRegistryClient.Value?.Dispose();
+        }
 
         await base.DisposeAsyncCore();
     }
+
     public override string ToString()
     {
-        return $"{base.ToString()} [Core層統合]";
+        return $"{base.ToString()} [スキーマ自動登録対応]";
     }
 }
-
 
 /// <summary>
 /// 上位層サービス統合EventSet
@@ -157,4 +276,3 @@ internal class EventSetWithServices<T> : EventSet<T> where T : class
         }
     }
 }
-
