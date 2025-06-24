@@ -9,9 +9,9 @@ using System.Threading.Tasks;
 
 namespace Kafka.Ksql.Linq.Query.Linq;
 
-internal class JoinResult<TOuter, TInner> : IJoinResult<TOuter, TInner>
-    where TOuter : class
-    where TInner : class
+internal class UnifiedJoinResult<TOuter, TInner> : IJoinResult<TOuter, TInner>
+      where TOuter : class
+      where TInner : class
 {
     private readonly IEntitySet<TOuter> _outer;
     private readonly IEntitySet<TInner> _inner;
@@ -20,7 +20,7 @@ internal class JoinResult<TOuter, TInner> : IJoinResult<TOuter, TInner>
     private readonly JoinBuilder _joinBuilder;
     private readonly IKafkaContext _context;
 
-    public JoinResult(
+    public UnifiedJoinResult(
         IEntitySet<TOuter> outer,
         IEntitySet<TInner> inner,
         Expression outerKeySelector,
@@ -28,21 +28,18 @@ internal class JoinResult<TOuter, TInner> : IJoinResult<TOuter, TInner>
         JoinBuilder joinBuilder,
         IKafkaContext context)
     {
-        _outer = outer;
-        _inner = inner;
-        _outerKeySelector = outerKeySelector;
-        _innerKeySelector = innerKeySelector;
-        _joinBuilder = joinBuilder;
-        _context = context;
+        _outer = outer ?? throw new ArgumentNullException(nameof(outer));
+        _inner = inner ?? throw new ArgumentNullException(nameof(inner));
+        _outerKeySelector = outerKeySelector ?? throw new ArgumentNullException(nameof(outerKeySelector));
+        _innerKeySelector = innerKeySelector ?? throw new ArgumentNullException(nameof(innerKeySelector));
+        _joinBuilder = joinBuilder ?? throw new ArgumentNullException(nameof(joinBuilder));
+        _context = context ?? throw new ArgumentNullException(nameof(context));
     }
 
-    /// <summary>
-    /// 2テーブル結合の結果射影
-    /// </summary>
     public IEntitySet<TResult> Select<TResult>(
         Expression<Func<TOuter, TInner, TResult>> resultSelector) where TResult : class
     {
-        var joinExpression = BuildJoinExpression(resultSelector);
+        var joinExpression = BuildTwoTableJoinExpression(resultSelector);
         var resultEntityModel = CreateResultEntityModel<TResult>();
 
         return new JoinResultEntitySet<TResult>(
@@ -52,15 +49,12 @@ internal class JoinResult<TOuter, TInner> : IJoinResult<TOuter, TInner>
             _joinBuilder);
     }
 
-    /// <summary>
-    /// 3テーブル目との結合（TOuter基準）
-    /// </summary>
-    public IThreeWayJoinResult<TOuter, TInner, TThird> Join<TThird, TKey>(
+    public IJoinResult<TOuter, TInner, TThird> Join<TThird, TKey>(
         IEntitySet<TThird> third,
         Expression<Func<TOuter, TKey>> outerKeySelector,
         Expression<Func<TThird, TKey>> thirdKeySelector) where TThird : class
     {
-        return new ThreeWayJoinResult<TOuter, TInner, TThird>(
+        return new UnifiedThreeWayJoinResult<TOuter, TInner, TThird>(
             _outer,
             _inner,
             third,
@@ -73,15 +67,12 @@ internal class JoinResult<TOuter, TInner> : IJoinResult<TOuter, TInner>
             _context);
     }
 
-    /// <summary>
-    /// 3テーブル目との結合（TInner基準）
-    /// </summary>
-    public IThreeWayJoinResult<TOuter, TInner, TThird> Join<TThird, TKey>(
+    public IJoinResult<TOuter, TInner, TThird> Join<TThird, TKey>(
         IEntitySet<TThird> third,
         Expression<Func<TInner, TKey>> innerKeySelector,
         Expression<Func<TThird, TKey>> thirdKeySelector) where TThird : class
     {
-        return new ThreeWayJoinResult<TOuter, TInner, TThird>(
+        return new UnifiedThreeWayJoinResult<TOuter, TInner, TThird>(
             _outer,
             _inner,
             third,
@@ -94,14 +85,11 @@ internal class JoinResult<TOuter, TInner> : IJoinResult<TOuter, TInner>
             _context);
     }
 
-    private Expression BuildJoinExpression<TResult>(Expression<Func<TOuter, TInner, TResult>> resultSelector)
+    private Expression BuildTwoTableJoinExpression<TResult>(
+        Expression<Func<TOuter, TInner, TResult>> resultSelector)
     {
-        // 2テーブル結合のExpression構築
-        var outerParam = Expression.Parameter(typeof(TOuter), "o");
-        var innerParam = Expression.Parameter(typeof(TInner), "i");
-
         var joinCallExpression = Expression.Call(
-            typeof(Queryable),
+            typeof(System.Linq.Queryable),
             "Join",
             new[] { typeof(TOuter), typeof(TInner), typeof(object), typeof(TResult) },
             Expression.Constant(_outer),
@@ -118,7 +106,7 @@ internal class JoinResult<TOuter, TInner> : IJoinResult<TOuter, TInner>
         return new EntityModel
         {
             EntityType = typeof(TResult),
-            TopicAttribute = null, // JOIN結果は一時的
+            TopicAttribute = null,
             AllProperties = typeof(TResult).GetProperties(),
             KeyProperties = Array.Empty<System.Reflection.PropertyInfo>()
         };

@@ -1,11 +1,7 @@
 using Kafka.Ksql.Linq.Core.Abstractions;
 using Kafka.Ksql.Linq.Query.Linq;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Kafka.Ksql.Linq.Extensions;
 
@@ -21,7 +17,6 @@ public static class LinqJoinExtensions
             return joinable;
         }
 
-        // EventSetをJoinableEntitySetでラップ
         return new JoinableEntitySet<T>(entitySet.GetContext(), entitySet.GetEntityModel());
     }
 

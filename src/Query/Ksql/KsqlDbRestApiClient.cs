@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
@@ -326,31 +326,11 @@ internal class KsqlDbRestApiClient : IDisposable
 }
 
 // 修正理由：task_eventset.txt「実データ送受信」に準拠したリクエスト/レスポンス型定義
-internal class KsqlQueryRequest
-{
-    public string Ksql { get; set; } = string.Empty;
-    public Dictionary<string, object> StreamsProperties { get; set; } = new();
-}
 
-internal class KsqlStatementRequest
-{
-    public string Ksql { get; set; } = string.Empty;
-}
 
-internal class KsqlQueryResponse
-{
-    public string[] Header { get; set; } = Array.Empty<string>();
-    public List<Dictionary<string, object>> Rows { get; set; } = new();
-}
 
-internal class KsqlStatementResponse
-{
-    public string StatementText { get; set; } = string.Empty;
-    public string? CommandId { get; set; }
-}
 
-internal class KsqlDbException : Exception
-{
-    public KsqlDbException(string message) : base(message) { }
-    public KsqlDbException(string message, Exception innerException) : base(message, innerException) { }
-}
+
+
+
+
