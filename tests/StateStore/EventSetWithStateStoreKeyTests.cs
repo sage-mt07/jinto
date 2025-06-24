@@ -1,5 +1,6 @@
 using KsqlDsl;
 using KsqlDsl.Core.Abstractions;
+using KsqlDsl.StateStore;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
