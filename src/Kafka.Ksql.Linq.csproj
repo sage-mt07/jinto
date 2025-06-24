@@ -2,6 +2,7 @@
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <RootNamespace>Kafka.Ksql.Linq</RootNamespace>
+    <AssemblyName>Kafka.Ksql.Linq</AssemblyName>
     <!-- ✅ Nullable Reference Types を有効化 -->
     <Nullable>enable</Nullable>
     <!-- ✅ 警告をエラーとして扱う (開発時品質向上) -->
