@@ -37,3 +37,17 @@ public class WindowDef
     public WindowDef GracePeriod(TimeSpan ts) => this;
     public WindowDef EmitFinal() => this;
 }
+
+public class Order
+{
+    public int OrderId { get; set; }
+    public int CustomerId { get; set; }
+    public DateTime OrderDate { get; set; }
+    public decimal TotalAmount { get; set; }
+}
+
+public class Customer
+{
+    public int Id { get; set; }
+    public string? Region { get; set; }
+}
