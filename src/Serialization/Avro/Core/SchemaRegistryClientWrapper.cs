@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using ConfluentSchemaRegistry = Confluent.SchemaRegistry;
 
-namespace KsqlDsl.Serialization.Avro.Core;
+namespace Kafka.Ksql.Linq.Serialization.Avro.Core;
 
 internal class SchemaRegistryClientWrapper : IDisposable
 {

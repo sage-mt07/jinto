@@ -1,17 +1,17 @@
 ﻿// src/Application/KsqlContext.cs - 簡素化・統合版
 // 重複削除、未実装参照削除、Monitoring初期化除去済み
 
-using KsqlDsl.Configuration;
-using KsqlDsl.Core.Abstractions;
-using KsqlDsl.Core.Context;
-using KsqlDsl.Messaging.Consumers;
-using KsqlDsl.Serialization.Abstractions;
+using Kafka.Ksql.Linq.Configuration;
+using Kafka.Ksql.Linq.Core.Abstractions;
+using Kafka.Ksql.Linq.Core.Context;
+using Kafka.Ksql.Linq.Messaging.Consumers;
+using Kafka.Ksql.Linq.Serialization.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace KsqlDsl.Application;
+namespace Kafka.Ksql.Linq.Application;
 
 // src/KafkaContext.cs への更新部分
 

@@ -1,8 +1,8 @@
-using KsqlDsl.Application;
+using Kafka.Ksql.Linq.Application;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
-namespace KsqlDsl.Tests.Application;
+namespace Kafka.Ksql.Linq.Tests.Application;
 
 public class KsqlContextOptionsExtensionsTests
 {

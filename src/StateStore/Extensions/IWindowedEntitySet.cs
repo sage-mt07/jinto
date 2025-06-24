@@ -1,7 +1,7 @@
-using KsqlDsl.Core.Abstractions;
-using KsqlDsl.StateStore.Core;
+using Kafka.Ksql.Linq.Core.Abstractions;
+using Kafka.Ksql.Linq.StateStore.Core;
 
-namespace KsqlDsl.StateStore.Extensions;
+namespace Kafka.Ksql.Linq.StateStore.Extensions;
 
 internal interface IWindowedEntitySet<T> : IEntitySet<T> where T : class
 {

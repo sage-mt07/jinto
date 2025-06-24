@@ -1,10 +1,10 @@
-﻿using KsqlDsl.Core.Extensions;
-using KsqlDsl.Query.Abstractions;
+﻿using Kafka.Ksql.Linq.Core.Extensions;
+using Kafka.Ksql.Linq.Query.Abstractions;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 
-namespace KsqlDsl.Query.Pipeline;
+namespace Kafka.Ksql.Linq.Query.Pipeline;
 
 /// <summary>
 /// Stream/Table型推論アナライザー

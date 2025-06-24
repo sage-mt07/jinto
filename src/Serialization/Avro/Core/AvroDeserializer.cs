@@ -1,6 +1,6 @@
-﻿namespace KsqlDsl.Serialization.Avro.Core;
+﻿namespace Kafka.Ksql.Linq.Serialization.Avro.Core;
 
-using KsqlDsl.Serialization.Avro.Abstractions;
+using Kafka.Ksql.Linq.Serialization.Avro.Abstractions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using System;

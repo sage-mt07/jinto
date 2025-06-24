@@ -1,4 +1,4 @@
-namespace KsqlDsl.Messaging.Heartbeat;
+namespace Kafka.Ksql.Linq.Messaging.Heartbeat;
 internal class HeartbeatConfig
 {
     public string Topic { get; set; } = string.Empty;

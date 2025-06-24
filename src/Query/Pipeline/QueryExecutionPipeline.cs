@@ -1,12 +1,12 @@
-﻿using KsqlDsl.Core.Extensions;
-using KsqlDsl.Query.Abstractions;
+﻿using Kafka.Ksql.Linq.Core.Extensions;
+using Kafka.Ksql.Linq.Query.Abstractions;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
-namespace KsqlDsl.Query.Pipeline;
+namespace Kafka.Ksql.Linq.Query.Pipeline;
 
 /// <summary>
 /// クエリ実行パイプライン - LINQ式から段階的にksqlDBクエリを実行

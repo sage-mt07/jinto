@@ -1,9 +1,9 @@
-using KsqlDsl;
-using KsqlDsl.Core.Abstractions;
-using KsqlDsl.Core.Context;
-using KsqlDsl.Messaging.Abstractions;
-using KsqlDsl.Messaging.Producers.Core;
-using KsqlDsl.Configuration;
+using Kafka.Ksql.Linq;
+using Kafka.Ksql.Linq.Core.Abstractions;
+using Kafka.Ksql.Linq.Core.Context;
+using Kafka.Ksql.Linq.Messaging.Abstractions;
+using Kafka.Ksql.Linq.Messaging.Producers.Core;
+using Kafka.Ksql.Linq.Configuration;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System;
@@ -12,7 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace KsqlDsl.Tests.Application;
+namespace Kafka.Ksql.Linq.Tests.Application;
 
 public class EventSetWithServicesSendTests
 {

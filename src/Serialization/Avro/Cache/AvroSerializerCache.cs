@@ -1,8 +1,8 @@
 ﻿using Confluent.Kafka;
-using KsqlDsl.Core.Abstractions;
-using KsqlDsl.Serialization.Abstractions;
-using KsqlDsl.Serialization.Avro.Abstractions;
-using KsqlDsl.Serialization.Avro.Core;
+using Kafka.Ksql.Linq.Core.Abstractions;
+using Kafka.Ksql.Linq.Serialization.Abstractions;
+using Kafka.Ksql.Linq.Serialization.Avro.Abstractions;
+using Kafka.Ksql.Linq.Serialization.Avro.Core;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using System;
@@ -11,7 +11,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace KsqlDsl.Serialization.Avro.Cache;
+namespace Kafka.Ksql.Linq.Serialization.Avro.Cache;
 internal class AvroSerializerCache : IDisposable
 {
     private readonly ConcurrentDictionary<Type, object> _serializerManagers = new();

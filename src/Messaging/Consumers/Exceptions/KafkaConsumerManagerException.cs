@@ -1,7 +1,7 @@
-﻿using KsqlDsl.Core.Exceptions;
+﻿using Kafka.Ksql.Linq.Core.Exceptions;
 using System;
 
-namespace KsqlDsl.Messaging.Consumers.Exceptions;
+namespace Kafka.Ksql.Linq.Messaging.Consumers.Exceptions;
 
 /// <summary>
 /// Consumer管理例外

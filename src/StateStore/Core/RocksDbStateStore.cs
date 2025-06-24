@@ -1,4 +1,4 @@
-using KsqlDsl.StateStore.Configuration;
+using Kafka.Ksql.Linq.StateStore.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using System;
@@ -9,7 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace KsqlDsl.StateStore.Core;
+namespace Kafka.Ksql.Linq.StateStore.Core;
 
 public class RocksDbStateStore<TKey, TValue> : IStateStore<TKey, TValue>
     where TKey : notnull

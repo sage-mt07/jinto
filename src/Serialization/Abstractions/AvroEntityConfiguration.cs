@@ -1,10 +1,10 @@
-﻿using KsqlDsl.Core.Abstractions;
+﻿using Kafka.Ksql.Linq.Core.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace KsqlDsl.Serialization.Abstractions;
+namespace Kafka.Ksql.Linq.Serialization.Abstractions;
 
 public class AvroEntityConfiguration
 {

@@ -2,7 +2,7 @@ using Confluent.Kafka;
 using System;
 using System.Collections.Generic;
 
-namespace KsqlDsl.StateStore.Monitoring;
+namespace Kafka.Ksql.Linq.StateStore.Monitoring;
 
 internal class ReadyStateInfo
 {

@@ -1,5 +1,5 @@
-﻿using KsqlDsl.Core.Abstractions;
-using KsqlDsl.Serialization.Avro.Core;
+﻿using Kafka.Ksql.Linq.Core.Abstractions;
+using Kafka.Ksql.Linq.Serialization.Avro.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,7 +7,7 @@ using System.Reflection;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace KsqlDsl.Serialization.Avro.Management;
+namespace Kafka.Ksql.Linq.Serialization.Avro.Management;
 internal class AvroSchemaBuilder : IAvroSchemaProvider
 {
     public Task<string> GetKeySchemaAsync<T>() where T : class

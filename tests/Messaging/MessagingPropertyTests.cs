@@ -1,10 +1,10 @@
 using System;
 using Confluent.Kafka;
-using KsqlDsl.Messaging.Consumers.Core;
-using KsqlDsl.Messaging.Producers.Core;
+using Kafka.Ksql.Linq.Messaging.Consumers.Core;
+using Kafka.Ksql.Linq.Messaging.Producers.Core;
 using Xunit;
 
-namespace KsqlDsl.Tests.Messaging;
+namespace Kafka.Ksql.Linq.Tests.Messaging;
 
 public class MessagingPropertyTests
 {

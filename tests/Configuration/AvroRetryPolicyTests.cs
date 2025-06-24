@@ -1,8 +1,8 @@
 using System;
-using KsqlDsl.Configuration.Options;
+using Kafka.Ksql.Linq.Configuration.Options;
 using Xunit;
 
-namespace KsqlDsl.Tests.Configuration;
+namespace Kafka.Ksql.Linq.Tests.Configuration;
 
 public class AvroRetryPolicyTests
 {

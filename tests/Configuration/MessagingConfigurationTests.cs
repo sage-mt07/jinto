@@ -1,7 +1,7 @@
-using KsqlDsl.Messaging.Configuration;
+using Kafka.Ksql.Linq.Messaging.Configuration;
 using Xunit;
 
-namespace KsqlDsl.Tests.Configuration;
+namespace Kafka.Ksql.Linq.Tests.Configuration;
 
 public class MessagingConfigurationTests
 {

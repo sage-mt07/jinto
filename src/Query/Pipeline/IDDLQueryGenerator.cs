@@ -1,7 +1,7 @@
-﻿using KsqlDsl.Core.Abstractions;
+﻿using Kafka.Ksql.Linq.Core.Abstractions;
 using System.Linq.Expressions;
 
-namespace KsqlDsl.Query.Pipeline;
+namespace Kafka.Ksql.Linq.Query.Pipeline;
 
 internal interface IDDLQueryGenerator
 {

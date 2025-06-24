@@ -1,9 +1,9 @@
-using KsqlDsl.Core.Exceptions;
+using Kafka.Ksql.Linq.Core.Exceptions;
 using System;
 using System.Collections.Generic;
 using Xunit;
 
-namespace KsqlDsl.Tests.Core;
+namespace Kafka.Ksql.Linq.Tests.Core;
 
 public class CoreExceptionsTests
 {

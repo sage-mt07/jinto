@@ -1,6 +1,6 @@
 ﻿using Confluent.Kafka;
 using System;
-namespace KsqlDsl.Configuration.Abstractions;
+namespace Kafka.Ksql.Linq.Configuration.Abstractions;
 public class KafkaSubscriptionOptions
 {
     /// <summary>

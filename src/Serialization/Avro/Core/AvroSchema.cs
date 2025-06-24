@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace KsqlDsl.Serialization.Avro.Core;
+namespace Kafka.Ksql.Linq.Serialization.Avro.Core;
 
 
 

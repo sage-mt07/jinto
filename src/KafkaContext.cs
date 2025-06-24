@@ -1,15 +1,15 @@
 // src/KafkaContext.cs - Core層統合完全版
-using KsqlDsl.Configuration;
-using KsqlDsl.Core.Abstractions;
-using KsqlDsl.Core.Context;
-using KsqlDsl.Messaging.Consumers;
-using KsqlDsl.Serialization.Abstractions;
+using Kafka.Ksql.Linq.Configuration;
+using Kafka.Ksql.Linq.Core.Abstractions;
+using Kafka.Ksql.Linq.Core.Context;
+using Kafka.Ksql.Linq.Messaging.Consumers;
+using Kafka.Ksql.Linq.Serialization.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace KsqlDsl;
+namespace Kafka.Ksql.Linq;
 /// <summary>
 /// Core層統合KafkaContext
 /// 設計理由：Core抽象化を継承し、上位層機能を統合

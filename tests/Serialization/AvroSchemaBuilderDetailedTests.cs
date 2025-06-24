@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Text.Json;
 using System.Threading.Tasks;
-using KsqlDsl.Core.Abstractions;
-using KsqlDsl.Serialization.Avro.Core;
-using KsqlDsl.Serialization.Avro.Management;
+using Kafka.Ksql.Linq.Core.Abstractions;
+using Kafka.Ksql.Linq.Serialization.Avro.Core;
+using Kafka.Ksql.Linq.Serialization.Avro.Management;
 using Xunit;
-using static KsqlDsl.Tests.PrivateAccessor;
+using static Kafka.Ksql.Linq.Tests.PrivateAccessor;
 
-namespace KsqlDsl.Tests.Serialization;
+namespace Kafka.Ksql.Linq.Tests.Serialization;
 
 public class AvroSchemaBuilderDetailedTests
 {

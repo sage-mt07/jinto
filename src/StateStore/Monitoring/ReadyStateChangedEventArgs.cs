@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace KsqlDsl.StateStore.Monitoring;
+namespace Kafka.Ksql.Linq.StateStore.Monitoring;
 
 internal class ReadyStateChangedEventArgs : EventArgs
 {

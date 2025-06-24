@@ -1,8 +1,8 @@
-using KsqlDsl.Serialization.Avro.Core;
-using KsqlDsl.Serialization.Avro.Management;
+using Kafka.Ksql.Linq.Serialization.Avro.Core;
+using Kafka.Ksql.Linq.Serialization.Avro.Management;
 using Xunit;
 
-namespace KsqlDsl.Tests.Serialization;
+namespace Kafka.Ksql.Linq.Tests.Serialization;
 
 public class AvroSchemaRepositoryTests
 {

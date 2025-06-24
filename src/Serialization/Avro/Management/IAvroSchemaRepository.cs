@@ -1,8 +1,8 @@
-﻿using KsqlDsl.Serialization.Avro.Core;
+﻿using Kafka.Ksql.Linq.Serialization.Avro.Core;
 using System;
 using System.Collections.Generic;
 
-namespace KsqlDsl.Serialization.Avro.Management;
+namespace Kafka.Ksql.Linq.Serialization.Avro.Management;
 internal interface IAvroSchemaRepository
 {
     void StoreSchemaInfo(AvroSchemaInfo schemaInfo);

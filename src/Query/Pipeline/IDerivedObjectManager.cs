@@ -1,7 +1,7 @@
 ﻿using System.Linq.Expressions;
 using System.Threading.Tasks;
 
-namespace KsqlDsl.Query.Pipeline;
+namespace Kafka.Ksql.Linq.Query.Pipeline;
 public interface IDerivedObjectManager
 {
     string CreateDerivedStream(string baseName, Expression linqExpression);

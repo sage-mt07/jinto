@@ -1,7 +1,7 @@
 ﻿using Confluent.Kafka;
 using System;
 
-namespace KsqlDsl.Messaging.Producers.Core;
+namespace Kafka.Ksql.Linq.Messaging.Producers.Core;
 
 /// <summary>
 /// メッセージ送信結果

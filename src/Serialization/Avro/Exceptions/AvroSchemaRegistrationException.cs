@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace KsqlDsl.Serialization.Avro.Exceptions;
+namespace Kafka.Ksql.Linq.Serialization.Avro.Exceptions;
 public class AvroSchemaRegistrationException : Exception
 {
     public AvroSchemaRegistrationException(string message) : base(message) { }

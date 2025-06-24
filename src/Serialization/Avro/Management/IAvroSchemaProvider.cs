@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace KsqlDsl.Serialization.Avro.Management;
+namespace Kafka.Ksql.Linq.Serialization.Avro.Management;
 public interface IAvroSchemaProvider
 {
     Task<string> GetKeySchemaAsync<T>() where T : class;

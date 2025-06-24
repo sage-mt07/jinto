@@ -1,8 +1,8 @@
-using KsqlDsl.Messaging.Consumers.Core;
-using KsqlDsl.Core.Abstractions;
+using Kafka.Ksql.Linq.Messaging.Consumers.Core;
+using Kafka.Ksql.Linq.Core.Abstractions;
 using Xunit;
 
-namespace KsqlDsl.Tests.Messaging.Consumers;
+namespace Kafka.Ksql.Linq.Tests.Messaging.Consumers;
 
 public class ConsumerInstanceTests
 {

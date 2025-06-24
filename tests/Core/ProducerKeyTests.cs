@@ -1,8 +1,8 @@
-using KsqlDsl.Core.Models;
+using Kafka.Ksql.Linq.Core.Models;
 using System;
 using Xunit;
 
-namespace KsqlDsl.Tests.Core;
+namespace Kafka.Ksql.Linq.Tests.Core;
 
 public class ProducerKeyTests
 {

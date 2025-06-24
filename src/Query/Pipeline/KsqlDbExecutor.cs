@@ -1,9 +1,9 @@
-﻿using KsqlDsl.Core.Extensions;
+﻿using Kafka.Ksql.Linq.Core.Extensions;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-namespace KsqlDsl.Query.Pipeline;
+namespace Kafka.Ksql.Linq.Query.Pipeline;
 public abstract class KsqlDbExecutor : IDisposable
 {
     protected readonly ILogger _logger;

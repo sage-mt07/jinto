@@ -1,5 +1,5 @@
 ﻿using Confluent.Kafka;
-namespace KsqlDsl.Messaging.Producers.Exception;
+namespace Kafka.Ksql.Linq.Messaging.Producers.Exception;
 /// <summary>
 /// バッチ内個別エラー
 /// </summary>

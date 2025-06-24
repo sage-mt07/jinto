@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace KsqlDsl.Core.Modeling;
+namespace Kafka.Ksql.Linq.Core.Modeling;
 public class ModelValidationResult
 {
     public bool HasErrors { get; set; }

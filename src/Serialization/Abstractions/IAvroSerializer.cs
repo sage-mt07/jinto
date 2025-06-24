@@ -1,4 +1,4 @@
-﻿namespace KsqlDsl.Serialization.Avro.Abstractions;
+﻿namespace Kafka.Ksql.Linq.Serialization.Avro.Abstractions;
 
 using System;
 using System.IO;

@@ -1,8 +1,8 @@
-using KsqlDsl.StateStore.Monitoring;
+using Kafka.Ksql.Linq.StateStore.Monitoring;
 using System;
 using Xunit;
 
-namespace KsqlDsl.Tests.StateStore;
+namespace Kafka.Ksql.Linq.Tests.StateStore;
 
 public class ReadyStateInfoTests
 {

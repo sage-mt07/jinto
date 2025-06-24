@@ -1,11 +1,11 @@
-﻿using KsqlDsl.Query.Abstractions;
+﻿using Kafka.Ksql.Linq.Query.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 
-namespace KsqlDsl.Query.Builders;
+namespace Kafka.Ksql.Linq.Query.Builders;
 
 /// <summary>
 /// JOIN句構築ビルダー - 本体実装版

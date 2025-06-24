@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text.Json;
 using Xunit;
 
-namespace KsqlDsl.Tests;
+namespace Kafka.Ksql.Linq.Tests;
 
 public static class JsonAssert
 {

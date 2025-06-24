@@ -1,8 +1,8 @@
-using KsqlDsl.Messaging.Consumers.Exceptions;
+using Kafka.Ksql.Linq.Messaging.Consumers.Exceptions;
 using System;
 using Xunit;
 
-namespace KsqlDsl.Tests.Messaging;
+namespace Kafka.Ksql.Linq.Tests.Messaging;
 
 public class KafkaConsumerManagerExceptionTests
 {

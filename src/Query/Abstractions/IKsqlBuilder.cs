@@ -1,6 +1,6 @@
 ﻿using System.Linq.Expressions;
 
-namespace KsqlDsl.Query.Abstractions;
+namespace Kafka.Ksql.Linq.Query.Abstractions;
 /// <summary>
 /// KSQL構文ビルダーの共通インターフェース
 /// 設計理由：各ビルダークラスの統一、責務明確化

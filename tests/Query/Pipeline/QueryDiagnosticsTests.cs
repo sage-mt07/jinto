@@ -1,8 +1,8 @@
-using KsqlDsl.Query.Pipeline;
+using Kafka.Ksql.Linq.Query.Pipeline;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
-namespace KsqlDsl.Tests.Query.Pipeline;
+namespace Kafka.Ksql.Linq.Tests.Query.Pipeline;
 
 public class QueryDiagnosticsTests
 {

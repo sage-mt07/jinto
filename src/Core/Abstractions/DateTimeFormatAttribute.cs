@@ -1,7 +1,7 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 
-namespace KsqlDsl.Core.Abstractions;
+namespace Kafka.Ksql.Linq.Core.Abstractions;
 
 [AttributeUsage(AttributeTargets.Property)]
 public class DateTimeFormatAttribute : Attribute

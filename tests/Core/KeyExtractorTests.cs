@@ -1,11 +1,11 @@
-using KsqlDsl.Core.Abstractions;
-using KsqlDsl.Core.Models;
-using KsqlDsl.Serialization.Abstractions;
+using Kafka.Ksql.Linq.Core.Abstractions;
+using Kafka.Ksql.Linq.Core.Models;
+using Kafka.Ksql.Linq.Serialization.Abstractions;
 using System.Collections.Generic;
 using System.Reflection;
 using Xunit;
 
-namespace KsqlDsl.Tests.Core;
+namespace Kafka.Ksql.Linq.Tests.Core;
 
 public class KeyExtractorTests
 {

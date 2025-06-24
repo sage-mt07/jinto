@@ -1,6 +1,6 @@
-﻿using KsqlDsl.Core.Abstractions;
-using KsqlDsl.Core.Extensions;
-using KsqlDsl.Query.Pipeline;
+﻿using Kafka.Ksql.Linq.Core.Abstractions;
+using Kafka.Ksql.Linq.Core.Extensions;
+using Kafka.Ksql.Linq.Query.Pipeline;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Concurrent;
@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
 
-namespace KsqlDsl.Query.Schema;
+namespace Kafka.Ksql.Linq.Query.Schema;
 
 /// <summary>
 /// スキーマレジストリ - エンティティモデルからksqlDBオブジェクトの自動生成・管理
@@ -18,7 +18,7 @@ internal class SchemaRegistry : IDisposable
 {
     private readonly DDLQueryGenerator _ddlGenerator;
     private readonly KsqlDbExecutor _executor;
-    private readonly record struct RegisteredSchemaInfo(string ObjectName, KsqlDsl.Query.Abstractions.StreamTableType ObjectType);
+    private readonly record struct RegisteredSchemaInfo(string ObjectName, Kafka.Ksql.Linq.Query.Abstractions.StreamTableType ObjectType);
     private readonly ConcurrentDictionary<Type, RegisteredSchemaInfo> _registeredSchemas;
     private readonly ILogger _logger;
     private bool _disposed = false;
@@ -50,7 +50,7 @@ internal class SchemaRegistry : IDisposable
         // EntityModelにStreamTableTypeがない場合の判定ロジック
         var streamTableType = DetermineStreamTableType<T>(entityModel);
 
-        if (streamTableType == KsqlDsl.Query.Abstractions.StreamTableType.Stream)
+        if (streamTableType == Kafka.Ksql.Linq.Query.Abstractions.StreamTableType.Stream)
         {
             createQuery = _ddlGenerator.GenerateCreateStream(objectName, topicName, entityModel);
             _logger.LogDebug("Generated CREATE STREAM for {EntityType}: {ObjectName}", entityType.Name, objectName);
@@ -135,7 +135,7 @@ internal class SchemaRegistry : IDisposable
 
         try
         {
-            string dropQuery = objectType == KsqlDsl.Query.Abstractions.StreamTableType.Stream
+            string dropQuery = objectType == Kafka.Ksql.Linq.Query.Abstractions.StreamTableType.Stream
                 ? $"DROP STREAM IF EXISTS {objectName}"
                 : $"DROP TABLE IF EXISTS {objectName}";
             await _executor.ExecuteDDLAsync(dropQuery);
@@ -187,7 +187,7 @@ internal class SchemaRegistry : IDisposable
         var objectType = info.ObjectType;
         try
         {
-            string dropQuery = objectType == KsqlDsl.Query.Abstractions.StreamTableType.Stream
+            string dropQuery = objectType == Kafka.Ksql.Linq.Query.Abstractions.StreamTableType.Stream
                 ? $"DROP STREAM IF EXISTS {objectName}"
                 : $"DROP TABLE IF EXISTS {objectName}";
 
@@ -214,7 +214,7 @@ internal class SchemaRegistry : IDisposable
     /// <summary>
     /// EntityModelからStream/Table型を判定
     /// </summary>
-    private KsqlDsl.Query.Abstractions.StreamTableType DetermineStreamTableType<T>(EntityModel entityModel) where T : class
+    private Kafka.Ksql.Linq.Query.Abstractions.StreamTableType DetermineStreamTableType<T>(EntityModel entityModel) where T : class
     {
         var entityType = typeof(T);
 
@@ -222,32 +222,32 @@ internal class SchemaRegistry : IDisposable
         if (entityType.GetCustomAttribute<KsqlStreamAttribute>() != null)
         {
             _logger.LogDebug("Entity {EntityType} explicitly marked as STREAM", entityType.Name);
-            return KsqlDsl.Query.Abstractions.StreamTableType.Stream;
+            return Kafka.Ksql.Linq.Query.Abstractions.StreamTableType.Stream;
         }
 
         if (entityType.GetCustomAttribute<KsqlTableAttribute>() != null)
         {
             _logger.LogDebug("Entity {EntityType} explicitly marked as TABLE", entityType.Name);
-            return KsqlDsl.Query.Abstractions.StreamTableType.Table;
+            return Kafka.Ksql.Linq.Query.Abstractions.StreamTableType.Table;
         }
 
         // 2. EF Core TableAttribute の存在確認
         if (entityType.GetCustomAttribute<System.ComponentModel.DataAnnotations.Schema.TableAttribute>() != null)
         {
             _logger.LogDebug("Entity {EntityType} has EF Core [Table] attribute, defaulting to TABLE", entityType.Name);
-            return KsqlDsl.Query.Abstractions.StreamTableType.Table;
+            return Kafka.Ksql.Linq.Query.Abstractions.StreamTableType.Table;
         }
 
         // 3. キープロパティの有無で判定
         if (entityModel.KeyProperties != null && entityModel.KeyProperties.Length > 0)
         {
             _logger.LogDebug("Entity {EntityType} has key properties, defaulting to TABLE", entityType.Name);
-            return KsqlDsl.Query.Abstractions.StreamTableType.Table;
+            return Kafka.Ksql.Linq.Query.Abstractions.StreamTableType.Table;
         }
 
         // 4. デフォルトはStream
         _logger.LogDebug("Entity {EntityType} defaulting to STREAM", entityType.Name);
-        return KsqlDsl.Query.Abstractions.StreamTableType.Stream;
+        return Kafka.Ksql.Linq.Query.Abstractions.StreamTableType.Stream;
     }
 
     public void Dispose()

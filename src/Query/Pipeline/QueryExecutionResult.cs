@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace KsqlDsl.Query.Pipeline;
+namespace Kafka.Ksql.Linq.Query.Pipeline;
 internal class QueryExecutionResult
 {
     public bool Success { get; set; }

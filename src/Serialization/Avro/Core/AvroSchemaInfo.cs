@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Reflection;
 
-namespace KsqlDsl.Serialization.Avro.Core;
+namespace Kafka.Ksql.Linq.Serialization.Avro.Core;
 internal class AvroSchemaInfo
 {
     public Type EntityType { get; set; } = null!;

@@ -1,9 +1,9 @@
-﻿using KsqlDsl.Core.Abstractions;
+﻿using Kafka.Ksql.Linq.Core.Abstractions;
 using System;
 using System.Linq;
 using System.Reflection;
 
-namespace KsqlDsl.Core.Extensions;
+namespace Kafka.Ksql.Linq.Core.Extensions;
 internal static class CoreExtensions
 {
     /// <summary>

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace KsqlDsl.Serialization.Avro.Management;
+namespace Kafka.Ksql.Linq.Serialization.Avro.Management;
 public class SchemaUpgradeResult
 {
     public bool Success { get; set; }

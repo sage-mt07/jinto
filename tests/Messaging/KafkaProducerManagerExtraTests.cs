@@ -1,13 +1,13 @@
 using Confluent.SchemaRegistry;
-using KsqlDsl.Configuration;
-using KsqlDsl.Messaging.Configuration;
-using KsqlDsl.Messaging.Producers;
+using Kafka.Ksql.Linq.Configuration;
+using Kafka.Ksql.Linq.Messaging.Configuration;
+using Kafka.Ksql.Linq.Messaging.Producers;
 using System.Collections.Generic;
 using Microsoft.Extensions.Options;
 using Xunit;
-using static KsqlDsl.Tests.PrivateAccessor;
+using static Kafka.Ksql.Linq.Tests.PrivateAccessor;
 
-namespace KsqlDsl.Tests.Messaging;
+namespace Kafka.Ksql.Linq.Tests.Messaging;
 
 public class KafkaProducerManagerExtraTests
 {

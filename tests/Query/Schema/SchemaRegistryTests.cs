@@ -2,13 +2,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using KsqlDsl.Core.Abstractions;
-using KsqlDsl.Query.Pipeline;
-using KsqlDsl.Query.Schema;
+using Kafka.Ksql.Linq.Core.Abstractions;
+using Kafka.Ksql.Linq.Query.Pipeline;
+using Kafka.Ksql.Linq.Query.Schema;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
-namespace KsqlDsl.Tests.Query.Schema;
+namespace Kafka.Ksql.Linq.Tests.Query.Schema;
 
 public class SchemaRegistryTests
 {

@@ -3,11 +3,11 @@ using System.Linq;
 using System.Reflection;
 using Xunit;
 
-namespace KsqlDsl.Tests.Core;
+namespace Kafka.Ksql.Linq.Tests.Core;
 
 public class CoreValidationResultTests
 {
-    private static Type GetTypeRef() => Type.GetType("KsqlDsl.Core.Validation.CoreValidationResult, KsqlDsl")!;
+    private static Type GetTypeRef() => Type.GetType("Kafka.Ksql.Linq.Core.Validation.CoreValidationResult, Kafka.Ksql.Linq")!;
 
     [Fact]
     public void Properties_CanBeSetViaReflection()

@@ -1,9 +1,9 @@
-using KsqlDsl.Serialization.Avro.Exceptions;
+using Kafka.Ksql.Linq.Serialization.Avro.Exceptions;
 using System;
 using Xunit;
-using static KsqlDsl.Tests.PrivateAccessor;
+using static Kafka.Ksql.Linq.Tests.PrivateAccessor;
 
-namespace KsqlDsl.Tests.Serialization;
+namespace Kafka.Ksql.Linq.Tests.Serialization;
 
 public class AvroExceptionTests
 {

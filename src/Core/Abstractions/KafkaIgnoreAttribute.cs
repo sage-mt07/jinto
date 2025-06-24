@@ -1,6 +1,6 @@
 using System;
 
-namespace KsqlDsl.Core.Abstractions;
+namespace Kafka.Ksql.Linq.Core.Abstractions;
 /// <summary>
 /// Marks a property to be excluded from Kafka schema generation and KSQL CREATE statements.
 /// When applied to a POCO property, the property will not be included in:

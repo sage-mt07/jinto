@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text.Json;
-using KsqlDsl.Configuration.Abstractions;
-using KsqlDsl.Core.Abstractions;
-using KsqlDsl.Serialization.Avro.Core;
-using KsqlDsl.Serialization.Abstractions;
-using static KsqlDsl.Tests.PrivateAccessor;
+using Kafka.Ksql.Linq.Configuration.Abstractions;
+using Kafka.Ksql.Linq.Core.Abstractions;
+using Kafka.Ksql.Linq.Serialization.Avro.Core;
+using Kafka.Ksql.Linq.Serialization.Abstractions;
+using static Kafka.Ksql.Linq.Tests.PrivateAccessor;
 using Xunit;
 
-namespace KsqlDsl.Tests.Serialization;
+namespace Kafka.Ksql.Linq.Tests.Serialization;
 
 public class UnifiedSchemaGeneratorTests
 {

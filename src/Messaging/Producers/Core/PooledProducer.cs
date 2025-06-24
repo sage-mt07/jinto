@@ -1,7 +1,7 @@
 ﻿using Confluent.Kafka;
 using System;
 
-namespace KsqlDsl.Messaging.Producers.Core;
+namespace Kafka.Ksql.Linq.Messaging.Producers.Core;
 // =============================================================================
 // Pool & Internal Classes - プール・内部管理クラス
 // =============================================================================

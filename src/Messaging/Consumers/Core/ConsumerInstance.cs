@@ -1,7 +1,7 @@
-﻿using KsqlDsl.Core.Abstractions;
+﻿using Kafka.Ksql.Linq.Core.Abstractions;
 using System;
 
-namespace KsqlDsl.Messaging.Consumers.Core;
+namespace Kafka.Ksql.Linq.Messaging.Consumers.Core;
 internal class ConsumerInstance
 {
     public ConsumerKey ConsumerKey { get; set; } = default!;

@@ -1,4 +1,4 @@
-using KsqlDsl.Messaging.Managers;
+using Kafka.Ksql.Linq.Messaging.Managers;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace KsqlDsl.Extensions;
+namespace Kafka.Ksql.Linq.Extensions;
 
 internal class HeartbeatEnabledKafkaContext : KafkaContext
 {

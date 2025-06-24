@@ -1,6 +1,6 @@
-﻿using KsqlDsl.Serialization.Avro.Cache;
-using KsqlDsl.Serialization.Avro.Core;
-using KsqlDsl.Serialization.Avro.Management;
+﻿using Kafka.Ksql.Linq.Serialization.Avro.Cache;
+using Kafka.Ksql.Linq.Serialization.Avro.Core;
+using Kafka.Ksql.Linq.Serialization.Avro.Management;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using System;
@@ -8,7 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using ConfluentSchemaRegistry = Confluent.SchemaRegistry;
 
-namespace KsqlDsl.Serialization.Abstractions;
+namespace Kafka.Ksql.Linq.Serialization.Abstractions;
 public class AvroSerializationManager<T> : IAvroSerializationManager<T> where T : class
 {
     private readonly AvroSerializerCache _cache;

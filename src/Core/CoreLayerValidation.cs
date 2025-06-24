@@ -1,12 +1,12 @@
-﻿using KsqlDsl.Core.Abstractions;
+﻿using Kafka.Ksql.Linq.Core.Abstractions;
 // ✅ 修正: 重複削除により ValidationResult を Core.Abstractions から参照
-// using KsqlDsl.Core.Validation; // ❌ 削除: 重複定義を参照していた
+// using Kafka.Ksql.Linq.Core.Validation; // ❌ 削除: 重複定義を参照していた
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace KsqlDsl.Core;
+namespace Kafka.Ksql.Linq.Core;
 
 /// <summary>
 /// Core層設計制約の検証 - Phase2修正版
@@ -17,12 +17,12 @@ public static class CoreLayerValidation
 {
     private static readonly string[] ForbiddenNamespaces = new[]
     {
-        "KsqlDsl.Communication",
-        "KsqlDsl.Messaging",
-        "KsqlDsl.Serialization",
-        "KsqlDsl.Monitoring",
-        "KsqlDsl.Avro",
-        "KsqlDsl.Services"
+        "Kafka.Ksql.Linq.Communication",
+        "Kafka.Ksql.Linq.Messaging",
+        "Kafka.Ksql.Linq.Serialization",
+        "Kafka.Ksql.Linq.Monitoring",
+        "Kafka.Ksql.Linq.Avro",
+        "Kafka.Ksql.Linq.Services"
     };
 
     public static ValidationResult ValidateCoreDependencies()  // ✅ 修正: Core.Abstractions.ValidationResult 使用
@@ -30,7 +30,7 @@ public static class CoreLayerValidation
         var result = new ValidationResult { IsValid = true };  // ✅ 修正: Core.Abstractions.ValidationResult 使用
         var coreAssembly = typeof(IKafkaContext).Assembly;
         var coreTypes = coreAssembly.GetTypes()
-            .Where(t => t.Namespace?.StartsWith("KsqlDsl.Core") == true);
+            .Where(t => t.Namespace?.StartsWith("Kafka.Ksql.Linq.Core") == true);
 
         foreach (var type in coreTypes)
         {

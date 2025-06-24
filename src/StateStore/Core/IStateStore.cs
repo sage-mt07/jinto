@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace KsqlDsl.StateStore.Core;
+namespace Kafka.Ksql.Linq.StateStore.Core;
 
 internal interface IStateStore<TKey, TValue> : IDisposable
     where TKey : notnull

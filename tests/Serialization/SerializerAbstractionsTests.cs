@@ -1,9 +1,9 @@
 using System;
 using Confluent.Kafka;
-using KsqlDsl.Serialization.Abstractions;
+using Kafka.Ksql.Linq.Serialization.Abstractions;
 using Xunit;
 
-namespace KsqlDsl.Tests.Serialization;
+namespace Kafka.Ksql.Linq.Tests.Serialization;
 
 public class SerializerAbstractionsTests
 {

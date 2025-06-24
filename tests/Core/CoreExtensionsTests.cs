@@ -1,9 +1,9 @@
-using KsqlDsl.Core.Abstractions;
-using KsqlDsl.Core.Extensions;
+using Kafka.Ksql.Linq.Core.Abstractions;
+using Kafka.Ksql.Linq.Core.Extensions;
 using System.Reflection;
 using Xunit;
 
-namespace KsqlDsl.Tests.Core;
+namespace Kafka.Ksql.Linq.Tests.Core;
 
 public class CoreExtensionsTests
 {

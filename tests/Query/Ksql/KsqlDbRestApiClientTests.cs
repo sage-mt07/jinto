@@ -3,10 +3,10 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using KsqlDsl.Query.Ksql;
+using Kafka.Ksql.Linq.Query.Ksql;
 using Xunit;
 
-namespace KsqlDsl.Tests.Query.Ksql;
+namespace Kafka.Ksql.Linq.Tests.Query.Ksql;
 
 public class KsqlDbRestApiClientTests
 {

@@ -1,4 +1,4 @@
-﻿namespace KsqlDsl.Configuration;
+﻿namespace Kafka.Ksql.Linq.Configuration;
 
 
 public enum ValidationMode

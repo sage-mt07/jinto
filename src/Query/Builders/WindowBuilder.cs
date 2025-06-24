@@ -1,8 +1,8 @@
-﻿using KsqlDsl.Query.Abstractions;
+﻿using Kafka.Ksql.Linq.Query.Abstractions;
 using System;
 using System.Linq.Expressions;
 
-namespace KsqlDsl.Query.Builders;
+namespace Kafka.Ksql.Linq.Query.Builders;
 
 /// <summary>
 /// WINDOW句構築ビルダー - 本体実装版

@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <AssemblyName>KsqlDsl.Tests</AssemblyName>
+    <RootNamespace>Kafka.Ksql.Linq.Tests</RootNamespace>
     <TargetFramework>net8.0</TargetFramework>
     <IsPackable>false</IsPackable>
   </PropertyGroup>

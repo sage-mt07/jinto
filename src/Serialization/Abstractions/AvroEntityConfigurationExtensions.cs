@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace KsqlDsl.Serialization.Abstractions;
+namespace Kafka.Ksql.Linq.Serialization.Abstractions;
 public static class AvroEntityConfigurationExtensions
 {
     public static AvroEntityConfigurationBuilder<T> Configure<T>(this AvroEntityConfiguration configuration) where T : class

@@ -1,4 +1,4 @@
-﻿namespace KsqlDsl.Configuration.Abstractions;
+﻿namespace Kafka.Ksql.Linq.Configuration.Abstractions;
 public class SchemaGenerationOptions
 {
     public string? CustomName { get; set; }

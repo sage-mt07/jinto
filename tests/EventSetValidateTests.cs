@@ -1,9 +1,9 @@
-using KsqlDsl.Core.Abstractions;
+using Kafka.Ksql.Linq.Core.Abstractions;
 using System;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace KsqlDsl.Tests;
+namespace Kafka.Ksql.Linq.Tests;
 
 public class EventSetValidateTests
 {

@@ -2,8 +2,8 @@
 // Monitoring除去、詳細リトライログ対応、Fail Fast強化版
 
 using Confluent.SchemaRegistry;
-using KsqlDsl.Configuration.Options;
-using KsqlDsl.Serialization.Avro.Core;
+using Kafka.Ksql.Linq.Configuration.Options;
+using Kafka.Ksql.Linq.Serialization.Avro.Core;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
@@ -11,7 +11,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace KsqlDsl.Serialization.Avro;
+namespace Kafka.Ksql.Linq.Serialization.Avro;
 internal class ResilientAvroSerializerManager
 {
     private readonly ISchemaRegistryClient _schemaRegistryClient;

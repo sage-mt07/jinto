@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace KsqlDsl.Configuration.Options;
+namespace Kafka.Ksql.Linq.Configuration.Options;
 public class AvroRetryPolicy
 {
     public int MaxAttempts { get; set; } = 3;

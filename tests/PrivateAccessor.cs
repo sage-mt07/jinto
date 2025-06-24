@@ -1,7 +1,7 @@
 using System;
 using System.Reflection;
 
-namespace KsqlDsl.Tests;
+namespace Kafka.Ksql.Linq.Tests;
 
 internal static class PrivateAccessor
 {

@@ -1,12 +1,12 @@
-using KsqlDsl;
-using KsqlDsl.Core.Abstractions;
-using KsqlDsl.Core.Context;
+using Kafka.Ksql.Linq;
+using Kafka.Ksql.Linq.Core.Abstractions;
+using Kafka.Ksql.Linq.Core.Context;
 using System;
 using System.Reflection;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace KsqlDsl.Tests.Application;
+namespace Kafka.Ksql.Linq.Tests.Application;
 
 public class KafkaContextAsyncTests
 {

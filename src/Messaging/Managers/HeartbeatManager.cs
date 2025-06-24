@@ -1,9 +1,9 @@
 using Confluent.Kafka;
-using KsqlDsl.Configuration;
-using KsqlDsl.Core.Abstractions;
-using KsqlDsl.Core.Extensions;
-using KsqlDsl.Messaging.Configuration;
-using KsqlDsl.Messaging.Heartbeat;
+using Kafka.Ksql.Linq.Configuration;
+using Kafka.Ksql.Linq.Core.Abstractions;
+using Kafka.Ksql.Linq.Core.Extensions;
+using Kafka.Ksql.Linq.Messaging.Configuration;
+using Kafka.Ksql.Linq.Messaging.Heartbeat;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
@@ -11,7 +11,7 @@ using System.Collections.Concurrent;
 using System.Reflection;
 using System.Threading.Tasks;
 
-namespace KsqlDsl.Messaging.Managers;
+namespace Kafka.Ksql.Linq.Messaging.Managers;
 
 internal class HeartbeatManager : IDisposable
 {

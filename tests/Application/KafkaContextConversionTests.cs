@@ -1,12 +1,12 @@
-using KsqlDsl.Application;
-using KsqlDsl.Core.Abstractions;
-using KsqlDsl.Core.Context;
-using KsqlDsl.Serialization.Abstractions;
+using Kafka.Ksql.Linq.Application;
+using Kafka.Ksql.Linq.Core.Abstractions;
+using Kafka.Ksql.Linq.Core.Context;
+using Kafka.Ksql.Linq.Serialization.Abstractions;
 using System;
 using System.Collections.Generic;
 using Xunit;
 
-namespace KsqlDsl.Tests.Application;
+namespace Kafka.Ksql.Linq.Tests.Application;
 
 public class KafkaContextConversionTests
 {
