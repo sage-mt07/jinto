@@ -4,7 +4,7 @@ using System;
 
 namespace Kafka.Ksql.Linq.Core.Modeling;
 
-public class EntityModelBuilder<T>: IEntityBuilder<T> where T : class
+public class EntityModelBuilder<T> : IEntityBuilder<T> where T : class
 {
     private readonly EntityModel _entityModel;
 

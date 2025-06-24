@@ -2,11 +2,7 @@ using Confluent.Kafka;
 using Kafka.Ksql.Linq.Core.Extensions;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace Kafka.Ksql.Linq.Messaging.Heartbeat;
 

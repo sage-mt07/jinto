@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+using System;
 
 namespace Kafka.Ksql.Linq.Core.Validation;
 /// <summary>

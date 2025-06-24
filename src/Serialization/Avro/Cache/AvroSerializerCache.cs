@@ -1,7 +1,6 @@
-﻿using Confluent.Kafka;
+using Confluent.Kafka;
 using Kafka.Ksql.Linq.Core.Abstractions;
 using Kafka.Ksql.Linq.Serialization.Abstractions;
-using Kafka.Ksql.Linq.Serialization.Avro.Abstractions;
 using Kafka.Ksql.Linq.Serialization.Avro.Core;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
