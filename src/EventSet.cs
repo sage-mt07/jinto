@@ -1,494 +1,280 @@
 
 using Kafka.Ksql.Linq.Core.Abstractions;
+using Kafka.Ksql.Linq.Messaging.Contracts;
+using Kafka.Ksql.Linq.Messaging.Internal;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Kafka.Ksql.Linq;
-
-/// <summary>
-/// Core層IEntitySet<T>実装（Phase3 簡素化ログフリー版）
-/// 設計理由：Core抽象化との統合、必要最小限の機能のみ
-/// 制約：完全ログフリー、副作用排除、複雑性削減
-/// </summary>
-public class EventSet<T> : IEntitySet<T> where T : class
+public class EventSet<T>
 {
-    private readonly IKafkaContext _context;
-    private readonly EntityModel _entityModel;
-    private ErrorHandlingPolicy _errorPolicy = ErrorHandlingPolicy.Skip();
-    public EventSet(IKafkaContext context, EntityModel entityModel)
+    private readonly IEnumerable<T> _events;
+    private readonly ErrorHandlingContext _errorHandlingContext;
+    private readonly IErrorSink? _dlqErrorSink;
+
+    public EventSet(IEnumerable<T> events, IErrorSink? dlqErrorSink = null)
     {
-        _context = context ?? throw new ArgumentNullException(nameof(context));
-        _entityModel = entityModel ?? throw new ArgumentNullException(nameof(entityModel));
+        _events = events ?? throw new ArgumentNullException(nameof(events));
+        _errorHandlingContext = new ErrorHandlingContext();
+        _dlqErrorSink = dlqErrorSink;
     }
+
+    private EventSet(IEnumerable<T> events, ErrorHandlingContext errorHandlingContext, IErrorSink? dlqErrorSink)
+    {
+        _events = events;
+        _errorHandlingContext = errorHandlingContext;
+        _dlqErrorSink = dlqErrorSink;
+    }
+
     /// <summary>
-    /// エラー発生時のアクションを設定
+    /// エラー処理の動作を指定します
+    /// Map実行前に設定され、Map内での例外処理方針を決定します
     /// </summary>
+    /// <param name="errorAction">エラー発生時のアクション</param>
+    /// <returns>エラー処理が設定されたEventSet</returns>
     public EventSet<T> OnError(ErrorAction errorAction)
     {
-        _errorPolicy.Action = errorAction;
-        return this;
-    }
-
-    /// <summary>
-    /// リトライ設定（デフォルト：3回、1秒間隔）
-    /// </summary>
-    public EventSet<T> WithRetry(int retryCount = 3, TimeSpan? retryInterval = null)
-    {
-        _errorPolicy.RetryCount = retryCount;
-        _errorPolicy.RetryInterval = retryInterval ?? TimeSpan.FromSeconds(1);
-        return this;
-    }
-
-    /// <summary>
-    /// Dead Letter Queue設定
-    /// </summary>
-    public EventSet<T> WithDeadLetterQueue(string? topicName = null)
-    {
-        _errorPolicy.Action = ErrorAction.DeadLetter;
-        _errorPolicy.DeadLetterQueueTopic = topicName ?? $"{GetTopicName()}-dlq";
-        return this;
-    }
-
-    /// <summary>
-    /// Map変換（エラーハンドリング対応）
-    /// </summary>
-    public EventSet<TResult> Map<TResult>(Func<T, TResult> mapper) where TResult : class
-    {
-        // 新しいEventSet作成時にエラーポリシーを継承
-        var resultSet = new EventSet<TResult>(_context, _entityModel)
+        var newContext = new ErrorHandlingContext
         {
-            _errorPolicy = _errorPolicy
+            ErrorAction = errorAction,
+            RetryCount = _errorHandlingContext.RetryCount,
+            RetryInterval = _errorHandlingContext.RetryInterval,
+            ErrorSink = errorAction == ErrorAction.DLQ ? _dlqErrorSink : null
         };
 
-        // Mapperをエラーハンドリングでラップ
-        resultSet._mapper = entity => ExecuteWithErrorHandling(
-            () => mapper((T)(object)entity!),
-            entity,
-            "Processing"
-        );
-
-        return resultSet;
-    }
-
-    private Func<object, object>? _mapper;
-    // ===============================
-    // IEntitySet<T> Core interface implementation
-    // ===============================
-
-    /// <summary>
-    /// 単一エンティティ非同期送信（簡素化版）
-    /// </summary>
-    public async Task AddAsync(T entity, CancellationToken cancellationToken = default)
-    {
-        if (entity == null)
-            throw new ArgumentNullException(nameof(entity));
-
-        ValidateEntity(entity);
-
-        try
-        {
-            await SendEntityAsync(entity, cancellationToken);
-        }
-        catch (Exception ex)
-        {
-            var topicName = GetTopicName();
-            throw new InvalidOperationException($"Failed to send {typeof(T).Name} to topic '{topicName}'", ex);
-        }
+        return new EventSet<T>(_events, newContext, _dlqErrorSink);
     }
 
     /// <summary>
-    /// 非同期リスト取得（簡素化版）
+    /// リトライ回数を指定します
+    /// ErrorAction.Retry指定時に使用されます
     /// </summary>
-    public async Task<List<T>> ToListAsync(CancellationToken cancellationToken = default)
+    /// <param name="maxRetries">最大リトライ回数</param>
+    /// <param name="retryInterval">リトライ間隔（オプション）</param>
+    /// <returns>リトライ設定が追加されたEventSet</returns>
+    public EventSet<T> WithRetry(int maxRetries, TimeSpan? retryInterval = null)
     {
-        var topicName = GetTopicName();
-        ValidateQueryBeforeExecution();
+        if (maxRetries < 0)
+            throw new ArgumentException("リトライ回数は0以上である必要があります", nameof(maxRetries));
 
-        try
+        var newContext = new ErrorHandlingContext
         {
-            var results = await ExecuteQueryAsync(cancellationToken);
-            ValidateQueryResults(results);
-            return results;
+            ErrorAction = _errorHandlingContext.ErrorAction,
+            RetryCount = maxRetries,
+            RetryInterval = retryInterval ?? TimeSpan.FromSeconds(1),
+            ErrorSink = _errorHandlingContext.ErrorSink
+        };
+
+        return new EventSet<T>(_events, newContext, _dlqErrorSink);
+    }
+
+    /// <summary>
+    /// POCOを業務ロジックに渡します
+    /// Kafkaから受信後、指定された関数で各要素を変換します
+    /// OnErrorとWithRetryの設定に基づいて例外処理とリトライを実行します
+    /// </summary>
+    /// <typeparam name="TResult">変換後の型</typeparam>
+    /// <param name="mapper">変換関数</param>
+    /// <returns>変換されたEventSet</returns>
+    public async Task<EventSet<TResult>> Map<TResult>(Func<T, Task<TResult>> mapper)
+    {
+        if (mapper == null)
+            throw new ArgumentNullException(nameof(mapper));
+
+        var results = new List<TResult>();
+
+        foreach (var item in _events)
+        {
+            var itemErrorContext = new ErrorHandlingContext
+            {
+                ErrorAction = _errorHandlingContext.ErrorAction,
+                RetryCount = _errorHandlingContext.RetryCount,
+                RetryInterval = _errorHandlingContext.RetryInterval,
+                ErrorSink = _errorHandlingContext.ErrorSink
+            };
+
+            await ProcessItemWithErrorHandling(
+                item,
+                mapper,
+                results,
+                itemErrorContext);
         }
-        catch (Exception ex)
+
+        return new EventSet<TResult>(results, _errorHandlingContext, _dlqErrorSink);
+    }
+
+    /// <summary>
+    /// 同期版のMap関数
+    /// </summary>
+    public EventSet<TResult> Map<TResult>(Func<T, TResult> mapper)
+    {
+        if (mapper == null)
+            throw new ArgumentNullException(nameof(mapper));
+
+        var results = new List<TResult>();
+
+        foreach (var item in _events)
         {
-            throw new InvalidOperationException($"Failed to query topic '{topicName}' for {typeof(T).Name}: {ex.Message}", ex);
+            var itemErrorContext = new ErrorHandlingContext
+            {
+                ErrorAction = _errorHandlingContext.ErrorAction,
+                RetryCount = _errorHandlingContext.RetryCount,
+                RetryInterval = _errorHandlingContext.RetryInterval,
+                ErrorSink = _errorHandlingContext.ErrorSink
+            };
+
+            ProcessItemWithErrorHandlingSync(
+                item,
+                mapper,
+                results,
+                itemErrorContext);
+        }
+
+        return new EventSet<TResult>(results, _errorHandlingContext, _dlqErrorSink);
+    }
+
+    /// <summary>
+    /// アイテム単位のエラーハンドリング付き処理（非同期版）
+    /// </summary>
+    private async Task ProcessItemWithErrorHandling<TResult>(
+        T item,
+        Func<T, Task<TResult>> mapper,
+        List<TResult> results,
+        ErrorHandlingContext errorContext)
+    { 
+        var maxAttempts = errorContext.ErrorAction == ErrorAction.Retry
+            ? errorContext.RetryCount + 1
+            : 1;
+
+        for (int attempt = 1; attempt <= maxAttempts; attempt++)
+        {
+            try
+            {
+                var result = await mapper(item);
+                results.Add(result);
+                return; // 成功時は処理完了
+            }
+            catch (Exception ex)
+            {
+                errorContext.CurrentAttempt = attempt;
+
+                // 最後の試行でない場合、ErrorActionに関係なくリトライ
+                if (attempt < maxAttempts && errorContext.ErrorAction == ErrorAction.Retry)
+                {
+                    Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] リトライ {attempt}/{errorContext.RetryCount}: {ex.Message}");
+                    await Task.Delay(errorContext.RetryInterval);
+                    continue;
+                }
+
+                // 最後の試行または非リトライの場合、エラーハンドリング実行
+                var shouldContinue = await errorContext.HandleErrorAsync(item, ex, CreateContext(item, errorContext));
+
+                if (!shouldContinue)
+                {
+                    return; // アイテムをスキップして次へ
+                }
+            }
         }
     }
 
     /// <summary>
-    /// 非同期ForEach処理（ストリーミング統一版）
+    /// アイテム単位のエラーハンドリング付き処理（同期版）
     /// </summary>
-    public async Task ForEachAsync(Func<IManualCommitMessage<T>, Task> manualCommitAction, TimeSpan timeout = default, CancellationToken cancellationToken = default)
+    private void ProcessItemWithErrorHandlingSync<TResult>(
+        T item,
+        Func<T, TResult> mapper,
+        List<TResult> results,
+        ErrorHandlingContext errorContext)
     {
-        if (manualCommitAction == null)
-            throw new ArgumentNullException(nameof(manualCommitAction));
+        var maxAttempts = errorContext.ErrorAction == ErrorAction.Retry
+            ? errorContext.RetryCount + 1
+            : 1;
 
-        if (!_entityModel.UseManualCommit)
-            throw new InvalidOperationException("Manual commit action requires WithManualCommit() to be configured");
-
-        using var timeoutCts = timeout == default ? null : new CancellationTokenSource(timeout);
-        using var combinedCts = timeoutCts == null
-            ? CancellationTokenSource.CreateLinkedTokenSource(cancellationToken)
-            : CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
-
-        await foreach (var commitMessage in GetManualCommitEnumerator(combinedCts.Token))
+        for (int attempt = 1; attempt <= maxAttempts; attempt++)
         {
-            await ExecuteWithErrorHandlingAsync(
-                () => manualCommitAction(commitMessage),
-                commitMessage,
-                "Processing"
-            );
+            try
+            {
+                var result = mapper(item);
+                results.Add(result);
+                return; // 成功時は処理完了
+            }
+            catch (Exception ex)
+            {
+                errorContext.CurrentAttempt = attempt;
+
+                // 最後の試行でない場合、ErrorActionに関係なくリトライ
+                if (attempt < maxAttempts && errorContext.ErrorAction == ErrorAction.Retry)
+                {
+                    Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] リトライ {attempt}/{errorContext.RetryCount}: {ex.Message}");
+                    Thread.Sleep(errorContext.RetryInterval);
+                    continue;
+                }
+
+                // 最後の試行または非リトライの場合、エラーハンドリング実行
+                var shouldContinue = errorContext.HandleErrorAsync(item, ex, CreateContext(item, errorContext)).GetAwaiter().GetResult();
+
+                if (!shouldContinue)
+                {
+                    return; // アイテムをスキップして次へ
+                }
+            }
         }
     }
-    public async Task ForEachAsync(Func<T, Task> action, TimeSpan timeout = default, CancellationToken cancellationToken = default)
+
+    /// <summary>
+    /// メッセージコンテキストを作成
+    /// </summary>
+    private KafkaMessageContext CreateContext(T item, ErrorHandlingContext errorContext)
+    {
+        return new KafkaMessageContext
+        {
+            MessageId = Guid.NewGuid().ToString(),
+            Tags = new Dictionary<string, object>
+            {
+                ["original_topic"] = typeof(T).Name, // 実際はEntityModelから取得
+                ["original_partition"] = 0, // 実際の値に置き換え
+                ["original_offset"] = 0, // 実際の値に置き換え
+                ["retry_count"] = errorContext.CurrentAttempt,
+                ["error_phase"] = "Processing"
+            }
+        };
+    }
+
+    /// <summary>
+    /// EventSetの結果を取得します
+    /// </summary>
+    public IEnumerable<T> GetResults()
+    {
+        return _events;
+    }
+
+    /// <summary>
+    /// 非同期列挙をサポート
+    /// </summary>
+    public async Task ForEachAsync(Func<T, Task> action, CancellationToken cancellationToken = default)
     {
         if (action == null)
             throw new ArgumentNullException(nameof(action));
 
-        if (_entityModel.UseManualCommit)
-            throw new InvalidOperationException("Auto commit action cannot be used with WithManualCommit() configuration. Use manual commit overload instead.");
-
-        using var timeoutCts = timeout == default ? null : new CancellationTokenSource(timeout);
-        using var combinedCts = timeoutCts == null
-            ? CancellationTokenSource.CreateLinkedTokenSource(cancellationToken)
-            : CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
-
-        await foreach (var item in this.WithCancellation(combinedCts.Token))
+        foreach (var item in _events)
         {
-            await ExecuteWithErrorHandlingAsync(
-                () => action(item),
-                item,
-                "Processing"
-            );
-        }
-    }
-    private async IAsyncEnumerable<IManualCommitMessage<T>> GetManualCommitEnumerator([System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
-    {
-        await foreach (var item in this.WithCancellation(cancellationToken))
-        {
-            var commitMessage = new ManualCommitMessage<T>(
-                item,
-                () => CommitOffsetAsync(),
-                () => NegativeAckAsync()
-            );
-
-            yield return commitMessage;
-        }
-    }
-    /// <summary>
-    /// オフセットコミット実装（上位層でオーバーライド）
-    /// </summary>
-    protected virtual async Task CommitOffsetAsync()
-    {
-        await Task.CompletedTask;
-        throw new NotImplementedException("CommitOffsetAsync must be implemented by concrete class");
-    }
-
-    /// <summary>
-    /// ネガティブ確認応答実装（上位層でオーバーライド）
-    /// </summary>
-    protected virtual async Task NegativeAckAsync()
-    {
-        await Task.CompletedTask;
-        throw new NotImplementedException("NegativeAckAsync must be implemented by concrete class");
-    }
-    // ===============================
-    // Metadata Access - 純粋関数
-    // ===============================
-
-    /// <summary>
-    /// トピック名取得（純粋関数）
-    /// </summary>
-    public string GetTopicName() => _entityModel.TopicAttribute?.TopicName ?? _entityModel.EntityType.Name;
-
-    /// <summary>
-    /// エンティティモデル取得（純粋関数）
-    /// </summary>
-    public EntityModel GetEntityModel() => _entityModel;
-
-    /// <summary>
-    /// コンテキスト取得（純粋関数）
-    /// </summary>
-    public IKafkaContext GetContext() => _context;
-
-    // ===============================
-    // IAsyncEnumerable<T> implementation
-    // ===============================
-
-    /// <summary>
-    /// 非同期列挙子取得
-    /// </summary>
-    public async IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default)
-    {
-        var results = await ToListAsync(cancellationToken);
-        foreach (var item in results)
-        {
-            // デシリアライゼーション時のエラーハンドリング
-            var processedItem = ExecuteWithErrorHandling(
-                () => ApplyMapper(item),
-                item,
-                "Deserialization"
-            );
-
-            if (processedItem != null)
-            {
-                yield return (T)processedItem;
-            }
-        }
-    }
-
-    // ===============================
-    // 抽象メソッド（上位層で実装）
-    // ===============================
-
-    /// <summary>
-    /// 抽象：単一エンティティ送信実装
-    /// 実装：上位層で具象Producer呼び出し
-    /// 制約：ログ出力・メトリクス収集一切禁止
-    /// </summary>
-    protected virtual async Task SendEntityAsync(T entity, CancellationToken cancellationToken)
-    {
-        // デフォルト実装：上位層でオーバーライド必須
-        await Task.CompletedTask;
-        throw new NotImplementedException("SendEntityAsync must be implemented by concrete class");
-    }
-
-    /// <summary>
-    /// 抽象：クエリ実行実装
-    /// 実装：上位層で具象Consumer呼び出し  
-    /// 制約：ログ出力・メトリクス収集一切禁止
-    /// </summary>
-    protected virtual async Task<List<T>> ExecuteQueryAsync(CancellationToken cancellationToken)
-    {
-        // デフォルト実装：上位層でオーバーライド必須
-        await Task.CompletedTask;
-        throw new NotImplementedException("ExecuteQueryAsync must be implemented by concrete class");
-    }
-
-    // ===============================
-    // ヘルパーメソッド（純粋関数）
-    // ===============================
-
-    /// <summary>
-    /// エンティティ検証（純粋関数）
-    /// </summary>
-    private void ValidateEntity(T entity)
-    {
-        if (entity == null)
-            throw new ArgumentNullException(nameof(entity));
-
-        // Core層での基本検証のみ
-        var entityType = entity.GetType();
-        if (entityType != typeof(T))
-        {
-            throw new ArgumentException($"Entity type mismatch: expected {typeof(T).Name}, got {entityType.Name}");
-        }
-    }
-
-    /// <summary>
-    /// クエリ実行前検証（純粋関数）
-    /// </summary>
-    private void ValidateQueryBeforeExecution()
-    {
-        // クエリ実行前の検証ロジック
-        if (_entityModel.TopicAttribute == null)
-        {
-            throw new InvalidOperationException($"Entity {typeof(T).Name} does not have [Topic] attribute");
-        }
-    }
-
-    /// <summary>
-    /// クエリ結果検証（純粋関数）
-    /// </summary>
-    private void ValidateQueryResults(List<T> results)
-    {
-        // クエリ結果の検証ロジック
-        if (results == null)
-        {
-            throw new InvalidOperationException("Query execution returned null results");
-        }
-    }
-
-    /// <summary>
-    /// デバッグ情報（純粋関数、副作用なし）
-    /// </summary>
-    public override string ToString()
-    {
-        var topicName = GetTopicName();
-        var keyCount = _entityModel.KeyProperties.Length;
-        return $"EventSet<{typeof(T).Name}> → Topic: {topicName}, Keys: {keyCount} [Phase3簡素化]";
-    }
-    private object? ExecuteWithErrorHandling<TInput>(Func<object> operation, TInput input, string phase)
-    {
-        var errorContext = new ErrorContext
-        {
-            OriginalMessage = input,
-            ErrorPhase = phase,
-            FirstAttemptTime = DateTime.UtcNow
-        };
-
-        for (int attempt = 0; attempt <= _errorPolicy.RetryCount; attempt++)
-        {
-            errorContext.AttemptCount = attempt + 1;
-            errorContext.LastAttemptTime = DateTime.UtcNow;
+            if (cancellationToken.IsCancellationRequested)
+                break;
 
             try
             {
-                return operation();
+                await action(item);
             }
             catch (Exception ex)
             {
-                errorContext.Exception = ex;
-
-                if (attempt < _errorPolicy.RetryCount)
+                var shouldContinue = await _errorHandlingContext.HandleErrorAsync(item, ex, CreateContext(item, _errorHandlingContext));
+                if (!shouldContinue)
                 {
-                    // リトライ継続
-                    Thread.Sleep(_errorPolicy.RetryInterval);
-                    continue;
+                    continue; // スキップして次へ
                 }
-
-                // 最終試行後のエラーハンドリング
-                return HandleFinalError(errorContext);
             }
         }
-
-        return null;
-    }
-
-    /// <summary>
-    /// エラーハンドリング付き非同期実行
-    /// </summary>
-    private async Task ExecuteWithErrorHandlingAsync<TInput>(Func<Task> operation, TInput input, string phase)
-    {
-        var errorContext = new ErrorContext
-        {
-            OriginalMessage = input,
-            ErrorPhase = phase,
-            FirstAttemptTime = DateTime.UtcNow
-        };
-
-        for (int attempt = 0; attempt <= _errorPolicy.RetryCount; attempt++)
-        {
-            errorContext.AttemptCount = attempt + 1;
-            errorContext.LastAttemptTime = DateTime.UtcNow;
-
-            try
-            {
-                await operation();
-                return; // 成功
-            }
-            catch (Exception ex)
-            {
-                errorContext.Exception = ex;
-
-                if (attempt < _errorPolicy.RetryCount)
-                {
-                    // リトライ継続
-                    await Task.Delay(_errorPolicy.RetryInterval);
-                    continue;
-                }
-
-                // 最終試行後のエラーハンドリング
-                HandleFinalError(errorContext);
-                return;
-            }
-        }
-    }
-
-    /// <summary>
-    /// 最終エラー処理
-    /// </summary>
-    private object? HandleFinalError(ErrorContext errorContext)
-    {
-        switch (_errorPolicy.Action)
-        {
-            case ErrorAction.Skip:
-                // エラーをログ出力してスキップ
-                LogError(errorContext, "Skipping failed message");
-                return null;
-
-            case ErrorAction.DeadLetter:
-                // DLQに送信
-                SendToDeadLetterQueue(errorContext);
-                LogError(errorContext, "Sent to Dead Letter Queue");
-                return null;
-
-            case ErrorAction.Retry:
-                // リトライ回数を超過した場合は例外をスロー
-                LogError(errorContext, "Retry limit exceeded");
-                throw new InvalidOperationException(
-                    $"Operation failed after {_errorPolicy.RetryCount} retries in {errorContext.ErrorPhase} phase",
-                    errorContext.Exception);
-
-            default:
-                throw errorContext.Exception;
-        }
-    }
-
-    /// <summary>
-    /// Mapperの適用
-    /// </summary>
-    private object ApplyMapper(T item)
-    {
-        return _mapper?.Invoke(item) ?? item;
-    }
-
-    /// <summary>
-    /// Dead Letter Queueへの送信
-    /// </summary>
-    private void SendToDeadLetterQueue(ErrorContext errorContext)
-    {
-        try
-        {
-            var dlqTopic = _errorPolicy.DeadLetterQueueTopic ?? $"{GetTopicName()}-dlq";
-
-            var dlqMessage = new
-            {
-                OriginalMessage = errorContext.OriginalMessage,
-                ErrorPhase = errorContext.ErrorPhase,
-                ErrorMessage = errorContext.Exception.Message,
-                StackTrace = errorContext.Exception.StackTrace,
-                AttemptCount = errorContext.AttemptCount,
-                FirstAttemptTime = errorContext.FirstAttemptTime,
-                LastAttemptTime = errorContext.LastAttemptTime,
-                SourceTopic = GetTopicName()
-            };
-
-            // DLQ送信は非同期で実行（メイン処理をブロックしない）
-            _ = Task.Run(async () =>
-            {
-                try
-                {
-                    // TODO: DLQ用のProducerで送信
-                    //await _dlqProducer.SendAsync(dlqTopic, dlqMessage);
-                }
-                catch (Exception ex)
-                {
-                    LogError(new ErrorContext { Exception = ex }, "Failed to send to DLQ");
-                }
-            });
-        }
-        catch (Exception ex)
-        {
-            LogError(new ErrorContext { Exception = ex }, "DLQ setup failed");
-        }
-    }
-
-    /// <summary>
-    /// エラーログ出力
-    /// </summary>
-    private void LogError(ErrorContext errorContext, string message)
-    {
-        var logMessage = $"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] {message}: " +
-                        $"Phase={errorContext.ErrorPhase}, " +
-                        $"Attempts={errorContext.AttemptCount}, " +
-                        $"Error={errorContext.Exception?.Message}, " +
-                        $"Topic={GetTopicName()}";
-
-        Console.WriteLine($"[ERROR] {logMessage}");
     }
 }
