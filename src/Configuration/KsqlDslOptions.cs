@@ -25,4 +25,6 @@ public class KsqlDslOptions
     public SchemaRegistrySection SchemaRegistry { get; init; } = new();
 
     public List<EntityConfiguration> Entities { get; init; } = new();
+
+    public string DlqTopicName { get; set; } = "dead.letter.queue";
 }

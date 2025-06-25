@@ -1,9 +1,6 @@
 using Kafka.Ksql.Linq.Core.Abstractions;
 using Kafka.Ksql.Linq.Messaging.Contracts;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Kafka.Ksql.Linq.Messaging.Internal;
@@ -59,7 +56,7 @@ internal class ErrorHandlingContext
                     if (CurrentAttempt < RetryCount)
                     {
                         await Task.Delay(RetryInterval);
-                        throw; // リトライのため例外を再スロー
+                        throw exception; // ✅ 明示的に例外を指定
                     }
                 }
                 // リトライ回数超過の場合はスキップ
@@ -79,7 +76,7 @@ internal class ErrorHandlingContext
                 return false; // 処理継続、このアイテムはスキップ
 
             default:
-                throw; // 未知のアクションの場合は例外を再スロー
+                throw new InvalidOperationException($"Unknown error action: {ErrorAction}");
         }
     }
 }
