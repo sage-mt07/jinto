@@ -45,12 +45,12 @@ public class EventSet<T> : IEntitySet<T> where T : class
     /// <summary>
     /// Dead Letter Queue設定
     /// </summary>
-    //public EventSet<T> WithDeadLetterQueue(string? topicName = null)
-    //{
-    //    _errorPolicy.Action = ErrorAction.DeadLetter;
-    //    _errorPolicy.DeadLetterQueueTopic = topicName ?? $"{GetTopicName()}-dlq";
-    //    return this;
-    //}
+    public EventSet<T> WithDeadLetterQueue(string? topicName = null)
+    {
+        _errorPolicy.Action = ErrorAction.DeadLetter;
+        _errorPolicy.DeadLetterQueueTopic = topicName ?? $"{GetTopicName()}-dlq";
+        return this;
+    }
 
     /// <summary>
     /// Map変換（エラーハンドリング対応）
@@ -411,11 +411,11 @@ public class EventSet<T> : IEntitySet<T> where T : class
                 LogError(errorContext, "Skipping failed message");
                 return null;
 
-            //case ErrorAction.DeadLetter:
-            //    // DLQに送信
-            //    SendToDeadLetterQueue(errorContext);
-                //LogError(errorContext, "Sent to Dead Letter Queue");
-                //return null;
+            case ErrorAction.DeadLetter:
+                // DLQに送信
+                SendToDeadLetterQueue(errorContext);
+                LogError(errorContext, "Sent to Dead Letter Queue");
+                return null;
 
             case ErrorAction.Retry:
                 // リトライ回数を超過した場合は例外をスロー
@@ -459,18 +459,18 @@ public class EventSet<T> : IEntitySet<T> where T : class
             };
 
             // DLQ送信は非同期で実行（メイン処理をブロックしない）
-            //_ = Task.Run(async () =>
-            //{
-            //    try
-            //    {
-            //        // TODO: DLQ用のProducerで送信
-            //        // await _dlqProducer.SendAsync(dlqTopic, dlqMessage);
-            //    }
-            //    catch (Exception ex)
-            //    {
-            //        LogError(new ErrorContext { Exception = ex }, "Failed to send to DLQ");
-            //    }
-            //});
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    // TODO: DLQ用のProducerで送信
+                    //await _dlqProducer.SendAsync(dlqTopic, dlqMessage);
+                }
+                catch (Exception ex)
+                {
+                    LogError(new ErrorContext { Exception = ex }, "Failed to send to DLQ");
+                }
+            });
         }
         catch (Exception ex)
         {

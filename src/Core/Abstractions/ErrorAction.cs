@@ -21,5 +21,5 @@ public enum ErrorAction
     /// <summary>
     /// Dead Letter Queueに送信
     /// </summary>
-    //DeadLetter
+    DeadLetter
 }
