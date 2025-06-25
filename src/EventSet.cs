@@ -122,10 +122,35 @@ public class EventSet<T> : IEntitySet<T> where T : class
     /// <summary>
     /// 非同期ForEach処理（ストリーミング統一版）
     /// </summary>
+    public async Task ForEachAsync(Func<IManualCommitMessage<T>, Task> manualCommitAction, TimeSpan timeout = default, CancellationToken cancellationToken = default)
+    {
+        if (manualCommitAction == null)
+            throw new ArgumentNullException(nameof(manualCommitAction));
+
+        if (!_entityModel.UseManualCommit)
+            throw new InvalidOperationException("Manual commit action requires WithManualCommit() to be configured");
+
+        using var timeoutCts = timeout == default ? null : new CancellationTokenSource(timeout);
+        using var combinedCts = timeoutCts == null
+            ? CancellationTokenSource.CreateLinkedTokenSource(cancellationToken)
+            : CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
+
+        await foreach (var commitMessage in GetManualCommitEnumerator(combinedCts.Token))
+        {
+            await ExecuteWithErrorHandlingAsync(
+                () => manualCommitAction(commitMessage),
+                commitMessage,
+                "Processing"
+            );
+        }
+    }
     public async Task ForEachAsync(Func<T, Task> action, TimeSpan timeout = default, CancellationToken cancellationToken = default)
     {
         if (action == null)
             throw new ArgumentNullException(nameof(action));
+
+        if (_entityModel.UseManualCommit)
+            throw new InvalidOperationException("Auto commit action cannot be used with WithManualCommit() configuration. Use manual commit overload instead.");
 
         using var timeoutCts = timeout == default ? null : new CancellationTokenSource(timeout);
         using var combinedCts = timeoutCts == null
@@ -134,7 +159,6 @@ public class EventSet<T> : IEntitySet<T> where T : class
 
         await foreach (var item in this.WithCancellation(combinedCts.Token))
         {
-            // エラーハンドリング付きでアクション実行
             await ExecuteWithErrorHandlingAsync(
                 () => action(item),
                 item,
@@ -142,7 +166,36 @@ public class EventSet<T> : IEntitySet<T> where T : class
             );
         }
     }
+    private async IAsyncEnumerable<IManualCommitMessage<T>> GetManualCommitEnumerator([System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        await foreach (var item in this.WithCancellation(cancellationToken))
+        {
+            var commitMessage = new ManualCommitMessage<T>(
+                item,
+                () => CommitOffsetAsync(),
+                () => NegativeAckAsync()
+            );
 
+            yield return commitMessage;
+        }
+    }
+    /// <summary>
+    /// オフセットコミット実装（上位層でオーバーライド）
+    /// </summary>
+    protected virtual async Task CommitOffsetAsync()
+    {
+        await Task.CompletedTask;
+        throw new NotImplementedException("CommitOffsetAsync must be implemented by concrete class");
+    }
+
+    /// <summary>
+    /// ネガティブ確認応答実装（上位層でオーバーライド）
+    /// </summary>
+    protected virtual async Task NegativeAckAsync()
+    {
+        await Task.CompletedTask;
+        throw new NotImplementedException("NegativeAckAsync must be implemented by concrete class");
+    }
     // ===============================
     // Metadata Access - 純粋関数
     // ===============================

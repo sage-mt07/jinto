@@ -22,6 +22,11 @@ public class EntityModelBuilder<T> : IEntityBuilder<T> where T : class
         _entityModel.SetStreamTableType(StreamTableType.Stream);
         return this;
     }
+    public IEntityBuilder<T> WithManualCommit()
+    {
+        _entityModel.UseManualCommit = true;
+        return this;
+    }
 
     public EntityModel GetModel()
     {

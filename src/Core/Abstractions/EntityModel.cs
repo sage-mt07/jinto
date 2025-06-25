@@ -1,4 +1,4 @@
-﻿using Kafka.Ksql.Linq.Query.Abstractions;
+using Kafka.Ksql.Linq.Query.Abstractions;
 using System;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Reflection;
@@ -74,4 +74,8 @@ public class EntityModel
     {
         return KeyProperties != null && KeyProperties.Length > 1;
     }
+    /// <summary>
+    /// 手動コミットモード使用フラグ
+    /// </summary>
+    public bool UseManualCommit { get; set; } = false;
 }
