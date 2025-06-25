@@ -22,6 +22,11 @@ public abstract class KafkaContext : KafkaContextCore
     private readonly Lazy<ConfluentSchemaRegistry.ISchemaRegistryClient> _schemaRegistryClient;
     private readonly IAvroSchemaRegistrationService _schemaRegistrationService;
 
+    /// <summary>
+    /// テスト用にスキーマ登録をスキップするか判定するフック
+    /// </summary>
+    protected virtual bool SkipSchemaRegistration => false;
+
     protected KafkaContext() : base()
     {
         _schemaRegistryClient = new Lazy<ConfluentSchemaRegistry.ISchemaRegistryClient>(CreateSchemaRegistryClient);
@@ -29,7 +34,10 @@ public abstract class KafkaContext : KafkaContextCore
 
         try
         {
-            InitializeWithSchemaRegistration();
+            if (!SkipSchemaRegistration)
+            {
+                InitializeWithSchemaRegistration();
+            }
 
             _producerManager = new KafkaProducerManager(
                 Microsoft.Extensions.Options.Options.Create(new KsqlDslOptions()),
@@ -53,7 +61,10 @@ public abstract class KafkaContext : KafkaContextCore
 
         try
         {
-            InitializeWithSchemaRegistration();
+            if (!SkipSchemaRegistration)
+            {
+                InitializeWithSchemaRegistration();
+            }
 
             _producerManager = new KafkaProducerManager(
                 Microsoft.Extensions.Options.Options.Create(new KsqlDslOptions()),

@@ -11,6 +11,8 @@ public class EventSetWithServicesTests
     private class TestContext : KafkaContext
     {
         public TestContext() : base() { }
+
+        protected override bool SkipSchemaRegistration => true;
     }
 
     [Fact]

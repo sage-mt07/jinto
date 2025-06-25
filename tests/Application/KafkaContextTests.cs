@@ -14,6 +14,8 @@ public class KafkaContextTests
         public TestContext() : base() { }
         public TestContext(KafkaContextOptions opt) : base(opt) { }
 
+        protected override bool SkipSchemaRegistration => true;
+
         public new IEntitySet<T> CallCreateEntitySet<T>(EntityModel model) where T : class
             => base.CreateEntitySet<T>(model);
 
