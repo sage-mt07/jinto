@@ -14,6 +14,8 @@ public class KafkaContextTests
         public TestContext() : base() { }
         public TestContext(KafkaContextOptions opt) : base(opt) { }
 
+        protected override bool SkipSchemaRegistration => true;
+
         public new IEntitySet<T> CallCreateEntitySet<T>(EntityModel model) where T : class
             => base.CreateEntitySet<T>(model);
 
@@ -27,7 +29,7 @@ public class KafkaContextTests
         var ctx = new TestContext();
         Assert.NotNull(ctx.CallGetProducerManager());
         Assert.NotNull(ctx.CallGetConsumerManager());
-        Assert.Contains("Core層統合", ctx.ToString());
+        Assert.Contains("スキーマ自動登録対応", ctx.ToString());
     }
 
     [Fact]

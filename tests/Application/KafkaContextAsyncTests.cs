@@ -13,6 +13,8 @@ public class KafkaContextAsyncTests
     private class TestContext : KafkaContext
     {
         public TestContext() : base() { }
+
+        protected override bool SkipSchemaRegistration => true;
     }
 
     [Fact]

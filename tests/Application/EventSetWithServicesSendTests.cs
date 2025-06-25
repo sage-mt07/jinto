@@ -37,6 +37,9 @@ public class EventSetWithServicesSendTests
     private class TestContext : KafkaContext
     {
         public TestContext() : base() { }
+
+        protected override bool SkipSchemaRegistration => true;
+
         public void SetProducer(object manager)
         {
             typeof(KafkaContext).GetField("_producerManager", BindingFlags.NonPublic | BindingFlags.Instance)!.SetValue(this, manager);
