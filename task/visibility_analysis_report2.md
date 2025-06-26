@@ -362,13 +362,13 @@ public interface IEntitySet<T>
 ## 📋 実装チェックリスト
 
 ### Phase 1 (安全確実・即実行可能)
-- [ ] `KeyExtractor` → internal static
-- [ ] `ProducerKey` → internal  
-- [ ] `CoreSettings` → internal
-- [ ] `CoreDependencyConfiguration` → internal static
-- [ ] `CoreLayerPhase3Marker` → internal static
-- [ ] `TopicOverrideService` → internal
-- [ ] REST APIクラス群(5個) → internal
+- [x] `KeyExtractor` → internal static
+- [x] `ProducerKey` → internal
+- [x] `CoreSettings` → internal
+- [x] `CoreDependencyConfiguration` → internal static
+- [x] `CoreLayerPhase3Marker` → internal static
+- [x] `TopicOverrideService` → internal
+- [x] REST APIクラス群(5個) → internal
 
 ### Phase 2 (Builder群)
 - [ ] `GroupByBuilder` → internal
