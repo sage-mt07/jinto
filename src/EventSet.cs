@@ -1,51 +1,175 @@
-
 using Kafka.Ksql.Linq.Core.Abstractions;
+using Kafka.Ksql.Linq.Core.Extensions;
 using Kafka.Ksql.Linq.Messaging.Contracts;
 using Kafka.Ksql.Linq.Messaging.Internal;
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Kafka.Ksql.Linq;
-public class EventSet<T>
+
+/// <summary>
+/// EventSet基底クラス - IEntitySet<T>を実装
+/// 修正理由: KafkaContextとの統合、IEntitySet<T>実装追加
+/// </summary>
+public abstract class EventSet<T> : IEntitySet<T> where T : class
 {
-    private readonly IEnumerable<T> _events;
+    protected readonly IKafkaContext _context;
+    protected readonly EntityModel _entityModel;
     private readonly ErrorHandlingContext _errorHandlingContext;
     private readonly IErrorSink? _dlqErrorSink;
 
-    public EventSet(IEnumerable<T> events, IErrorSink? dlqErrorSink = null)
+    protected EventSet(IKafkaContext context, EntityModel entityModel, IErrorSink? dlqErrorSink = null)
     {
-        _events = events ?? throw new ArgumentNullException(nameof(events));
+        _context = context ?? throw new ArgumentNullException(nameof(context));
+        _entityModel = entityModel ?? throw new ArgumentNullException(nameof(entityModel));
         _errorHandlingContext = new ErrorHandlingContext();
         _dlqErrorSink = dlqErrorSink;
     }
 
-    private EventSet(IEnumerable<T> events, ErrorHandlingContext errorHandlingContext, IErrorSink? dlqErrorSink)
+    private EventSet(IKafkaContext context, EntityModel entityModel, ErrorHandlingContext errorHandlingContext, IErrorSink? dlqErrorSink)
     {
-        _events = events;
+        _context = context;
+        _entityModel = entityModel;
         _errorHandlingContext = errorHandlingContext;
         _dlqErrorSink = dlqErrorSink;
     }
 
     /// <summary>
-    /// エラー処理の動作を指定します
-    /// Map実行前に設定され、Map内での例外処理方針を決定します
+    /// ✅ NEW: 抽象メソッド化 - 具象クラスで実装必須
+    /// Kafka連続受信 or 固定リスト返しを統一
     /// </summary>
-    /// <param name="errorAction">エラー発生時のアクション</param>
-    /// <returns>エラー処理が設定されたEventSet</returns>
-    public EventSet<T> OnError(ErrorAction errorAction)
-    {
-        var newContext = new ErrorHandlingContext
-        {
-            ErrorAction = errorAction,
-            RetryCount = _errorHandlingContext.RetryCount,
-            RetryInterval = _errorHandlingContext.RetryInterval,
-            ErrorSink = errorAction == ErrorAction.DLQ ? _dlqErrorSink : null
-        };
+    public abstract IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default);
 
-        return new EventSet<T>(_events, newContext, _dlqErrorSink);
+    private async IAsyncEnumerable<T> GetAsyncEnumeratorWrapper([EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        await using var enumerator = GetAsyncEnumerator(cancellationToken);
+
+        while (await enumerator.MoveNextAsync())
+        {
+            yield return enumerator.Current;
+        }
     }
+
+
+    public virtual async Task<List<T>> ToListAsync(CancellationToken cancellationToken = default)
+    {
+        var results = new List<T>();
+
+        await foreach (var item in GetAsyncEnumeratorWrapper(cancellationToken))
+        {
+            results.Add(item);
+        }
+
+        return results;
+    }
+    /// <summary>
+    /// ✅ ABSTRACT: Producer機能 - 具象クラスで実装
+    /// </summary>
+    protected abstract Task SendEntityAsync(T entity, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// IEntitySet<T> 実装: Producer操作
+    /// </summary>
+    public virtual async Task AddAsync(T entity, CancellationToken cancellationToken = default)
+    {
+        if (entity == null)
+            throw new ArgumentNullException(nameof(entity));
+
+        await SendEntityAsync(entity, cancellationToken);
+    }
+    /// <summary>
+    /// ✅ REDESIGNED: Kafka継続受信対応ForEachAsync
+    /// 設計変更: ToListAsync()使用禁止 → GetAsyncEnumeratorベース
+    /// </summary>
+    public virtual async Task ForEachAsync(Func<T, Task> action, TimeSpan timeout = default, CancellationToken cancellationToken = default)
+    {
+        if (action == null)
+            throw new ArgumentNullException(nameof(action));
+
+        var start = DateTime.UtcNow;
+        var combinedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+
+        try
+        {
+            await foreach (var item in GetAsyncEnumeratorWrapper(combinedCts.Token))
+            {
+                // タイムアウトチェック（継続受信処理の最大継続時間）
+                if (timeout != default && DateTime.UtcNow - start > timeout)
+                {
+                    break;
+                }
+
+                // エラーハンドリング付きアクション実行
+                try
+                {
+                    await action(item);
+                }
+                catch (Exception ex)
+                {
+                    var messageContext = CreateMessageContext(item);
+                    var shouldContinue = await _errorHandlingContext.HandleErrorAsync(item, ex, messageContext);
+
+                    if (!shouldContinue)
+                    {
+                        continue; // エラー時スキップして次のアイテムへ
+                    }
+
+                    // shouldContinue=true の場合は例外を再スロー
+                    throw;
+                }
+            }
+        }
+        finally
+        {
+            combinedCts?.Dispose();
+        }
+    }
+
+    /// <summary>
+    /// IEntitySet<T> 実装: メタデータ取得
+    /// </summary>
+    public string GetTopicName() => _entityModel.TopicAttribute?.TopicName ?? _entityModel.EntityType.Name;
+
+    public EntityModel GetEntityModel() => _entityModel;
+
+    public IKafkaContext GetContext() => _context;
+
+    /// <summary>
+    /// エラーハンドリング用メッセージコンテキスト作成
+    /// </summary>
+    private KafkaMessageContext CreateMessageContext(T item)
+    {
+        return new KafkaMessageContext
+        {
+            MessageId = Guid.NewGuid().ToString(),
+            Tags = new Dictionary<string, object>
+            {
+                ["entity_type"] = typeof(T).Name,
+                ["topic_name"] = GetTopicName(),
+                ["processing_phase"] = "ForEachAsync",
+                ["timestamp"] = DateTime.UtcNow
+            }
+        };
+    }
+
+    /// <summary>
+    /// エラーハンドリングポリシー設定
+    /// </summary>
+    internal virtual EventSet<T> WithErrorPolicy(ErrorHandlingPolicy policy)
+    {
+        // 必要に応じて実装
+        return this;
+    }
+
+    public override string ToString()
+    {
+        return $"EventSet<{typeof(T).Name}> - Topic: {GetTopicName()}";
+    }
+
+
 
     /// <summary>
     /// リトライ回数を指定します
@@ -67,7 +191,7 @@ public class EventSet<T>
             ErrorSink = _errorHandlingContext.ErrorSink
         };
 
-        return new EventSet<T>(_events, newContext, _dlqErrorSink);
+        return CreateNewInstance(_context, _entityModel, newContext, _dlqErrorSink);
     }
 
     /// <summary>
@@ -78,14 +202,15 @@ public class EventSet<T>
     /// <typeparam name="TResult">変換後の型</typeparam>
     /// <param name="mapper">変換関数</param>
     /// <returns>変換されたEventSet</returns>
-    public async Task<EventSet<TResult>> Map<TResult>(Func<T, Task<TResult>> mapper)
+    public async Task<EventSet<TResult>> Map<TResult>(Func<T, Task<TResult>> mapper) where TResult : class
     {
         if (mapper == null)
             throw new ArgumentNullException(nameof(mapper));
 
         var results = new List<TResult>();
+        var sourceData = await ToListAsync();
 
-        foreach (var item in _events)
+        foreach (var item in sourceData)
         {
             var itemErrorContext = new ErrorHandlingContext
             {
@@ -102,20 +227,22 @@ public class EventSet<T>
                 itemErrorContext);
         }
 
-        return new EventSet<TResult>(results, _errorHandlingContext, _dlqErrorSink);
+        // 結果をラップした新しいEventSetを返す
+        return new MappedEventSet<TResult>(_context, CreateEntityModelForType<TResult>(), results, _dlqErrorSink);
     }
 
     /// <summary>
     /// 同期版のMap関数
     /// </summary>
-    public EventSet<TResult> Map<TResult>(Func<T, TResult> mapper)
+    public EventSet<TResult> Map<TResult>(Func<T, TResult> mapper) where TResult : class
     {
         if (mapper == null)
             throw new ArgumentNullException(nameof(mapper));
 
         var results = new List<TResult>();
+        var sourceData = ToListAsync().GetAwaiter().GetResult();
 
-        foreach (var item in _events)
+        foreach (var item in sourceData)
         {
             var itemErrorContext = new ErrorHandlingContext
             {
@@ -132,7 +259,26 @@ public class EventSet<T>
                 itemErrorContext);
         }
 
-        return new EventSet<TResult>(results, _errorHandlingContext, _dlqErrorSink);
+        return new MappedEventSet<TResult>(_context, CreateEntityModelForType<TResult>(), results, _dlqErrorSink);
+    }
+
+    // ✅ 抽象メソッド：派生クラスで新しいインスタンス作成
+    protected virtual EventSet<T> CreateNewInstance(IKafkaContext context, EntityModel entityModel, ErrorHandlingContext errorContext, IErrorSink? dlqErrorSink)
+    {
+        // デフォルト実装：具象クラスでオーバーライド必要
+        throw new NotImplementedException("Derived classes must implement CreateNewInstance");
+    }
+
+    private EntityModel CreateEntityModelForType<TResult>() where TResult : class
+    {
+        return new EntityModel
+        {
+            EntityType = typeof(TResult),
+            TopicAttribute = new TopicAttribute($"{typeof(TResult).Name}_Mapped"),
+            AllProperties = typeof(TResult).GetProperties(),
+            KeyProperties = Array.Empty<System.Reflection.PropertyInfo>(),
+            ValidationResult = new ValidationResult { IsValid = true }
+        };
     }
 
     /// <summary>
@@ -142,8 +288,8 @@ public class EventSet<T>
         T item,
         Func<T, Task<TResult>> mapper,
         List<TResult> results,
-        ErrorHandlingContext errorContext)
-    { 
+        ErrorHandlingContext errorContext) where TResult : class
+    {
         var maxAttempts = errorContext.ErrorAction == ErrorAction.Retry
             ? errorContext.RetryCount + 1
             : 1;
@@ -186,7 +332,7 @@ public class EventSet<T>
         T item,
         Func<T, TResult> mapper,
         List<TResult> results,
-        ErrorHandlingContext errorContext)
+        ErrorHandlingContext errorContext) where TResult : class
     {
         var maxAttempts = errorContext.ErrorAction == ErrorAction.Retry
             ? errorContext.RetryCount + 1
@@ -233,7 +379,7 @@ public class EventSet<T>
             MessageId = Guid.NewGuid().ToString(),
             Tags = new Dictionary<string, object>
             {
-                ["original_topic"] = typeof(T).Name, // 実際はEntityModelから取得
+                ["original_topic"] = GetTopicName(),
                 ["original_partition"] = 0, // 実際の値に置き換え
                 ["original_offset"] = 0, // 実際の値に置き換え
                 ["retry_count"] = errorContext.CurrentAttempt,
@@ -247,34 +393,76 @@ public class EventSet<T>
     /// </summary>
     public IEnumerable<T> GetResults()
     {
-        return _events;
+        return ToListAsync().GetAwaiter().GetResult();
+    }
+}
+internal class MappedEventSet<T> : EventSet<T> where T : class
+{
+    private readonly List<T> _mapped;
+    private readonly EntityModel _originalEntityModel;
+
+    public MappedEventSet(List<T> mappedItems, IKafkaContext context, EntityModel originalEntityModel, IErrorSink? errorSink = null)
+        : base(context, CreateMappedEntityModel<T>(originalEntityModel), errorSink)
+    {
+        _mapped = mappedItems ?? throw new ArgumentNullException(nameof(mappedItems));
+        _originalEntityModel = originalEntityModel;
     }
 
     /// <summary>
-    /// 非同期列挙をサポート
+    /// ✅ NEW: 固定リスト用GetAsyncEnumerator実装
+    /// yield return _mapped[i] で順次返却
     /// </summary>
-    public async Task ForEachAsync(Func<T, Task> action, CancellationToken cancellationToken = default)
+    public override async IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default)
     {
-        if (action == null)
-            throw new ArgumentNullException(nameof(action));
-
-        foreach (var item in _events)
+        foreach (var item in _mapped)
         {
             if (cancellationToken.IsCancellationRequested)
-                break;
+                yield break;
 
-            try
-            {
-                await action(item);
-            }
-            catch (Exception ex)
-            {
-                var shouldContinue = await _errorHandlingContext.HandleErrorAsync(item, ex, CreateContext(item, _errorHandlingContext));
-                if (!shouldContinue)
-                {
-                    continue; // スキップして次へ
-                }
-            }
+            yield return item;
+
+            // 非同期として扱うために挿入（CPU集約的な処理を避ける）
+            await Task.Yield();
         }
+    }
+
+    /// <summary>
+    /// ✅ 最適化: ToListAsync - 既に固定リストなので即座に返却
+    /// </summary>
+    public override async Task<List<T>> ToListAsync(CancellationToken cancellationToken = default)
+    {
+        // 既に固定リストなので、コピーして返却
+        await Task.CompletedTask;
+        return new List<T>(_mapped);
+    }
+
+    /// <summary>
+    /// Map後のデータはProducer送信不可
+    /// </summary>
+    protected override Task SendEntityAsync(T entity, CancellationToken cancellationToken)
+    {
+        throw new NotSupportedException(
+            $"MappedEventSet<{typeof(T).Name}> does not support AddAsync operations. " +
+            "Mapped data is read-only and derived from transformation operations.");
+    }
+
+    /// <summary>
+    /// Mapped用のEntityModel作成
+    /// </summary>
+    private static EntityModel CreateMappedEntityModel<TMapped>(EntityModel originalModel) where TMapped : class
+    {
+        return new EntityModel
+        {
+            EntityType = typeof(TMapped),
+            TopicAttribute = new TopicAttribute($"{originalModel.GetTopicName()}_Mapped"),
+            AllProperties = typeof(TMapped).GetProperties(),
+            KeyProperties = Array.Empty<System.Reflection.PropertyInfo>(), // Map後はキーなし
+            ValidationResult = new ValidationResult { IsValid = true }
+        };
+    }
+
+    public override string ToString()
+    {
+        return $"MappedEventSet<{typeof(T).Name}> - Items: {_mapped.Count}";
     }
 }

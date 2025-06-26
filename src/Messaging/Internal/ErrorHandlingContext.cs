@@ -4,7 +4,7 @@ using System;
 using System.Threading.Tasks;
 
 namespace Kafka.Ksql.Linq.Messaging.Internal;
-internal class ErrorHandlingContext
+public class ErrorHandlingContext
 {
     /// <summary>設定されたエラーアクション</summary>
     public ErrorAction ErrorAction { get; set; } = ErrorAction.Skip;
