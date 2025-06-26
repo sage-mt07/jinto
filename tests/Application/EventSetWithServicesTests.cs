@@ -1,7 +1,6 @@
 using Kafka.Ksql.Linq;
 using Kafka.Ksql.Linq.Core.Abstractions;
 using Kafka.Ksql.Linq.Core.Context;
-using System.Linq.Expressions;
 using Xunit;
 
 namespace Kafka.Ksql.Linq.Tests.Application;
@@ -26,10 +25,7 @@ public class EventSetWithServicesTests
             AllProperties = typeof(TestEntity).GetProperties(),
             KeyProperties = new[] { typeof(TestEntity).GetProperty(nameof(TestEntity.Id))! }
         };
-        var set1 = new EventSetWithServices<TestEntity>(ctx, model);
-        Assert.NotNull(set1);
-        Expression expr = Expression.Constant(1);
-        var set2 = new EventSetWithServices<TestEntity>(ctx, model, expr);
-        Assert.NotNull(set2);
+        var set = new EventSetWithServices<TestEntity>(ctx, model);
+        Assert.NotNull(set);
     }
 }
