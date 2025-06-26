@@ -5,8 +5,8 @@
 
 ## 統一後のファイル構成案
 
-- `src/Application/KsqlContext.cs` に `KsqlContext` クラスを集約
-- 旧 `src/KafkaContext.cs` は削除
+- `src/KsqlContext.cs` に `KsqlContext` クラスを集約
+- 旧 `src/Application/KsqlContext.cs` は削除
 - 既存の `KsqlContextBuilder`・`KsqlContextOptions` などと同一 namespace に統一
 
 ## 残すべきクラス／メソッド
