@@ -12,7 +12,18 @@ public class EventSetWithStateStoreKeyTests
 {
     private class DummyContext : IKafkaContext
     {
-        public IEntitySet<T> Set<T>() where T : class => throw new NotImplementedException();
+        private class StubSet<T> : IEntitySet<T> where T : class
+        {
+            public Task AddAsync(T entity, CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public Task<List<T>> ToListAsync(CancellationToken cancellationToken = default) => Task.FromResult(new List<T>());
+            public Task ForEachAsync(Func<T, Task> action, TimeSpan timeout = default, CancellationToken cancellationToken = default) => Task.CompletedTask;
+            public string GetTopicName() => typeof(T).Name;
+            public EntityModel GetEntityModel() => new EntityModel { EntityType = typeof(T), TopicAttribute = new TopicAttribute("t"), AllProperties = Array.Empty<System.Reflection.PropertyInfo>(), KeyProperties = Array.Empty<System.Reflection.PropertyInfo>() };
+            public IKafkaContext GetContext() => null!;
+            public async IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default) { await Task.CompletedTask; yield break; }
+        }
+
+        public IEntitySet<T> Set<T>() where T : class => new StubSet<T>();
         public object GetEventSet(Type entityType) => throw new NotImplementedException();
         public Dictionary<Type, EntityModel> GetEntityModels() => new();
         public void Dispose() { }
