@@ -33,7 +33,7 @@
 | ファイル | クラス | 責務 | 変更頻度 |
 |---------|--------|------|----------|
 | `KsqlContext.cs` | KafkaContext | 簡素化統合KafkaContext、Pool削除版 | 🔴 |
-| `KsqlContext.cs` | EventSetWithSimplifiedServices<T> | 簡素化Manager統合EventSet | 🔴 |
+| `KsqlContext.cs` | EventSetWithServices<T> | 簡素化Manager統合EventSet | 🔴 |
 
 ### 📁 Builder/ - Fluent API（🟡中変更頻度）
 | ファイル | クラス | 責務 | 変更頻度 |
@@ -69,7 +69,7 @@ AvroSchemaRegistrationService → スキーマ一括登録（Fail-Fast）
 ```
 context.Orders.AddAsync()
    ↓
-EventSetWithSimplifiedServices<T>.SendEntityAsync()
+EventSetWithServices<T>.AddAsync()
    ↓
 KafkaProducerManager.SendAsync() → Messaging層委譲
    ↓
@@ -94,7 +94,7 @@ BuildContext時に各Manager初期化で使用
 ### 🔴 高頻度変更パターン
 **1. Context機能拡張**
 - `KafkaContext`: 新しいEntitySet操作、Manager統合方式変更
-- `EventSetWithSimplifiedServices`: Producer/Consumer操作の拡張
+ - `EventSetWithServices`: Producer/Consumer操作の拡張
 - Core層との連携パターン改善
 
 **2. 初期化・設定機能強化**
@@ -271,7 +271,7 @@ public void Validate()
 // DbContextライクなAPI
 protected override IEntitySet<T> CreateEntitySet<T>(EntityModel entityModel)
 {
-    return new EventSetWithSimplifiedServices<T>(this, entityModel);
+    return new EventSetWithServices<T>(this, entityModel);
 }
 
 // DbSet<T>相当のEntitySet<T>
