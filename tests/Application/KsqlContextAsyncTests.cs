@@ -1,6 +1,7 @@
 using Kafka.Ksql.Linq;
 using Kafka.Ksql.Linq.Core.Abstractions;
 using Kafka.Ksql.Linq.Core.Context;
+using Kafka.Ksql.Linq.Application;
 using System;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -8,9 +9,9 @@ using Xunit;
 
 namespace Kafka.Ksql.Linq.Tests.Application;
 
-public class KafkaContextAsyncTests
+public class KsqlContextAsyncTests
 {
-    private class TestContext : KafkaContext
+    private class TestContext : KsqlContext
     {
         public TestContext() : base() { }
 
@@ -23,9 +24,9 @@ public class KafkaContextAsyncTests
         var ctx = new TestContext();
         await ctx.DisposeAsync();
 
-        var producer = typeof(KafkaContext).GetField("_producerManager", BindingFlags.NonPublic | BindingFlags.Instance)!
+        var producer = typeof(KsqlContext).GetField("_producerManager", BindingFlags.NonPublic | BindingFlags.Instance)!
             .GetValue(ctx)!;
-        var consumer = typeof(KafkaContext).GetField("_consumerManager", BindingFlags.NonPublic | BindingFlags.Instance)!
+        var consumer = typeof(KsqlContext).GetField("_consumerManager", BindingFlags.NonPublic | BindingFlags.Instance)!
             .GetValue(ctx)!;
 
         var prodDisposed = (bool)producer.GetType().GetField("_disposed", BindingFlags.NonPublic | BindingFlags.Instance)!

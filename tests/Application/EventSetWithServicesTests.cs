@@ -1,13 +1,14 @@
 using Kafka.Ksql.Linq;
 using Kafka.Ksql.Linq.Core.Abstractions;
 using Kafka.Ksql.Linq.Core.Context;
+using Kafka.Ksql.Linq.Application;
 using Xunit;
 
 namespace Kafka.Ksql.Linq.Tests.Application;
 
 public class EventSetWithServicesTests
 {
-    private class TestContext : KafkaContext
+    private class TestContext : KsqlContext
     {
         public TestContext() : base() { }
 

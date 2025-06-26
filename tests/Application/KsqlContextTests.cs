@@ -2,14 +2,15 @@ using Kafka.Ksql.Linq;
 using Kafka.Ksql.Linq.Core.Abstractions;
 using Kafka.Ksql.Linq.Core.Context;
 using Kafka.Ksql.Linq.Messaging.Consumers;
+using Kafka.Ksql.Linq.Application;
 using System;
 using Xunit;
 
 namespace Kafka.Ksql.Linq.Tests.Application;
 
-public class KafkaContextTests
+public class KsqlContextTests
 {
-    private class TestContext : KafkaContext
+    private class TestContext : KsqlContext
     {
         public TestContext() : base() { }
         public TestContext(KafkaContextOptions opt) : base(opt) { }
