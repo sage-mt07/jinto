@@ -371,12 +371,12 @@ public interface IEntitySet<T>
 - [x] REST APIクラス群(5個) → internal
 
 ### Phase 2 (Builder群)
-- [ ] `GroupByBuilder` → internal
-- [ ] `HavingBuilder` → internal
-- [ ] `JoinBuilder` → internal
-- [ ] `ProjectionBuilder` → internal
-- [ ] `SelectBuilder` → internal
-- [ ] `WindowBuilder` → internal
+- [x] `GroupByBuilder` → internal
+- [x] `HavingBuilder` → internal
+- [x] `JoinBuilder` → internal
+- [x] `ProjectionBuilder` → internal
+- [x] `SelectBuilder` → internal
+- [x] `WindowBuilder` → internal
 
 ### Phase 3 (Pipeline群)
 - [ ] `DMLQueryGenerator` → internal
