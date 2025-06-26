@@ -9,6 +9,9 @@ public class DummyContext : KsqlContext
 {
     public DummyContext() : base() { }
     public DummyContext(KafkaContextOptions options) : base(options) { }
+
+    // Skip heavy initialization during tests
+    protected override bool SkipSchemaRegistration => true;
 }
 
 public class KsqlContextBuilderTests
