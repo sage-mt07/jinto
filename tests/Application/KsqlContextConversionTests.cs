@@ -8,7 +8,7 @@ using Xunit;
 
 namespace Kafka.Ksql.Linq.Tests.Application;
 
-public class KafkaContextConversionTests
+public class KsqlContextConversionTests
 {
     [Topic("t")]
     private class Sample
@@ -17,7 +17,7 @@ public class KafkaContextConversionTests
         public int Id { get; set; }
     }
 
-    private class TestContext : KafkaContext
+    private class TestContext : KsqlContext
     {
         public TestContext() : base() { }
         protected override bool SkipSchemaRegistration => true;

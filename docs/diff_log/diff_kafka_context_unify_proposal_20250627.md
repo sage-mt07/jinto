@@ -1,7 +1,19 @@
-# 統合案: KafkaContextクラス統一提案
+# 差分履歴: kafka_context_unify_proposal
 
 🗕 2025年6月27日（JST）
 🧐 作業者: 迅人（テスト自動化AI）
+
+## 差分タイトル
+KafkaContext と KsqlContext のクラス統合提案
+
+## 変更理由
+- [`diff_overall_20250626.md`](./diff_overall_20250626.md) にて命名揺れが指摘されたため
+- `KafkaContext` と `KsqlContext` の二重管理を解消し、実装とドキュメントの一貫性を確保するため
+
+## 追加・修正内容（反映先: oss_design_combined.md）
+- `src/KsqlContext.cs` へ `KsqlContext` クラスを集約
+- 旧 `src/Application/KsqlContext.cs` を削除
+- 主要メソッドや `EventSetWithServices<T>` の機能を維持したまま統合
 
 ## 統一後のファイル構成案
 
@@ -55,4 +67,8 @@
 - `EventSetWithServices<T>` を内部クラスとして保持し、Producer/Consumer/Streaming の基本機能を一か所で管理する。
 
 以上が統合方針の要約である。既存の命名揺れを解消し、`KsqlContext` を中心としたシンプルな構造に再編成することで、将来的な保守性とテスト自動化の効率向上を狙う。
+
+## 参考文書
+- `docs_advanced_rules.md` の「2. 命名規約の詳細」
+- [`diff_kafka_context_rename_20250627.md`](./diff_kafka_context_rename_20250627.md)
 

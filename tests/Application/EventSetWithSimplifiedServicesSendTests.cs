@@ -1,5 +1,5 @@
 using Kafka.Ksql.Linq;
-using KafkaApplication = Kafka.Ksql.Linq.Application.KafkaContext;
+using KafkaApplication = Kafka.Ksql.Linq.Application.KsqlContext;
 using Kafka.Ksql.Linq.Core.Abstractions;
 using Kafka.Ksql.Linq.Core.Context;
 using Kafka.Ksql.Linq.Messaging.Abstractions;

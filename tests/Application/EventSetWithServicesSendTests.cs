@@ -4,6 +4,7 @@ using Kafka.Ksql.Linq.Core.Context;
 using Kafka.Ksql.Linq.Messaging.Abstractions;
 using Kafka.Ksql.Linq.Messaging.Producers.Core;
 using Kafka.Ksql.Linq.Configuration;
+using Kafka.Ksql.Linq.Application;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System;
@@ -34,7 +35,7 @@ public class EventSetWithServicesSendTests
         public void Dispose() { }
     }
 
-    private class TestContext : KafkaContext
+    private class TestContext : KsqlContext
     {
         public TestContext() : base() { }
 
@@ -42,7 +43,7 @@ public class EventSetWithServicesSendTests
 
         public void SetProducer(object manager)
         {
-            typeof(KafkaContext).GetField("_producerManager", BindingFlags.NonPublic | BindingFlags.Instance)!.SetValue(this, manager);
+            typeof(KsqlContext).GetField("_producerManager", BindingFlags.NonPublic | BindingFlags.Instance)!.SetValue(this, manager);
         }
     }
 

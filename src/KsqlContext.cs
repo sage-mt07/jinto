@@ -11,12 +11,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using ConfluentSchemaRegistry = Confluent.SchemaRegistry;
 
-namespace Kafka.Ksql.Linq;
+namespace Kafka.Ksql.Linq.Application;
 /// <summary>
-/// Core層統合KafkaContext
+/// Core層統合KsqlContext
 /// 設計理由：Core抽象化を継承し、上位層機能を統合
 /// </summary>
-public abstract class KafkaContext : KafkaContextCore
+public abstract class KsqlContext : KafkaContextCore
 {
     private readonly KafkaProducerManager _producerManager;
     private readonly KafkaConsumerManager _consumerManager;
@@ -29,7 +29,7 @@ public abstract class KafkaContext : KafkaContextCore
     /// </summary>
     protected virtual bool SkipSchemaRegistration => false;
 
-    protected KafkaContext() : base()
+    protected KsqlContext() : base()
     {
         _schemaRegistryClient = new Lazy<ConfluentSchemaRegistry.ISchemaRegistryClient>(CreateSchemaRegistryClient);
         _schemaRegistrationService = CreateSchemaRegistrationService();
@@ -54,11 +54,11 @@ public abstract class KafkaContext : KafkaContextCore
         catch (Exception ex)
         {
             throw new InvalidOperationException(
-                "FATAL: KafkaContext initialization failed. Application cannot continue without Kafka connectivity.", ex);
+                "FATAL: KsqlContext initialization failed. Application cannot continue without Kafka connectivity.", ex);
         }
     }
 
-    protected KafkaContext(KafkaContextOptions options) : base(options)
+    protected KsqlContext(KafkaContextOptions options) : base(options)
     {
         _schemaRegistryClient = new Lazy<ConfluentSchemaRegistry.ISchemaRegistryClient>(CreateSchemaRegistryClient);
         _schemaRegistrationService = CreateSchemaRegistrationService();
@@ -83,7 +83,7 @@ public abstract class KafkaContext : KafkaContextCore
         catch (Exception ex)
         {
             throw new InvalidOperationException(
-                "FATAL: KafkaContext initialization failed. Application cannot continue without Kafka connectivity.", ex);
+                "FATAL: KsqlContext initialization failed. Application cannot continue without Kafka connectivity.", ex);
         }
     }
 
@@ -278,12 +278,12 @@ public abstract class KafkaContext : KafkaContextCore
 /// </summary>
 internal class EventSetWithServices<T> : IEntitySet<T> where T : class
 {
-    private readonly KafkaContext _kafkaContext;
+    private readonly KsqlContext _ksqlContext;
     private readonly EntityModel _entityModel;
 
-    public EventSetWithServices(KafkaContext context, EntityModel entityModel)
+    public EventSetWithServices(KsqlContext context, EntityModel entityModel)
     {
-        _kafkaContext = context ?? throw new ArgumentNullException(nameof(context));
+        _ksqlContext = context ?? throw new ArgumentNullException(nameof(context));
         _entityModel = entityModel ?? throw new ArgumentNullException(nameof(entityModel));
     }
 
@@ -294,7 +294,7 @@ internal class EventSetWithServices<T> : IEntitySet<T> where T : class
     {
         try
         {
-            var producerManager = _kafkaContext.GetProducerManager();
+            var producerManager = _ksqlContext.GetProducerManager();
 
             var context = new KafkaMessageContext
             {
@@ -321,7 +321,7 @@ internal class EventSetWithServices<T> : IEntitySet<T> where T : class
     {
         try
         {
-            var consumerManager = _kafkaContext.GetConsumerManager();
+            var consumerManager = _ksqlContext.GetConsumerManager();
 
             // 簡略実装：実際のConsumer呼び出し
             // TODO: 実際のConsumer実装と連携
@@ -342,7 +342,7 @@ internal class EventSetWithServices<T> : IEntitySet<T> where T : class
     {
         try
         {
-            var consumerManager = _kafkaContext.GetConsumerManager();
+            var consumerManager = _ksqlContext.GetConsumerManager();
 
             // 簡略実装：ストリーミング消費
             // TODO: 実際のStreaming Consumer実装と連携
@@ -370,10 +370,20 @@ internal class EventSetWithServices<T> : IEntitySet<T> where T : class
     // Metadata取得
     public string GetTopicName() => _entityModel.TopicAttribute?.TopicName ?? typeof(T).Name;
     public EntityModel GetEntityModel() => _entityModel;
-    public IKafkaContext GetContext() => _kafkaContext;
+    public IKafkaContext GetContext() => _ksqlContext;
 
     public override string ToString()
     {
         return $"EventSetWithServices<{typeof(T).Name}> - Topic: {GetTopicName()}";
     }
+}
+
+/// <summary>
+/// Compatibility shim for renamed context class.
+/// </summary>
+[Obsolete("Use KsqlContext instead")]
+public abstract class KafkaContext : KsqlContext
+{
+    protected KafkaContext() : base() { }
+    protected KafkaContext(KafkaContextOptions options) : base(options) { }
 }
