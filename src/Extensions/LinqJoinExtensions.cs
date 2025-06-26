@@ -17,7 +17,7 @@ public static class LinqJoinExtensions
             return joinable;
         }
 
-        return new JoinableEntitySet<T>(entitySet.GetContext(), entitySet.GetEntityModel());
+        return new JoinableEntitySet<T>(entitySet);
     }
 
     /// <summary>

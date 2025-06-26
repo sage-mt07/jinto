@@ -6,77 +6,130 @@ using System.Threading.Tasks;
 namespace Kafka.Ksql.Linq.Messaging.Internal;
 public class ErrorHandlingContext
 {
-    /// <summary>設定されたエラーアクション</summary>
+    /// <summary>
+    /// エラー発生時のアクション
+    /// </summary>
     public ErrorAction ErrorAction { get; set; } = ErrorAction.Skip;
 
-    /// <summary>リトライ回数</summary>
+    /// <summary>
+    /// リトライ回数
+    /// </summary>
     public int RetryCount { get; set; } = 3;
 
-    /// <summary>リトライ間隔</summary>
+    /// <summary>
+    /// リトライ間隔
+    /// </summary>
     public TimeSpan RetryInterval { get; set; } = TimeSpan.FromSeconds(1);
 
-    /// <summary>エラーシンク（DLQ送信用）</summary>
-    public IErrorSink? ErrorSink { get; set; }
-
-    /// <summary>現在の試行回数</summary>
+    /// <summary>
+    /// 現在の試行回数（内部管理用）
+    /// </summary>
     public int CurrentAttempt { get; set; } = 0;
 
-    /// <summary>最初の試行時刻</summary>
-    public DateTime FirstAttemptTime { get; set; } = DateTime.UtcNow;
-
-    /// <summary>最後の試行時刻</summary>
-    public DateTime LastAttemptTime { get; set; } = DateTime.UtcNow;
+    /// <summary>
+    /// エラーシンク（DLQ送信等）
+    /// </summary>
+    public IErrorSink? ErrorSink { get; set; }
 
     /// <summary>
-    /// エラー処理を実行
+    /// カスタムエラーハンドラー（型安全版）
     /// </summary>
-    public async Task<bool> HandleErrorAsync<T>(T originalMessage, Exception exception,
-        KafkaMessageContext? context = null) where T : class
-    {
-        CurrentAttempt++;
-        LastAttemptTime = DateTime.UtcNow;
+    public Func<ErrorContext, object, bool>? CustomHandler { get; set; }
 
-        // コンテキストにリトライ情報を追加
-        if (context?.Tags != null)
+    /// <summary>
+    /// エラーハンドリング実行
+    /// </summary>
+    /// <param name="originalItem">元のアイテム</param>
+    /// <param name="exception">発生した例外</param>
+    /// <param name="messageContext">メッセージコンテキスト</param>
+    /// <returns>処理を継続するかどうか（false=スキップ、true=継続/リスロー）</returns>
+    public async Task<bool> HandleErrorAsync<T>(T originalItem, Exception exception, KafkaMessageContext messageContext)
+    {
+        // カスタムハンドラーが設定されている場合は優先実行
+        if (ErrorAction == ErrorAction.Skip && CustomHandler != null)
         {
-            context.Tags["retry_count"] = CurrentAttempt;
-            context.Tags["error_phase"] = "Processing";
+            var errorContext = new ErrorContext
+            {
+                Exception = exception,
+                OriginalMessage = originalItem,
+                AttemptCount = CurrentAttempt,
+                FirstAttemptTime = DateTime.UtcNow.AddSeconds(-CurrentAttempt * RetryInterval.TotalSeconds),
+                LastAttemptTime = DateTime.UtcNow,
+                ErrorPhase = "Processing"
+            };
+
+            try
+            {
+                return CustomHandler(errorContext, originalItem!);
+            }
+            catch (Exception handlerEx)
+            {
+                Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] CUSTOM_HANDLER_ERROR: {handlerEx.Message}");
+                return false; // カスタムハンドラーでエラーが発生した場合はスキップ
+            }
         }
 
         switch (ErrorAction)
         {
             case ErrorAction.Skip:
-                Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] エラーレコードをスキップ: {exception.Message}");
-                return false; // 処理継続、このアイテムはスキップ
+                // エラーログ出力してスキップ
+                Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] SKIP: {exception.Message}");
+                return false; // スキップ
 
             case ErrorAction.Retry:
-                if (CurrentAttempt <= RetryCount)
-                {
-                    Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] リトライ {CurrentAttempt}/{RetryCount}: {exception.Message}");
-                    if (CurrentAttempt < RetryCount)
-                    {
-                        await Task.Delay(RetryInterval);
-                        throw exception; // ✅ 明示的に例外を指定
-                    }
-                }
-                // リトライ回数超過の場合はスキップ
-                Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] リトライ回数超過、スキップ: {exception.Message}");
-                return false;
-
-            case ErrorAction.DLQ:
+                // リトライはProcessItemWithErrorHandling側で制御
+                // ここに到達するのは最終試行後なので、スキップまたはDLQ送信
                 if (ErrorSink != null)
                 {
-                    await ErrorSink.HandleErrorAsync(originalMessage, exception, context);
-                    Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] DLQに送信完了: {exception.Message}");
+                    await SendToDlqAsync(originalItem, exception, messageContext);
+                }
+                return false; // スキップ
+
+            case ErrorAction.DLQ:
+                // DLQ送信
+                if (ErrorSink != null)
+                {
+                    await SendToDlqAsync(originalItem, exception, messageContext);
                 }
                 else
                 {
-                    Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] DLQハンドラー未設定、スキップ: {exception.Message}");
+                    Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] DLQ: No ErrorSink configured, skipping item");
                 }
-                return false; // 処理継続、このアイテムはスキップ
+                return false; // スキップ
 
             default:
-                throw new InvalidOperationException($"Unknown error action: {ErrorAction}");
+                // 未知のアクションの場合はスキップ
+                Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] UNKNOWN ERROR ACTION: {ErrorAction}, skipping item");
+                return false;
+        }
+    }
+
+    /// <summary>
+    /// DLQ送信処理
+    /// </summary>
+    private async Task SendToDlqAsync<T>(T originalItem, Exception exception, KafkaMessageContext messageContext)
+    {
+        try
+        {
+            if (ErrorSink != null)
+            {
+                var errorContext = new ErrorContext
+                {
+                    Exception = exception,
+                    OriginalMessage = originalItem,
+                    AttemptCount = CurrentAttempt,
+                    FirstAttemptTime = DateTime.UtcNow.AddSeconds(-CurrentAttempt * RetryInterval.TotalSeconds),
+                    LastAttemptTime = DateTime.UtcNow,
+                    ErrorPhase = "Processing"
+                };
+
+                await ErrorSink.HandleErrorAsync(errorContext, messageContext);
+                Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] DLQ: Sent error record to DLQ");
+            }
+        }
+        catch (Exception dlqEx)
+        {
+            Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] DLQ ERROR: Failed to send to DLQ - {dlqEx.Message}");
         }
     }
 }

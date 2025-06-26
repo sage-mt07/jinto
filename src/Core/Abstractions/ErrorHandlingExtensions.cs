@@ -13,10 +13,18 @@ public static class ErrorHandlingExtensions
         if (customHandler == null)
             throw new ArgumentNullException(nameof(customHandler));
 
+        Func<ErrorContext, object, bool> wrappedHandler = (errorContext, originalMessage) =>
+        {
+            if (originalMessage is T typedMessage)
+            {
+                return customHandler(errorContext, typedMessage);
+            }
+            return false; // 型不一致時はスキップ
+        };
         var policy = new ErrorHandlingPolicy
         {
             Action = ErrorAction.Skip, // カスタムハンドラー使用時はSkip
-            CustomHandler = customHandler
+            CustomHandler = wrappedHandler
         };
 
         return eventSet.WithErrorPolicy(policy);

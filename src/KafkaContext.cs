@@ -1,6 +1,7 @@
 using Kafka.Ksql.Linq.Configuration;
 using Kafka.Ksql.Linq.Core.Abstractions;
 using Kafka.Ksql.Linq.Core.Context;
+using Kafka.Ksql.Linq.Infrastructure.Admin;
 using Kafka.Ksql.Linq.Messaging.Consumers;
 using Kafka.Ksql.Linq.Serialization.Abstractions;
 using Kafka.Ksql.Linq.Serialization.Avro.Management;
@@ -22,6 +23,7 @@ public abstract class KafkaContext : KafkaContextCore
     private readonly Lazy<ConfluentSchemaRegistry.ISchemaRegistryClient> _schemaRegistryClient;
     private readonly IAvroSchemaRegistrationService _schemaRegistrationService;
 
+    private readonly KafkaAdminService _adminService;
     /// <summary>
     /// テスト用にスキーマ登録をスキップするか判定するフック
     /// </summary>
@@ -31,7 +33,9 @@ public abstract class KafkaContext : KafkaContextCore
     {
         _schemaRegistryClient = new Lazy<ConfluentSchemaRegistry.ISchemaRegistryClient>(CreateSchemaRegistryClient);
         _schemaRegistrationService = CreateSchemaRegistrationService();
-
+        _adminService = new KafkaAdminService(
+        Microsoft.Extensions.Options.Options.Create(new KsqlDslOptions()),
+        null);
         try
         {
             if (!SkipSchemaRegistration)
@@ -58,7 +62,9 @@ public abstract class KafkaContext : KafkaContextCore
     {
         _schemaRegistryClient = new Lazy<ConfluentSchemaRegistry.ISchemaRegistryClient>(CreateSchemaRegistryClient);
         _schemaRegistrationService = CreateSchemaRegistrationService();
-
+        _adminService = new KafkaAdminService(
+        Microsoft.Extensions.Options.Options.Create(new KsqlDslOptions()),
+        null);
         try
         {
             if (!SkipSchemaRegistration)
@@ -105,8 +111,32 @@ public abstract class KafkaContext : KafkaContextCore
 
         // 4. Kafka接続確認
         ValidateKafkaConnectivity();
-    }
 
+        EnsureKafkaReadyAsync().GetAwaiter().GetResult();
+    }
+    private async Task EnsureKafkaReadyAsync()
+    {
+        try
+        {
+            // DLQトピック自動生成
+            await _adminService.EnsureDlqTopicExistsAsync();
+
+            // 追加の接続確認（AdminServiceで実施）
+             _adminService.ValidateKafkaConnectivity();
+
+            // ✅ ログ出力: DLQ準備完了
+            Console.WriteLine($"✅ Kafka initialization completed. DLQ topic '{GetDlqTopicName()}' is ready with 5-second retention.");
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException(
+                "FATAL: Kafka readiness check failed. DLQ functionality may be unavailable.", ex);
+        }
+    }
+    public string GetDlqTopicName()
+    {
+        return new KsqlDslOptions().DlqTopicName; // デフォルトは "dead.letter.queue"
+    }
     /// <summary>
     /// スキーマ登録の同期実行（接続確認も兼ねる）
     /// </summary>
@@ -211,6 +241,7 @@ public abstract class KafkaContext : KafkaContextCore
         {
             _producerManager?.Dispose();
             _consumerManager?.Dispose();
+            _adminService?.Dispose();
 
             if (_schemaRegistryClient.IsValueCreated)
             {
@@ -225,6 +256,7 @@ public abstract class KafkaContext : KafkaContextCore
     {
         _producerManager?.Dispose();
         _consumerManager?.Dispose();
+        _adminService?.Dispose();
 
         if (_schemaRegistryClient.IsValueCreated)
         {

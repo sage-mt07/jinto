@@ -227,8 +227,8 @@ public abstract class EventSet<T> : IEntitySet<T> where T : class
                 itemErrorContext);
         }
 
-        // 結果をラップした新しいEventSetを返す
-        return new MappedEventSet<TResult>(_context, CreateEntityModelForType<TResult>(), results, _dlqErrorSink);
+        var resultEntityModel = CreateEntityModelForType<TResult>();
+        return new MappedEventSet<TResult>(results, _context, resultEntityModel, _dlqErrorSink);
     }
 
     /// <summary>
@@ -258,8 +258,8 @@ public abstract class EventSet<T> : IEntitySet<T> where T : class
                 results,
                 itemErrorContext);
         }
-
-        return new MappedEventSet<TResult>(_context, CreateEntityModelForType<TResult>(), results, _dlqErrorSink);
+        var resultEntityModel = CreateEntityModelForType<TResult>();
+       return  new MappedEventSet<TResult>(results, _context, resultEntityModel, _dlqErrorSink);
     }
 
     // ✅ 抽象メソッド：派生クラスで新しいインスタンス作成
@@ -444,6 +444,22 @@ internal class MappedEventSet<T> : EventSet<T> where T : class
         throw new NotSupportedException(
             $"MappedEventSet<{typeof(T).Name}> does not support AddAsync operations. " +
             "Mapped data is read-only and derived from transformation operations.");
+    }
+
+    /// <summary>
+    /// MappedEventSet作成用ヘルパーメソッド
+    /// </summary>
+    public static MappedEventSet<T> Create(List<T> mappedItems, IKafkaContext context, EntityModel originalEntityModel, IErrorSink? errorSink = null)
+    {
+        return new MappedEventSet<T>(mappedItems, context, originalEntityModel, errorSink);
+    }
+
+    /// <summary>
+    /// DLQ対応MappedEventSet作成
+    /// </summary>
+    public static MappedEventSet<T> CreateWithDlq(List<T> mappedItems, IKafkaContext context, EntityModel originalEntityModel, IErrorSink dlqErrorSink)
+    {
+        return new MappedEventSet<T>(mappedItems, context, originalEntityModel, dlqErrorSink);
     }
 
     /// <summary>

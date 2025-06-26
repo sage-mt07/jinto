@@ -12,106 +12,202 @@ using System.Threading.Tasks;
 
 namespace Kafka.Ksql.Linq.Messaging.Producers;
 
-public class DlqProducer : IErrorSink, IDisposable
+internal class DlqProducer : IErrorSink, IDisposable
 {
-    private readonly IKafkaProducer<DlqEnvelope> _producer;
-    private readonly ILogger? _logger;
-    private readonly string _dlqTopicName;
+    private readonly KafkaProducerManager _producerManager;
+    private readonly string _dlqTopicSuffix;
+    private readonly DlqOptions _options;
+    private bool _isInitialized = false;
     private bool _disposed = false;
 
-    public DlqProducer(
-        IKafkaProducer<DlqEnvelope> producer,
-        IOptions<KsqlDslOptions> options,
-        ILogger<DlqProducer>? logger = null)
+    public bool IsAvailable => _isInitialized && !_disposed;
+
+    public DlqProducer(KafkaProducerManager producerManager, DlqOptions? options = null)
     {
-        _producer = producer ?? throw new ArgumentNullException(nameof(producer));
-        _logger = logger;
-        _dlqTopicName = options?.Value?.DlqTopicName ?? "dead.letter.queue";
+        _producerManager = producerManager ?? throw new ArgumentNullException(nameof(producerManager));
+        _options = options ?? new DlqOptions();
+        _dlqTopicSuffix = _options.TopicSuffix;
     }
 
     /// <summary>
-    /// エラーレコードをDLQに送信
+    /// ✅ IErrorSink実装：エラーレコード処理（メインメソッド）
     /// </summary>
-    public async Task HandleErrorAsync<T>(T originalMessage, System.Exception exception,
-        KafkaMessageContext? context = null, CancellationToken cancellationToken = default)
-        where T : class
+    public async Task HandleErrorAsync(ErrorContext errorContext, KafkaMessageContext messageContext)
     {
-        if (originalMessage == null)
-            throw new ArgumentNullException(nameof(originalMessage));
-        if (exception == null)
-            throw new ArgumentNullException(nameof(exception));
+        if (!IsAvailable)
+        {
+            throw new InvalidOperationException("DlqProducer is not available. Call InitializeAsync() first.");
+        }
 
         try
         {
-            // 元メッセージをAvroバイナリにシリアライズ
-            var avroPayload =  SerializeToAvro(originalMessage);
+            var dlqMessage = CreateDlqMessage(errorContext, messageContext);
+            var dlqTopicName = GenerateDlqTopicName(messageContext);
 
-            var dlqEnvelope = new DlqEnvelope
+            // DLQトピックに送信
+            await SendToDlqTopicAsync(dlqTopicName, dlqMessage);
+
+            // メトリクス更新
+            _options.MetricsCallback?.Invoke(new DlqMetrics
             {
-                Topic = context?.Tags?.GetValueOrDefault("original_topic")?.ToString() ?? typeof(T).Name,
-                Partition = (int)(context?.Tags?.GetValueOrDefault("original_partition") ?? 0),
-                Offset = (long)(context?.Tags?.GetValueOrDefault("original_offset") ?? 0),
-                AvroPayload = avroPayload,
-                ExceptionType = exception.GetType().FullName ?? "Unknown",
-                ExceptionMessage = exception.Message,
-                StackTrace = exception.StackTrace,
-                Timestamp = DateTime.UtcNow,
-                RetryCount = (int)(context?.Tags?.GetValueOrDefault("retry_count") ?? 0),
-                CorrelationId = context?.CorrelationId
-            };
-
-            var dlqContext = new KafkaMessageContext
-            {
-                MessageId = Guid.NewGuid().ToString(),
-                CorrelationId = context?.CorrelationId,
-                Tags = new Dictionary<string, object>
-                {
-                    ["dlq_source"] = "EventSet.ErrorHandling",
-                    ["original_type"] = typeof(T).Name,
-                    ["error_phase"] = context?.Tags?.GetValueOrDefault("error_phase") ?? "Unknown"
-                }
-            };
-
-            await _producer.SendAsync(dlqEnvelope, dlqContext, cancellationToken);
-
-            _logger?.LogInformation("Message sent to DLQ: {OriginalType} -> {DlqTopic}, Error: {ErrorType}",
-                typeof(T).Name, _dlqTopicName, exception.GetType().Name);
+                TopicName = dlqTopicName,
+                OriginalTopic = messageContext.Tags.GetValueOrDefault("original_topic")?.ToString() ?? "unknown",
+                ErrorType = errorContext.Exception.GetType().Name,
+                ProcessedAt = DateTime.UtcNow
+            });
         }
         catch (System.Exception ex)
         {
-            _logger?.LogError(ex, "Failed to send message to DLQ: {OriginalType}, Original error: {OriginalError}",
-                typeof(T).Name, exception.Message);
-            throw;
+            throw new InvalidOperationException($"Failed to send error record to DLQ", ex);
         }
     }
 
     /// <summary>
-    /// メッセージをAvroバイナリにシリアライズ
+    /// ✅ IErrorSink実装：エラーレコード処理（オーバーロード）
     /// </summary>
-    private byte[] SerializeToAvro<T>(T message) where T : class
+    public async Task HandleErrorAsync(ErrorContext errorContext)
     {
+        var defaultMessageContext = new KafkaMessageContext
+        {
+            MessageId = Guid.NewGuid().ToString(),
+            Tags = new Dictionary<string, object>
+            {
+                ["original_topic"] = "unknown",
+                ["error_phase"] = errorContext.ErrorPhase,
+                ["processed_at"] = DateTime.UtcNow
+            }
+        };
+
+        await HandleErrorAsync(errorContext, defaultMessageContext);
+    }
+
+    /// <summary>
+    /// ✅ IErrorSink実装：初期化
+    /// </summary>
+    public async Task InitializeAsync()
+    {
+        if (_isInitialized)
+            return;
+
         try
         {
-            // TODO: 実際のAvroシリアライザーを使用
-            // 現在は簡易実装（JSON → UTF8バイト）
-            var json = System.Text.Json.JsonSerializer.Serialize(message);
-            return System.Text.Encoding.UTF8.GetBytes(json);
+            // Producer準備等の初期化処理
+            await Task.CompletedTask; // 現在は特別な初期化不要
+            _isInitialized = true;
         }
         catch (System.Exception ex)
         {
-            _logger?.LogWarning(ex, "Failed to serialize to Avro, using fallback: {MessageType}", typeof(T).Name);
-            // フォールバック: ToString() → UTF8バイト
-            return System.Text.Encoding.UTF8.GetBytes(message?.ToString() ?? "null");
+            throw new InvalidOperationException("Failed to initialize DlqProducer", ex);
         }
+    }
+
+    /// <summary>
+    /// ✅ IErrorSink実装：クリーンアップ
+    /// </summary>
+    public async Task CleanupAsync()
+    {
+        if (_disposed)
+            return;
+
+        try
+        {
+            // リソースのクリーンアップ
+            await Task.CompletedTask;
+        }
+        catch (System.Exception ex)
+        {
+            Console.WriteLine($"Error during DlqProducer cleanup: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// DLQメッセージの作成
+    /// </summary>
+    private DlqEnvelope CreateDlqMessage(ErrorContext errorContext, KafkaMessageContext messageContext)
+    {
+        return new DlqEnvelope
+        {
+            OriginalMessage = errorContext.OriginalMessage,
+            Exception = new DlqExceptionInfo
+            {
+                Type = errorContext.Exception.GetType().FullName ?? "Unknown",
+                Message = errorContext.Exception.Message,
+                StackTrace = errorContext.Exception.StackTrace,
+                InnerException = errorContext.Exception.InnerException?.Message
+            },
+            OriginalTopic = messageContext.Tags.GetValueOrDefault("original_topic")?.ToString(),
+            OriginalPartition = (int?)messageContext.Tags.GetValueOrDefault("original_partition"),
+            OriginalOffset = (long?)messageContext.Tags.GetValueOrDefault("original_offset"),
+            ErrorPhase = errorContext.ErrorPhase,
+            AttemptCount = errorContext.AttemptCount,
+            FirstAttemptTime = errorContext.FirstAttemptTime,
+            LastAttemptTime = errorContext.LastAttemptTime,
+            DlqTimestamp = DateTime.UtcNow,
+            MessageId = messageContext.MessageId,
+            CorrelationId = messageContext.CorrelationId
+        };
+    }
+
+    /// <summary>
+    /// DLQトピック名の生成
+    /// </summary>
+    private string GenerateDlqTopicName(KafkaMessageContext messageContext)
+    {
+        var originalTopic = messageContext.Tags.GetValueOrDefault("original_topic")?.ToString() ?? "unknown";
+        return $"{originalTopic}{_dlqTopicSuffix}";
+    }
+
+    /// <summary>
+    /// DLQトピックへの送信
+    /// </summary>
+    private async Task SendToDlqTopicAsync(string dlqTopicName, DlqEnvelope dlqMessage)
+    {
+        // TODO: 実際のProducerManager経由での送信実装
+        // 現在は仮実装
+        Console.WriteLine($"[DLQ] Sending to topic: {dlqTopicName}");
+        await Task.Delay(10); // 送信模擬
     }
 
     public void Dispose()
     {
         if (!_disposed)
         {
-            _producer?.Dispose();
+            CleanupAsync().GetAwaiter().GetResult();
             _disposed = true;
-            _logger?.LogDebug("DlqProducer disposed");
         }
     }
+}
+
+/// <summary>
+/// DLQ設定オプション
+/// </summary>
+public class DlqOptions
+{
+    public string TopicSuffix { get; set; } = "_dlq";
+    public bool EnableCompression { get; set; } = true;
+    public int MaxRetryAttempts { get; set; } = 3;
+    public TimeSpan RetryInterval { get; set; } = TimeSpan.FromSeconds(1);
+    public Action<DlqMetrics>? MetricsCallback { get; set; }
+}
+
+/// <summary>
+/// DLQメトリクス情報
+/// </summary>
+public class DlqMetrics
+{
+    public string TopicName { get; set; } = string.Empty;
+    public string OriginalTopic { get; set; } = string.Empty;
+    public string ErrorType { get; set; } = string.Empty;
+    public DateTime ProcessedAt { get; set; }
+}
+
+/// <summary>
+/// DLQ例外情報
+/// </summary>
+public class DlqExceptionInfo
+{
+    public string Type { get; set; } = string.Empty;
+    public string Message { get; set; } = string.Empty;
+    public string? StackTrace { get; set; }
+    public string? InnerException { get; set; }
 }

@@ -27,4 +27,6 @@ public class KsqlDslOptions
     public List<EntityConfiguration> Entities { get; init; } = new();
 
     public string DlqTopicName { get; set; } = "dead.letter.queue";
+
+    public DlqTopicConfiguration DlqConfiguration { get; init; } = new();
 }

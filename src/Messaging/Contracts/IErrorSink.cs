@@ -8,13 +8,34 @@ namespace Kafka.Ksql.Linq.Messaging.Contracts;
 public interface IErrorSink
 {
     /// <summary>
-    /// エラーレコードを適切な送信先に処理する
+    /// エラーレコードを処理（DLQ送信等）
     /// </summary>
-    /// <param name="originalMessage">元のメッセージ</param>
-    /// <param name="exception">発生した例外</param>
-    /// <param name="context">メッセージコンテキスト</param>
-    /// <param name="cancellationToken">キャンセレーショントークン</param>
-    Task HandleErrorAsync<T>(T originalMessage, Exception exception,
-        KafkaMessageContext? context = null, CancellationToken cancellationToken = default)
-        where T : class;
+    /// <param name="errorContext">エラーコンテキスト情報</param>
+    /// <param name="messageContext">Kafkaメッセージコンテキスト</param>
+    /// <returns>処理完了タスク</returns>
+    Task HandleErrorAsync(ErrorContext errorContext, KafkaMessageContext messageContext);
+
+    /// <summary>
+    /// エラーレコードを処理（オーバーロード - メッセージコンテキストなし）
+    /// </summary>
+    /// <param name="errorContext">エラーコンテキスト情報</param>
+    /// <returns>処理完了タスク</returns>
+    Task HandleErrorAsync(ErrorContext errorContext);
+
+    /// <summary>
+    /// エラーシンクの初期化
+    /// </summary>
+    /// <returns>初期化完了タスク</returns>
+    Task InitializeAsync();
+
+    /// <summary>
+    /// エラーシンクのクリーンアップ
+    /// </summary>
+    /// <returns>クリーンアップ完了タスク</returns>
+    Task CleanupAsync();
+
+    /// <summary>
+    /// エラーシンクが利用可能かどうか
+    /// </summary>
+    bool IsAvailable { get; }
 }
