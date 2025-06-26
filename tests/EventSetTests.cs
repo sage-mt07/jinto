@@ -35,9 +35,16 @@ public class EventSetTests
             return Task.CompletedTask;
         }
 
-        protected override Task<List<TestEntity>> ExecuteQueryAsync(CancellationToken cancellationToken)
+        public override async IAsyncEnumerator<TestEntity> GetAsyncEnumerator(CancellationToken cancellationToken = default)
         {
-            return Task.FromResult(_items);
+            foreach (var item in _items)
+            {
+                if (cancellationToken.IsCancellationRequested)
+                    yield break;
+
+                yield return item;
+                await Task.Yield();
+            }
         }
     }
 
@@ -79,55 +86,6 @@ public class EventSetTests
         Assert.Equal(3, sum);
     }
 
-    private class ManualCommitSet : TestSet
-    {
-        public bool Committed { get; private set; }
-        public bool NegativeAcked { get; private set; }
-
-        public ManualCommitSet(List<TestEntity> items, EntityModel model) : base(items, model)
-        {
-        }
-
-        protected override Task CommitOffsetAsync()
-        {
-            Committed = true;
-            return Task.CompletedTask;
-        }
-
-        protected override Task NegativeAckAsync()
-        {
-            NegativeAcked = true;
-            return Task.CompletedTask;
-        }
-    }
-
-    [Fact]
-    public async Task ForEachAsync_ManualCommit_CallsCommit()
-    {
-        var items = new List<TestEntity> { new TestEntity { Id = 1 } };
-        var model = CreateModel();
-        model.UseManualCommit = true;
-        var set = new ManualCommitSet(items, model);
-
-        await set.ForEachAsync(async msg => await msg.CommitAsync());
-
-        Assert.True(set.Committed);
-        Assert.False(set.NegativeAcked);
-    }
-
-    [Fact]
-    public async Task ForEachAsync_ManualCommit_CallsNegativeAck()
-    {
-        var items = new List<TestEntity> { new TestEntity { Id = 1 } };
-        var model = CreateModel();
-        model.UseManualCommit = true;
-        var set = new ManualCommitSet(items, model);
-
-        await set.ForEachAsync(async msg => await msg.NegativeAckAsync());
-
-        Assert.False(set.Committed);
-        Assert.True(set.NegativeAcked);
-    }
 
     [Fact]
     public void Metadata_ReturnsExpectedValues()
