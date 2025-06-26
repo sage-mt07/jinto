@@ -13,7 +13,7 @@ namespace Kafka.Ksql.Linq.Core;
 /// 設計理由：依存関係の一方向性確保
 /// 修正理由：重複削除による参照更新
 /// </summary>
-public static class CoreLayerValidation
+internal static class CoreLayerValidation
 {
     private static readonly string[] ForbiddenNamespaces = new[]
     {
