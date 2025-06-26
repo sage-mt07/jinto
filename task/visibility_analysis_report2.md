@@ -184,10 +184,10 @@ public class ValidationResult
 ## ⚠️ 注意点・設計指摘
 
 ### 1. Application層の統合クラス
-`KsqlContext.cs`（3番ファイル）の`EventSetWithSimplifiedServices<T>`は**internal**が適切
+`KsqlContext.cs`（3番ファイル）の`EventSetWithServices<T>`は**internal**が適切
 ```csharp
 // 現在: publicで宣言されているが外部使用なし
-internal class EventSetWithSimplifiedServices<T> : EventSet<T>
+internal class EventSetWithServices<T> : IEntitySet<T>
 ```
 
 ### 2. Builder Pattern設計
