@@ -9,12 +9,11 @@ using System.Threading.Tasks;
 
 namespace Kafka.Ksql.Linq.Query.Linq
 {
-    public class JoinableEntitySet<T> : EventSet<T>, IJoinableEntitySet<T> where T : class
+    public class JoinableEntitySet<T> : IEntitySet<T>, IJoinableEntitySet<T> where T : class
     {
         private readonly IEntitySet<T> _baseEntitySet;
 
         public JoinableEntitySet(IEntitySet<T> baseEntitySet)
-            : base(baseEntitySet.GetContext(), baseEntitySet.GetEntityModel())
         {
             _baseEntitySet = baseEntitySet ?? throw new ArgumentNullException(nameof(baseEntitySet));
         }
@@ -66,15 +65,20 @@ namespace Kafka.Ksql.Linq.Query.Linq
             return new JoinResult<T, TInner>(this, inner, outerKeySelector, innerKeySelector);
         }
 
-        // ✅ EventSet<T> の抽象メソッド実装
-        protected override async Task SendEntityAsync(T entity, CancellationToken cancellationToken)
+        // ✅ IJoinableEntitySet<T> の JOIN機能実装
+        public IJoinResult<T, TInner> Join<TInner, TKey>(
+            IEntitySet<TInner> inner,
+            Expression<Func<T, TKey>> outerKeySelector,
+            Expression<Func<TInner, TKey>> innerKeySelector) where TInner : class
         {
-            await _baseEntitySet.AddAsync(entity, cancellationToken);
-        }
+            if (inner == null)
+                throw new ArgumentNullException(nameof(inner));
+            if (outerKeySelector == null)
+                throw new ArgumentNullException(nameof(outerKeySelector));
+            if (innerKeySelector == null)
+                throw new ArgumentNullException(nameof(innerKeySelector));
 
-        protected override async Task<List<T>> ExecuteQueryAsync(CancellationToken cancellationToken)
-        {
-            return await _baseEntitySet.ToListAsync(cancellationToken);
+            return new JoinResult<T, TInner>(this, inner, outerKeySelector, innerKeySelector);
         }
 
         public override string ToString()
@@ -111,7 +115,7 @@ namespace Kafka.Ksql.Linq.Query.Linq
             if (resultSelector == null)
                 throw new ArgumentNullException(nameof(resultSelector));
 
-            return new JoinResultEntitySet<TResult>(_outer.GetContext(), CreateResultEntityModel<TResult>(),
+            return new JoinResultEntitySetImpl<TResult>(_outer.GetContext(), CreateResultEntityModel<TResult>(),
                 _outer, _inner, _outerKeySelector, _innerKeySelector, resultSelector);
         }
 
@@ -165,7 +169,7 @@ namespace Kafka.Ksql.Linq.Query.Linq
     }
 
     // ✅ ThreeWayJoinResult の実装クラス  
-    internal class ThreeWayJoinResult<TOuter, TInner, TThird> : IThreeWayJoinResult<TOuter, TInner, TThird>
+    internal class ThreeWayJoinResult<TOuter, TInner, TThird> : IJoinResult<TOuter, TInner, TThird>
         where TOuter : class
         where TInner : class
         where TThird : class
@@ -202,7 +206,7 @@ namespace Kafka.Ksql.Linq.Query.Linq
             if (resultSelector == null)
                 throw new ArgumentNullException(nameof(resultSelector));
 
-            return new ThreeWayJoinResultEntitySet<TResult>(_outer.GetContext(), CreateResultEntityModel<TResult>(),
+            return new ThreeWayJoinResultEntitySetImpl<TResult>(_outer.GetContext(), CreateResultEntityModel<TResult>(),
                 _outer, _inner, _third, _outerKeySelector, _innerKeySelector,
                 _firstThirdKeySelector, _secondThirdKeySelector, resultSelector);
         }
@@ -220,24 +224,28 @@ namespace Kafka.Ksql.Linq.Query.Linq
         }
     }
 
-    // ✅ JoinResultEntitySet の実装クラス
-    internal class JoinResultEntitySet<T> : EventSet<T> where T : class
+    // ✅ JoinResultEntitySet の実装クラス（名前重複回避）
+    internal class JoinResultEntitySetImpl<T> : IEntitySet<T> where T : class
     {
+        private readonly IKafkaContext _context;
+        private readonly EntityModel _entityModel;
         private readonly IEntitySet<object> _outerEntitySet;
         private readonly IEntitySet<object> _innerEntitySet;
         private readonly Expression _outerKeySelector;
         private readonly Expression _innerKeySelector;
         private readonly Expression _resultSelector;
 
-        public JoinResultEntitySet(
+        public JoinResultEntitySetImpl(
             IKafkaContext context,
             EntityModel entityModel,
             IEntitySet<object> outerEntitySet,
             IEntitySet<object> innerEntitySet,
             Expression outerKeySelector,
             Expression innerKeySelector,
-            Expression resultSelector) : base(context, entityModel)
+            Expression resultSelector)
         {
+            _context = context ?? throw new ArgumentNullException(nameof(context));
+            _entityModel = entityModel ?? throw new ArgumentNullException(nameof(entityModel));
             _outerEntitySet = outerEntitySet ?? throw new ArgumentNullException(nameof(outerEntitySet));
             _innerEntitySet = innerEntitySet ?? throw new ArgumentNullException(nameof(innerEntitySet));
             _outerKeySelector = outerKeySelector ?? throw new ArgumentNullException(nameof(outerKeySelector));
@@ -245,24 +253,42 @@ namespace Kafka.Ksql.Linq.Query.Linq
             _resultSelector = resultSelector ?? throw new ArgumentNullException(nameof(resultSelector));
         }
 
-        protected override async Task<List<T>> ExecuteQueryAsync(CancellationToken cancellationToken)
+        public async Task<List<T>> ToListAsync(CancellationToken cancellationToken = default)
         {
             // JOIN処理の実装（簡略版）
-            // 実際の実装では Query Pipeline を使用してKSQL生成
-            await Task.Delay(100, cancellationToken); // シミュレート
+            await Task.Delay(100, cancellationToken);
             return new List<T>();
         }
 
-        protected override async Task SendEntityAsync(T entity, CancellationToken cancellationToken)
+        public Task AddAsync(T entity, CancellationToken cancellationToken = default)
         {
-            // JoinResult は読み取り専用のため、送信は無効
-            throw new NotSupportedException("Cannot send entities to a join result set");
+            throw new NotSupportedException("Cannot add entities to a join result set");
+        }
+
+        public Task ForEachAsync(Func<T, Task> action, TimeSpan timeout = default, CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException("ForEachAsync not supported on join result sets");
+        }
+
+        public string GetTopicName() => _entityModel.TopicAttribute?.TopicName ?? typeof(T).Name;
+        public EntityModel GetEntityModel() => _entityModel;
+        public IKafkaContext GetContext() => _context;
+
+        public async IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default)
+        {
+            var results = await ToListAsync(cancellationToken);
+            foreach (var item in results)
+            {
+                yield return item;
+            }
         }
     }
 
-    // ✅ ThreeWayJoinResultEntitySet の実装クラス
-    internal class ThreeWayJoinResultEntitySet<T> : EventSet<T> where T : class
+    // ✅ ThreeWayJoinResultEntitySet の実装クラス（名前重複回避）
+    internal class ThreeWayJoinResultEntitySetImpl<T> : IEntitySet<T> where T : class
     {
+        private readonly IKafkaContext _context;
+        private readonly EntityModel _entityModel;
         private readonly IEntitySet<object> _outerEntitySet;
         private readonly IEntitySet<object> _innerEntitySet;
         private readonly IEntitySet<object> _thirdEntitySet;
@@ -272,7 +298,7 @@ namespace Kafka.Ksql.Linq.Query.Linq
         private readonly Expression _secondThirdKeySelector;
         private readonly Expression _resultSelector;
 
-        public ThreeWayJoinResultEntitySet(
+        public ThreeWayJoinResultEntitySetImpl(
             IKafkaContext context,
             EntityModel entityModel,
             IEntitySet<object> outerEntitySet,
@@ -282,8 +308,10 @@ namespace Kafka.Ksql.Linq.Query.Linq
             Expression innerKeySelector,
             Expression firstThirdKeySelector,
             Expression secondThirdKeySelector,
-            Expression resultSelector) : base(context, entityModel)
+            Expression resultSelector)
         {
+            _context = context ?? throw new ArgumentNullException(nameof(context));
+            _entityModel = entityModel ?? throw new ArgumentNullException(nameof(entityModel));
             _outerEntitySet = outerEntitySet ?? throw new ArgumentNullException(nameof(outerEntitySet));
             _innerEntitySet = innerEntitySet ?? throw new ArgumentNullException(nameof(innerEntitySet));
             _thirdEntitySet = thirdEntitySet ?? throw new ArgumentNullException(nameof(thirdEntitySet));
@@ -294,17 +322,34 @@ namespace Kafka.Ksql.Linq.Query.Linq
             _resultSelector = resultSelector ?? throw new ArgumentNullException(nameof(resultSelector));
         }
 
-        protected override async Task<List<T>> ExecuteQueryAsync(CancellationToken cancellationToken)
+        public async Task<List<T>> ToListAsync(CancellationToken cancellationToken = default)
         {
             // 3-way JOIN処理の実装（簡略版）
-            await Task.Delay(100, cancellationToken); // シミュレート
+            await Task.Delay(100, cancellationToken);
             return new List<T>();
         }
 
-        protected override async Task SendEntityAsync(T entity, CancellationToken cancellationToken)
+        public Task AddAsync(T entity, CancellationToken cancellationToken = default)
         {
-            // JoinResult は読み取り専用のため、送信は無効
-            throw new NotSupportedException("Cannot send entities to a three-way join result set");
+            throw new NotSupportedException("Cannot add entities to a three-way join result set");
+        }
+
+        public Task ForEachAsync(Func<T, Task> action, TimeSpan timeout = default, CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException("ForEachAsync not supported on three-way join result sets");
+        }
+
+        public string GetTopicName() => _entityModel.TopicAttribute?.TopicName ?? typeof(T).Name;
+        public EntityModel GetEntityModel() => _entityModel;
+        public IKafkaContext GetContext() => _context;
+
+        public async IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default)
+        {
+            var results = await ToListAsync(cancellationToken);
+            foreach (var item in results)
+            {
+                yield return item;
+            }
         }
     }
 }
