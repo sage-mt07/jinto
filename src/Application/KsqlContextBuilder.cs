@@ -1,4 +1,4 @@
-﻿using Confluent.SchemaRegistry;
+using Confluent.SchemaRegistry;
 using Microsoft.Extensions.Logging;
 using System;
 namespace Kafka.Ksql.Linq.Application;
@@ -62,7 +62,7 @@ public class KsqlContextBuilder
         return _options;
     }
 
-    public T BuildContext<T>() where T : KafkaContext
+    public T BuildContext<T>() where T : KsqlContext
     {
         var options = Build();
 
