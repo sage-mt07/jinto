@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Kafka.Ksql.Linq.Core.Window;
 
-internal class WindowAggregatedEntitySet<TSource, TKey, TResult> : EventSet<TResult>
+internal class WindowAggregatedEntitySet<TSource, TKey, TResult> : IEntitySet<TResult>
     where TSource : class
     where TResult : class
 {
@@ -20,6 +20,7 @@ internal class WindowAggregatedEntitySet<TSource, TKey, TResult> : EventSet<TRes
     private readonly Expression<Func<IGrouping<TKey, TSource>, TResult>> _aggregationExpression;
     private readonly WindowAggregationConfig _config;
     private readonly string _windowTableName;
+    private readonly EntityModel _resultEntityModel;
 
     internal WindowAggregatedEntitySet(
         IEntitySet<TSource> sourceEntitySet,
@@ -27,7 +28,6 @@ internal class WindowAggregatedEntitySet<TSource, TKey, TResult> : EventSet<TRes
         Expression<Func<TSource, TKey>> groupByExpression,
         Expression<Func<IGrouping<TKey, TSource>, TResult>> aggregationExpression,
         WindowAggregationConfig config)
-        : base(sourceEntitySet.GetContext(), CreateResultEntityModel<TResult>())
     {
         _sourceEntitySet = sourceEntitySet ?? throw new ArgumentNullException(nameof(sourceEntitySet));
         _windowMinutes = windowMinutes;
@@ -36,6 +36,7 @@ internal class WindowAggregatedEntitySet<TSource, TKey, TResult> : EventSet<TRes
         _config = config ?? throw new ArgumentNullException(nameof(config));
 
         _windowTableName = GenerateWindowTableName();
+        _resultEntityModel = CreateResultEntityModel<TResult>();
     }
 
     private string GenerateWindowTableName()
@@ -52,12 +53,18 @@ internal class WindowAggregatedEntitySet<TSource, TKey, TResult> : EventSet<TRes
             EntityType = typeof(T),
             TopicAttribute = new TopicAttribute($"{typeof(T).Name}_WindowResult"),
             AllProperties = typeof(T).GetProperties(),
-            KeyProperties = Array.Empty<System.Reflection.PropertyInfo>(),
+            KeyProperties = Array.Empty<PropertyInfo>(),
             ValidationResult = new ValidationResult { IsValid = true }
         };
     }
 
-    protected override async Task<List<TResult>> ExecuteQueryAsync(CancellationToken cancellationToken)
+    // ✅ IEntitySet<TResult> インターフェース実装
+    public async Task AddAsync(TResult entity, CancellationToken cancellationToken = default)
+    {
+        throw new NotSupportedException("Cannot add entities to a window aggregated result set");
+    }
+
+    public async Task<List<TResult>> ToListAsync(CancellationToken cancellationToken = default)
     {
         try
         {
@@ -77,6 +84,31 @@ internal class WindowAggregatedEntitySet<TSource, TKey, TResult> : EventSet<TRes
         {
             throw new InvalidOperationException(
                 $"Failed to execute window aggregation query for {_windowTableName}", ex);
+        }
+    }
+
+    public async Task ForEachAsync(Func<TResult, Task> action, TimeSpan timeout = default, CancellationToken cancellationToken = default)
+    {
+        var results = await ToListAsync(cancellationToken);
+        foreach (var result in results)
+        {
+            await action(result);
+        }
+    }
+
+    public string GetTopicName() => _windowTableName;
+
+    public EntityModel GetEntityModel() => _resultEntityModel;
+
+    public IKafkaContext GetContext() => _sourceEntitySet.GetContext();
+
+    // ✅ IAsyncEnumerable<TResult> インターフェース実装
+    public async IAsyncEnumerator<TResult> GetAsyncEnumerator(CancellationToken cancellationToken = default)
+    {
+        var results = await ToListAsync(cancellationToken);
+        foreach (var result in results)
+        {
+            yield return result;
         }
     }
 

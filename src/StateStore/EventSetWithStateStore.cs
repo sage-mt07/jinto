@@ -1,23 +1,42 @@
 using Kafka.Ksql.Linq.Core.Abstractions;
 using Kafka.Ksql.Linq.StateStore.Extensions;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Kafka.Ksql.Linq.StateStore;
 
-internal class EventSetWithStateStore<T> : EventSet<T> where T : class
+
+
+/// <summary>
+/// StateStore機能付きのEntitySet実装
+/// IEntitySet<T>を直接実装し、StateStoreへの保存機能を追加
+/// </summary>
+internal class EventSetWithStateStore<T> : IEntitySet<T> where T : class
 {
     private readonly IKafkaContext _context;
+    private readonly EntityModel _entityModel;
+    private readonly IEntitySet<T> _baseEntitySet;
 
     internal EventSetWithStateStore(IKafkaContext context, EntityModel entityModel)
-        : base(context, entityModel)
     {
-        _context = context;
+        _context = context ?? throw new ArgumentNullException(nameof(context));
+        _entityModel = entityModel ?? throw new ArgumentNullException(nameof(entityModel));
+
+        // 基底となるEntitySetを取得
+        _baseEntitySet = context.Set<T>();
     }
 
-    protected override async Task SendEntityAsync(T entity, CancellationToken cancellationToken)
+    /// <summary>
+    /// エンティティを追加（StateStore保存機能付き）
+    /// </summary>
+    public async Task AddAsync(T entity, CancellationToken cancellationToken = default)
     {
+        if (entity == null)
+            throw new ArgumentNullException(nameof(entity));
+
         // StateStoreへの保存処理
         var storeManager = _context.GetStateStoreManager();
         if (storeManager != null)
@@ -35,16 +54,19 @@ internal class EventSetWithStateStore<T> : EventSet<T> where T : class
             }
         }
 
-        // 元の送信処理
-        await base.SendEntityAsync(entity, cancellationToken);
+        // 元の送信処理に委譲
+        await _baseEntitySet.AddAsync(entity, cancellationToken);
     }
 
+    /// <summary>
+    /// エンティティキー生成
+    /// </summary>
     private string GenerateEntityKey(T entity)
     {
-        if (entity == null) return Guid.NewGuid().ToString();
+        if (entity == null)
+            return Guid.NewGuid().ToString();
 
-        var entityModel = GetEntityModel();
-        var keyProperties = entityModel.KeyProperties;
+        var keyProperties = _entityModel.KeyProperties;
 
         if (keyProperties.Length == 0)
         {
@@ -57,6 +79,7 @@ internal class EventSetWithStateStore<T> : EventSet<T> where T : class
             return value?.ToString() ?? Guid.NewGuid().ToString();
         }
 
+        // 複合キー
         var keyParts = new string[keyProperties.Length];
         for (int i = 0; i < keyProperties.Length; i++)
         {
@@ -64,5 +87,59 @@ internal class EventSetWithStateStore<T> : EventSet<T> where T : class
         }
 
         return string.Join("|", keyParts);
+    }
+
+    // IEntitySet<T>の他のメソッドを委譲実装
+    public async Task<List<T>> ToListAsync(CancellationToken cancellationToken = default)
+    {
+        return await _baseEntitySet.ToListAsync(cancellationToken);
+    }
+
+    public async Task ForEachAsync(Func<T, Task> action, TimeSpan timeout = default, CancellationToken cancellationToken = default)
+    {
+        await _baseEntitySet.ForEachAsync(action, timeout, cancellationToken);
+    }
+
+    public string GetTopicName()
+    {
+        return _baseEntitySet.GetTopicName();
+    }
+
+    public EntityModel GetEntityModel()
+    {
+        return _entityModel;
+    }
+
+    public IKafkaContext GetContext()
+    {
+        return _context;
+    }
+
+    public async IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default)
+    {
+        await foreach (var item in _baseEntitySet.WithCancellation(cancellationToken))
+        {
+            yield return item;
+        }
+    }
+}
+
+/// <summary>
+/// IKafkaContext拡張メソッド（StateStore統合用）
+/// </summary>
+internal static class KafkaContextStateStoreIntegrationExtensions
+{
+    /// <summary>
+    /// StateStore機能付きEntitySetを取得
+    /// </summary>
+    public static EventSetWithStateStore<T> SetWithStateStore<T>(this IKafkaContext context) where T : class
+    {
+        var entityModel = context.GetEntityModels().FirstOrDefault(x => x.Key == typeof(T)).Value;
+        if (entityModel == null)
+        {
+            throw new InvalidOperationException($"EntityModel not found for type {typeof(T).Name}");
+        }
+
+        return new EventSetWithStateStore<T>(context, entityModel);
     }
 }

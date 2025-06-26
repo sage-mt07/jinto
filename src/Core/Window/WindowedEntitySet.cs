@@ -5,13 +5,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Kafka.Ksql.Linq.Core.Window;
 
-internal class WindowedEntitySet<T> : EventSet<T>, IWindowedEntitySet<T> where T : class
+
+internal class WindowedEntitySet<T> : IWindowedEntitySet<T> where T : class
 {
     private readonly IEntitySet<T> _baseEntitySet;
     private readonly int _windowMinutes;
@@ -21,7 +21,6 @@ internal class WindowedEntitySet<T> : EventSet<T>, IWindowedEntitySet<T> where T
     public int WindowMinutes => _windowMinutes;
 
     internal WindowedEntitySet(IEntitySet<T> baseEntitySet, int windowMinutes)
-        : base(baseEntitySet.GetContext(), baseEntitySet.GetEntityModel())
     {
         _baseEntitySet = baseEntitySet ?? throw new ArgumentNullException(nameof(baseEntitySet));
         _windowMinutes = windowMinutes;
@@ -88,6 +87,7 @@ internal class WindowedEntitySet<T> : EventSet<T>, IWindowedEntitySet<T> where T
     {
         var config = _windowConfig with { GracePeriod = gracePeriod ?? _windowConfig.GracePeriod };
 
+        // WindowAggregatedEntitySetは直接IEntitySet<TResult>を実装
         return new WindowAggregatedEntitySet<T, TKey, TResult>(
             _baseEntitySet,
             _windowMinutes,
@@ -102,11 +102,37 @@ internal class WindowedEntitySet<T> : EventSet<T>, IWindowedEntitySet<T> where T
         return $"{baseTopicName}_WINDOW_{_windowMinutes}MIN";
     }
 
-    protected override async Task<List<T>> ExecuteQueryAsync(CancellationToken cancellationToken)
+    // ✅ IEntitySet<T> インターフェース実装 - ベースEntitySetに委譲
+    public async Task AddAsync(T entity, CancellationToken cancellationToken = default)
+    {
+        await _baseEntitySet.AddAsync(entity, cancellationToken);
+    }
+
+    public async Task<List<T>> ToListAsync(CancellationToken cancellationToken = default)
     {
         // ウィンドウクエリは集約前の生データは通常取得しない
         // 必要に応じてベースEntitySetに委譲
         return await _baseEntitySet.ToListAsync(cancellationToken);
+    }
+
+    public async Task ForEachAsync(Func<T, Task> action, TimeSpan timeout = default, CancellationToken cancellationToken = default)
+    {
+        await _baseEntitySet.ForEachAsync(action, timeout, cancellationToken);
+    }
+
+    public string GetTopicName() => _baseEntitySet.GetTopicName();
+
+    public EntityModel GetEntityModel() => _baseEntitySet.GetEntityModel();
+
+    public IKafkaContext GetContext() => _baseEntitySet.GetContext();
+
+    // ✅ IAsyncEnumerable<T> インターフェース実装
+    public async IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default)
+    {
+        await foreach (var item in _baseEntitySet.WithCancellation(cancellationToken))
+        {
+            yield return item;
+        }
     }
 
     public override string ToString()

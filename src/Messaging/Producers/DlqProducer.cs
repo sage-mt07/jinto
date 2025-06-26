@@ -32,7 +32,7 @@ public class DlqProducer : IErrorSink, IDisposable
     /// <summary>
     /// エラーレコードをDLQに送信
     /// </summary>
-    public async Task HandleErrorAsync<T>(T originalMessage, Exception exception,
+    public async Task HandleErrorAsync<T>(T originalMessage, System.Exception exception,
         KafkaMessageContext? context = null, CancellationToken cancellationToken = default)
         where T : class
     {
@@ -44,7 +44,7 @@ public class DlqProducer : IErrorSink, IDisposable
         try
         {
             // 元メッセージをAvroバイナリにシリアライズ
-            var avroPayload = await SerializeToAvro(originalMessage);
+            var avroPayload =  SerializeToAvro(originalMessage);
 
             var dlqEnvelope = new DlqEnvelope
             {
@@ -77,7 +77,7 @@ public class DlqProducer : IErrorSink, IDisposable
             _logger?.LogInformation("Message sent to DLQ: {OriginalType} -> {DlqTopic}, Error: {ErrorType}",
                 typeof(T).Name, _dlqTopicName, exception.GetType().Name);
         }
-        catch (Exception ex)
+        catch (System.Exception ex)
         {
             _logger?.LogError(ex, "Failed to send message to DLQ: {OriginalType}, Original error: {OriginalError}",
                 typeof(T).Name, exception.Message);
@@ -88,7 +88,7 @@ public class DlqProducer : IErrorSink, IDisposable
     /// <summary>
     /// メッセージをAvroバイナリにシリアライズ
     /// </summary>
-    private async Task<byte[]> SerializeToAvro<T>(T message) where T : class
+    private byte[] SerializeToAvro<T>(T message) where T : class
     {
         try
         {
@@ -97,7 +97,7 @@ public class DlqProducer : IErrorSink, IDisposable
             var json = System.Text.Json.JsonSerializer.Serialize(message);
             return System.Text.Encoding.UTF8.GetBytes(json);
         }
-        catch (Exception ex)
+        catch (System.Exception ex)
         {
             _logger?.LogWarning(ex, "Failed to serialize to Avro, using fallback: {MessageType}", typeof(T).Name);
             // フォールバック: ToString() → UTF8バイト
