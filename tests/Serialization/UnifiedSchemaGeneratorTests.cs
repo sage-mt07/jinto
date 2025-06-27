@@ -8,6 +8,8 @@ using Kafka.Ksql.Linq.Core.Abstractions;
 using Kafka.Ksql.Linq.Serialization.Avro.Core;
 using Kafka.Ksql.Linq.Serialization.Abstractions;
 using static Kafka.Ksql.Linq.Tests.PrivateAccessor;
+
+#nullable enable
 using Xunit;
 
 namespace Kafka.Ksql.Linq.Tests.Serialization;

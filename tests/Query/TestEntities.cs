@@ -1,5 +1,7 @@
 using System;
 
+#nullable enable
+
 namespace Kafka.Ksql.Linq.Tests;
 
 public class TestEntity

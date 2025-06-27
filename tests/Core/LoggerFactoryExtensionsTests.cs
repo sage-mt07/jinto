@@ -5,6 +5,8 @@ using System;
 using System.IO;
 using Xunit;
 
+#nullable enable
+
 namespace Kafka.Ksql.Linq.Tests.Core;
 
 public class LoggerFactoryExtensionsTests

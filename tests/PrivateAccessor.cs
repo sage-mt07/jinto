@@ -1,11 +1,13 @@
 using System;
 using System.Reflection;
 
+#nullable enable
+
 namespace Kafka.Ksql.Linq.Tests;
 
 internal static class PrivateAccessor
 {
-    internal static object InvokePrivate(
+    internal static object? InvokePrivate(
         object target,
         string name,
         Type[] parameterTypes,

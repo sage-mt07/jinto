@@ -9,6 +9,8 @@ using Kafka.Ksql.Linq.Serialization.Avro.Management;
 using Xunit;
 using static Kafka.Ksql.Linq.Tests.PrivateAccessor;
 
+#nullable enable
+
 namespace Kafka.Ksql.Linq.Tests.Serialization;
 
 public class AvroSchemaBuilderDetailedTests

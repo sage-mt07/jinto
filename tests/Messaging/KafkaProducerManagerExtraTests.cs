@@ -74,7 +74,7 @@ public class KafkaProducerManagerExtraTests
         Assert.Equal("key", config.SslKeyLocation);
         Assert.Equal("kp", config.SslKeyPassword);
         var entries = (System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string, string>>)config;
-        Assert.True(System.Linq.Enumerable.Any(entries, kv => kv.Key == "partitioner.class" && kv.Value == "m"));
+        Assert.Contains(entries, kv => kv.Key == "partitioner.class" && kv.Value == "m");
     }
 
     [Fact]

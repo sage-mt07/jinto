@@ -8,6 +8,8 @@ using Kafka.Ksql.Linq.Application;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System;
+
+#nullable enable
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;

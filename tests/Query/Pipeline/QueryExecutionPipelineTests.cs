@@ -119,7 +119,7 @@ public class QueryExecutionPipelineTests
         var pipeline = CreatePipeline();
         var result = await pipeline.ExecuteQueryAsync<TestEntity>("Base", expr, QueryExecutionMode.PullQuery);
         Assert.True(result.Success);
-        Assert.NotNull(result.ExecutedAt);
+        Assert.NotEqual(default, result.ExecutedAt);
         Assert.NotNull(result.Data);
     }
 }
