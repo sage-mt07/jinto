@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using Kafka.Ksql.Linq.Configuration;
+﻿using Kafka.Ksql.Linq.Configuration;
 using Kafka.Ksql.Linq.Core.Exceptions;
 
 namespace Kafka.Ksql.Linq.Core.Configuration;
@@ -27,17 +26,14 @@ internal class CoreSettings
 
     public void Validate()
     {
-        var errors = new List<string>();
         if (string.IsNullOrWhiteSpace(KafkaBootstrapServers))
-            errors.Add("KafkaBootstrapServers is required.");
+            throw new InvalidOperationException("KafkaBootstrapServers is required");
+
         if (string.IsNullOrWhiteSpace(ApplicationId))
-            errors.Add("ApplicationId is required.");
+            throw new InvalidOperationException("ApplicationId is required");
+
         if (string.IsNullOrWhiteSpace(StateStoreDirectory))
-            errors.Add("StateStoreDirectory is required.");
-
-        if (errors.Count > 0)
-            throw new CoreConfigurationException(string.Join(" ", errors));
+            throw new InvalidOperationException("StateStoreDirectory is required");
     }
-
 
 }

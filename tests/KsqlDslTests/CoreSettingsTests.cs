@@ -1,5 +1,4 @@
 using Kafka.Ksql.Linq.Core.Configuration;
-using Kafka.Ksql.Linq.Core.Exceptions;
 using Xunit;
 
 namespace Kafka.Ksql.Linq.Tests.KsqlDslTests;
@@ -24,6 +23,7 @@ public class CoreSettingsTests
     public void Validate_MissingFields_Throws()
     {
         var settings = new CoreSettings();
-        Assert.Throws<CoreConfigurationException>(() => settings.Validate());
+        var ex = Assert.Throws<InvalidOperationException>(() => settings.Validate());
+        Assert.Contains("KafkaBootstrapServers", ex.Message);
     }
 }
