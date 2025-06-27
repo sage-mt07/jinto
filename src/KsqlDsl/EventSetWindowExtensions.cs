@@ -6,9 +6,9 @@ namespace Kafka.Ksql.Linq;
 /// <summary>
 /// Window DSL extension methods for EventSet
 /// </summary>
-public static class EventSetWindowExtensions
+internal static class EventSetWindowExtensions
 {
-    public static IEventSet<T> Window<T>(this IEventSet<T> source, WindowDef windowDef) where T : class
+    internal static IEventSet<T> Window<T>(this IEventSet<T> source, WindowDef windowDef) where T : class
     {
         // This method is only for expression translation and should not be executed
         throw new NotSupportedException("Window is for expression translation only.");
