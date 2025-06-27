@@ -2,19 +2,20 @@ using System;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Collections.Generic;
 
 namespace Kafka.Ksql.Linq;
 
 /// <summary>
 /// Window DSL extension methods for EventSet
 /// </summary>
-internal static class EventSetWindowExtensions
+public static class EventSetWindowExtensions
 {
     private static readonly MethodInfo WindowMethod = typeof(EventSetWindowExtensions)
         .GetMethods(BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public)
         .First(m => m.Name == nameof(Window) && m.IsGenericMethodDefinition);
 
-    internal static IQueryable<T> Window<T>(this IQueryable<T> source, WindowDef windowDef) where T : class
+    public static IQueryable<T> Window<T>(this IQueryable<T> source, WindowDef windowDef) where T : class
     {
         if (source is null) throw new ArgumentNullException(nameof(source));
         if (windowDef is null) throw new ArgumentNullException(nameof(windowDef));
@@ -32,7 +33,7 @@ internal static class EventSetWindowExtensions
 /// <summary>
 /// Represents a chainable window definition used only for LINQ expression generation.
 /// </summary>
-internal class WindowDef
+public class WindowDef
 {
     internal readonly List<(string Name, object? Value)> Operations = new();
 
