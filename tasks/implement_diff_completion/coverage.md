@@ -12,7 +12,7 @@
 | Tables | LATEST_BY_OFFSET / EARLIEST_BY_OFFSET | ✅ 実装済 | ksql_offset_aggregates | ProjectionBuilderで変換完了 |
 | Tables | 複数ウィンドウ定義とアクセス | ✅ 実装済 | multi_window_access | |
 | Tables | HasTopic()メソッド | ✅ 実装済 | has_topic_api_extension | EntityModelBuilder & tests |
-| Tables | WindowStart / WindowEndプロパティ | ❌ 未実装 | window_start_end_support | |
+| Tables | WindowStart / WindowEndプロパティ | ✅ 実装済 | window_start_end_support | ProjectionBuilder, WindowDDLExtensions |
 | Query & Subscription | 手動コミット購読処理の型分岐 | ⏳ 不完全 | manual_commit_extension | Ack操作・型分岐不足 |
 | Query & Subscription | 購読処理の完全実装 | ⏳ 部分実装 | manual_commit_extension | Commit/NegativeAck methods implemented; type branch pending
 | Query & Subscription | yield型ForEachAsyncでのtry-catch | ❌ 未実装 | foreach_trycatch_support | |
