@@ -186,6 +186,6 @@ internal class DerivedObjectManager : IDerivedObjectManager
     {
         var timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
         var hash = Math.Abs(baseName.GetHashCode()) % 10000;
-        return $"{baseName.ToLower()}_{objectType.ToLower()}_{hash}_{timestamp}";
+        return $"{baseName}_{objectType.ToLower()}_{hash}_{timestamp}";
     }
 }

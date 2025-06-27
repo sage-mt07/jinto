@@ -84,7 +84,7 @@ internal class QueryExecutionPipeline : IQueryTranslator, IDisposable
         Expression linqExpression,
         ExpressionAnalysisResult analysis)
     {
-        var currentObjectName = baseObjectName.ToLower();
+        var currentObjectName = baseObjectName;
 
         _logger.LogDebug("Processing {MethodCallCount} method calls for derived object creation", analysis.MethodCalls.Count);
 
@@ -203,7 +203,7 @@ internal class QueryExecutionPipeline : IQueryTranslator, IDisposable
 
     private string SimulateDerivedObjectCreation(string baseObjectName, ExpressionAnalysisResult analysis)
     {
-        var currentObjectName = baseObjectName.ToLower();
+        var currentObjectName = baseObjectName;
 
         foreach (var methodCall in analysis.MethodCalls)
         {
@@ -217,7 +217,7 @@ internal class QueryExecutionPipeline : IQueryTranslator, IDisposable
                         (methodCall.Arguments[1].Type == typeof(TimeSpan) || methodCall.Arguments[1].Type == typeof(int)))
                     {
                         var minutes = ExtractWindowMinutes(methodCall.Arguments[1]);
-                        currentObjectName = $"{currentObjectName}_{minutes}min_window";
+                        currentObjectName = $"{currentObjectName.ToLower()}_{minutes}min_window";
                     }
                     else
                     {
