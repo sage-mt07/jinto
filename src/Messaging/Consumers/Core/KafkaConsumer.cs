@@ -4,6 +4,7 @@ using Kafka.Ksql.Linq.Core.Abstractions;
 using Kafka.Ksql.Linq.Core.Extensions;
 using Kafka.Ksql.Linq.Messaging.Abstractions;
 using Kafka.Ksql.Linq.Messaging.Producers.Core;
+using Kafka.Ksql.Linq.Messaging.Producers;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -26,6 +27,9 @@ internal class KafkaConsumer<TValue, TKey> : IKafkaConsumer<TValue, TKey>
     private readonly IDeserializer<object> _valueDeserializer;
     private readonly EntityModel _entityModel;
     private readonly ILogger? _logger;
+    private readonly DeserializationErrorPolicy _deserializationPolicy;
+    private readonly string _dlqTopicName;
+    private readonly DlqProducer _dlqProducer;
     private bool _subscribed = false;
     private bool _disposed = false;
 
@@ -37,6 +41,9 @@ internal class KafkaConsumer<TValue, TKey> : IKafkaConsumer<TValue, TKey>
         IDeserializer<object> valueDeserializer,
         string topicName,
         EntityModel entityModel,
+        DeserializationErrorPolicy deserializationPolicy,
+        string dlqTopicName,
+        DlqProducer dlqProducer,
         ILoggerFactory? loggerFactory = null)
     {
         _consumer = consumer ?? throw new ArgumentNullException(nameof(consumer));
@@ -44,6 +51,9 @@ internal class KafkaConsumer<TValue, TKey> : IKafkaConsumer<TValue, TKey>
         _valueDeserializer = valueDeserializer ?? throw new ArgumentNullException(nameof(valueDeserializer));
         TopicName = topicName ?? throw new ArgumentNullException(nameof(topicName));
         _entityModel = entityModel ?? throw new ArgumentNullException(nameof(entityModel));
+        _deserializationPolicy = deserializationPolicy;
+        _dlqTopicName = dlqTopicName ?? throw new ArgumentNullException(nameof(dlqTopicName));
+        _dlqProducer = dlqProducer ?? throw new ArgumentNullException(nameof(dlqProducer));
         _logger = loggerFactory.CreateLoggerOrNull<KafkaConsumer<TValue, TKey>>();
 
         EnsureSubscribed();
@@ -120,14 +130,10 @@ internal class KafkaConsumer<TValue, TKey> : IKafkaConsumer<TValue, TKey>
                     continue;
                 }
 
-                try
+                var message = CreateKafkaMessage(consumeResult);
+                if (message != null)
                 {
-                    var message = CreateKafkaMessage(consumeResult);
                     messages.Add(message);
-                }
-                catch (Exception ex)
-                {
-                    _logger?.LogWarning(ex, "Failed to deserialize message in batch: {EntityType}", typeof(TValue).Name);
                 }
             }
 
@@ -210,16 +216,28 @@ internal class KafkaConsumer<TValue, TKey> : IKafkaConsumer<TValue, TKey>
         }
     }
 
-    private KafkaMessage<TValue, TKey> CreateKafkaMessage(ConsumeResult<object, object> consumeResult)
+    private KafkaMessage<TValue, TKey>? CreateKafkaMessage(ConsumeResult<object, object> consumeResult)
     {
         var valueBytes = consumeResult.Message.Value as byte[];
-        var message = _valueDeserializer.Deserialize(
-            valueBytes ?? Array.Empty<byte>(),
-            valueBytes == null,
-            new SerializationContext(MessageComponentType.Value, TopicName)) as TValue;
+        TValue? message = null;
+        try
+        {
+            message = _valueDeserializer.Deserialize(
+                valueBytes ?? Array.Empty<byte>(),
+                valueBytes == null,
+                new SerializationContext(MessageComponentType.Value, TopicName)) as TValue;
+        }
+        catch (Exception ex)
+        {
+            HandleDeserializationFailure(valueBytes, ex);
+            return null;
+        }
 
         if (message == null)
-            throw new InvalidOperationException($"Failed to deserialize message to type {typeof(TValue).Name}");
+        {
+            HandleDeserializationFailure(valueBytes, new InvalidOperationException($"Failed to deserialize message to type {typeof(TValue).Name}"));
+            return null;
+        }
 
         var keyBytes = consumeResult.Message.Key as byte[];
         var keyObject = _keyDeserializer.Deserialize(
@@ -263,6 +281,22 @@ internal class KafkaConsumer<TValue, TKey> : IKafkaConsumer<TValue, TKey>
                 }
             }
         };
+    }
+
+    private void HandleDeserializationFailure(byte[]? data, Exception ex)
+    {
+        _logger?.LogWarning(ex, "Deserialization failed for topic {Topic}", TopicName);
+        if (_deserializationPolicy == DeserializationErrorPolicy.DLQ)
+        {
+            try
+            {
+                _dlqProducer.SendAsync(data, ex, TopicName).GetAwaiter().GetResult();
+            }
+            catch (Exception dlqEx)
+            {
+                _logger?.LogError(dlqEx, "Failed to send deserialization error to DLQ");
+            }
+        }
     }
 
     private string? ExtractCorrelationId(Headers? headers)

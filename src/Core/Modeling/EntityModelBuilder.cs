@@ -28,6 +28,18 @@ public class EntityModelBuilder<T> : IEntityBuilder<T> where T : class
         return this;
     }
 
+    public EntityModelBuilder<T> OnError(ErrorAction action)
+    {
+        _entityModel.ErrorAction = action;
+        return this;
+    }
+
+    public EntityModelBuilder<T> OnDeserializationError(DeserializationErrorPolicy policy)
+    {
+        _entityModel.DeserializationErrorPolicy = policy;
+        return this;
+    }
+
     public EntityModelBuilder<T> HasTopic(string topicName)
     {
         if (string.IsNullOrWhiteSpace(topicName))
@@ -40,7 +52,6 @@ public class EntityModelBuilder<T> : IEntityBuilder<T> where T : class
             ReplicationFactor = current.ReplicationFactor,
             RetentionMs = current.RetentionMs,
             Compaction = current.Compaction,
-            DeadLetterQueue = current.DeadLetterQueue,
             Description = current.Description,
             MaxMessageBytes = current.MaxMessageBytes,
             SegmentBytes = current.SegmentBytes,

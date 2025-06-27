@@ -1,4 +1,5 @@
 using Kafka.Ksql.Linq.Messaging.Configuration;
+using Kafka.Ksql.Linq.Core.Abstractions;
 using System.Collections.Generic;
 
 namespace Kafka.Ksql.Linq.Configuration;
@@ -29,4 +30,9 @@ public class KsqlDslOptions
     public string DlqTopicName { get; set; } = "dead.letter.queue";
 
     public DlqTopicConfiguration DlqConfiguration { get; init; } = new();
+
+    /// <summary>
+    /// デシリアライズ失敗時のポリシー
+    /// </summary>
+    public DeserializationErrorPolicy DeserializationErrorPolicy { get; set; } = DeserializationErrorPolicy.Skip;
 }
