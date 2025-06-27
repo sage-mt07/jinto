@@ -25,5 +25,5 @@ public interface IEntitySet<T> : IAsyncEnumerable<T> where T : class
     // Metadata
     string GetTopicName();
     EntityModel GetEntityModel();
-    IKafkaContext GetContext();
+    IKsqlContext GetContext();
 }

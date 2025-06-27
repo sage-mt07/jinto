@@ -28,7 +28,7 @@ internal static class CoreLayerValidation
     public static ValidationResult ValidateCoreDependencies()  // ✅ 修正: Core.Abstractions.ValidationResult 使用
     {
         var result = new ValidationResult { IsValid = true };  // ✅ 修正: Core.Abstractions.ValidationResult 使用
-        var coreAssembly = typeof(IKafkaContext).Assembly;
+        var coreAssembly = typeof(IKsqlContext).Assembly;
         var coreTypes = coreAssembly.GetTypes()
             .Where(t => t.Namespace?.StartsWith("Kafka.Ksql.Linq.Core") == true);
 

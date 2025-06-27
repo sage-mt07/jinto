@@ -38,5 +38,5 @@ internal interface IEventSet<T> : IQueryable<T>, IAsyncEnumerable<T> where T : c
     // Metadata Access
     string GetTopicName();
     EntityModel GetEntityModel();
-    IKafkaContext GetContext();
+    IKsqlContext GetContext();
 }

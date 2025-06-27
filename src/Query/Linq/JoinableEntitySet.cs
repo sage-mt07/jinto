@@ -39,7 +39,7 @@ public class JoinableEntitySet<T> : IEntitySet<T>, IJoinableEntitySet<T> where T
 
     public EntityModel GetEntityModel() => _baseEntitySet.GetEntityModel();
 
-    public IKafkaContext GetContext() => _baseEntitySet.GetContext();
+    public IKsqlContext GetContext() => _baseEntitySet.GetContext();
 
     // ✅ IAsyncEnumerable<T> の実装
     public async IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default)
@@ -227,7 +227,7 @@ internal class TypedJoinResultEntitySet<TOuter, TInner, TResult> : IEntitySet<TR
        where TInner : class
        where TResult : class
 {
-    private readonly IKafkaContext _context;
+    private readonly IKsqlContext _context;
     private readonly EntityModel _entityModel;
     private readonly IEntitySet<TOuter> _outerEntitySet;
     private readonly IEntitySet<TInner> _innerEntitySet;
@@ -236,7 +236,7 @@ internal class TypedJoinResultEntitySet<TOuter, TInner, TResult> : IEntitySet<TR
     private readonly Expression<Func<TOuter, TInner, TResult>> _resultSelector;
 
     public TypedJoinResultEntitySet(
-        IKafkaContext context,
+        IKsqlContext context,
         EntityModel entityModel,
         IEntitySet<TOuter> outerEntitySet,
         IEntitySet<TInner> innerEntitySet,
@@ -272,7 +272,7 @@ internal class TypedJoinResultEntitySet<TOuter, TInner, TResult> : IEntitySet<TR
 
     public string GetTopicName() => _entityModel.TopicAttribute?.TopicName ?? typeof(TResult).Name;
     public EntityModel GetEntityModel() => _entityModel;
-    public IKafkaContext GetContext() => _context;
+    public IKsqlContext GetContext() => _context;
 
     public async IAsyncEnumerator<TResult> GetAsyncEnumerator(CancellationToken cancellationToken = default)
     {
@@ -291,7 +291,7 @@ internal class TypedThreeWayJoinResultEntitySet<TOuter, TInner, TThird, TResult>
     where TThird : class
     where TResult : class
 {
-    private readonly IKafkaContext _context;
+    private readonly IKsqlContext _context;
     private readonly EntityModel _entityModel;
     private readonly IEntitySet<TOuter> _outerEntitySet;
     private readonly IEntitySet<TInner> _innerEntitySet;
@@ -303,7 +303,7 @@ internal class TypedThreeWayJoinResultEntitySet<TOuter, TInner, TThird, TResult>
     private readonly Expression<Func<TOuter, TInner, TThird, TResult>> _resultSelector;
 
     public TypedThreeWayJoinResultEntitySet(
-        IKafkaContext context,
+        IKsqlContext context,
         EntityModel entityModel,
         IEntitySet<TOuter> outerEntitySet,
         IEntitySet<TInner> innerEntitySet,
@@ -345,7 +345,7 @@ internal class TypedThreeWayJoinResultEntitySet<TOuter, TInner, TThird, TResult>
 
     public string GetTopicName() => _entityModel.TopicAttribute?.TopicName ?? typeof(TResult).Name;
     public EntityModel GetEntityModel() => _entityModel;
-    public IKafkaContext GetContext() => _context;
+    public IKsqlContext GetContext() => _context;
 
     public async IAsyncEnumerator<TResult> GetAsyncEnumerator(CancellationToken cancellationToken = default)
     {
@@ -392,7 +392,7 @@ internal class EntitySetAdapter<T> : IEntitySet<object> where T : class
 
     public string GetTopicName() => _inner.GetTopicName();
     public EntityModel GetEntityModel() => _inner.GetEntityModel();
-    public IKafkaContext GetContext() => _inner.GetContext();
+    public IKsqlContext GetContext() => _inner.GetContext();
 
     public async IAsyncEnumerator<object> GetAsyncEnumerator(CancellationToken cancellationToken = default)
     {

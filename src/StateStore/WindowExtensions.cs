@@ -7,7 +7,7 @@ namespace Kafka.Ksql.Linq.StateStore;
 
 internal static class WindowExtensions
 {
-    private static readonly Dictionary<IKafkaContext, StateStoreManager> _storeManagers = new();
+    private static readonly Dictionary<IKsqlContext, StateStoreManager> _storeManagers = new();
     private static readonly object _lock = new();
 
     internal static IWindowedEntitySet<T> Window<T>(this IEntitySet<T> entitySet, int windowMinutes)
@@ -20,7 +20,7 @@ internal static class WindowExtensions
         return new WindowedEntitySet<T>(entitySet, windowMinutes, storeManager, entityModel);
     }
 
-    private static StateStoreManager GetOrCreateStateStoreManager(IKafkaContext context)
+    private static StateStoreManager GetOrCreateStateStoreManager(IKsqlContext context)
     {
         lock (_lock)
         {

@@ -9,13 +9,13 @@ namespace Kafka.Ksql.Linq.Query.Linq;
 
 internal class JoinResultEntitySet<T> : IEntitySet<T> where T : class
 {
-    private readonly IKafkaContext _context;
+    private readonly IKsqlContext _context;
     private readonly EntityModel _entityModel;
     private readonly Expression _joinExpression;
     private readonly JoinBuilder _joinBuilder;
 
     public JoinResultEntitySet(
-        IKafkaContext context,
+        IKsqlContext context,
         EntityModel entityModel,
         Expression joinExpression,
         JoinBuilder joinBuilder)
@@ -55,7 +55,7 @@ internal class JoinResultEntitySet<T> : IEntitySet<T> where T : class
 
     public EntityModel GetEntityModel() => _entityModel;
 
-    public IKafkaContext GetContext() => _context;
+    public IKsqlContext GetContext() => _context;
 
     // ✅ IAsyncEnumerable<T>の実装
     public async System.Collections.Generic.IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default)

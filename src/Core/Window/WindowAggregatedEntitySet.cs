@@ -101,7 +101,7 @@ internal class WindowAggregatedEntitySet<TSource, TKey, TResult> : IEntitySet<TR
 
     public EntityModel GetEntityModel() => _resultEntityModel;
 
-    public IKafkaContext GetContext() => _sourceEntitySet.GetContext();
+    public IKsqlContext GetContext() => _sourceEntitySet.GetContext();
 
     // ✅ IAsyncEnumerable<TResult> インターフェース実装
     public async IAsyncEnumerator<TResult> GetAsyncEnumerator(CancellationToken cancellationToken = default)

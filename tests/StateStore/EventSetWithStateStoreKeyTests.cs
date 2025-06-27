@@ -13,7 +13,7 @@ namespace Kafka.Ksql.Linq.Tests.StateStore;
 
 public class EventSetWithStateStoreKeyTests
 {
-    private class DummyContext : IKafkaContext
+    private class DummyContext : IKsqlContext
     {
         private class StubSet<T> : IEntitySet<T> where T : class
         {
@@ -22,7 +22,7 @@ public class EventSetWithStateStoreKeyTests
             public Task ForEachAsync(Func<T, Task> action, TimeSpan timeout = default, CancellationToken cancellationToken = default) => Task.CompletedTask;
             public string GetTopicName() => typeof(T).Name;
             public EntityModel GetEntityModel() => new EntityModel { EntityType = typeof(T), TopicAttribute = new TopicAttribute("t"), AllProperties = Array.Empty<System.Reflection.PropertyInfo>(), KeyProperties = Array.Empty<System.Reflection.PropertyInfo>() };
-            public IKafkaContext GetContext() => null!;
+            public IKsqlContext GetContext() => null!;
             public async IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default) { await Task.CompletedTask; yield break; }
         }
 

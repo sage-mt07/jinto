@@ -10,7 +10,7 @@ namespace Kafka.Ksql.Linq.Tests;
 
 public class EventSetTests
 {
-    private class DummyContext : IKafkaContext
+    private class DummyContext : IKsqlContext
     {
         public IEntitySet<T> Set<T>() where T : class => throw new NotImplementedException();
         public object GetEventSet(Type entityType) => throw new NotImplementedException();

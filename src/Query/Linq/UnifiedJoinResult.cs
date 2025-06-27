@@ -18,7 +18,7 @@ internal class UnifiedJoinResult<TOuter, TInner> : IJoinResult<TOuter, TInner>
     private readonly Expression _outerKeySelector;
     private readonly Expression _innerKeySelector;
     private readonly JoinBuilder _joinBuilder;
-    private readonly IKafkaContext _context;
+    private readonly IKsqlContext _context;
 
     public UnifiedJoinResult(
         IEntitySet<TOuter> outer,
@@ -26,7 +26,7 @@ internal class UnifiedJoinResult<TOuter, TInner> : IJoinResult<TOuter, TInner>
         Expression outerKeySelector,
         Expression innerKeySelector,
         JoinBuilder joinBuilder,
-        IKafkaContext context)
+        IKsqlContext context)
     {
         _outer = outer ?? throw new ArgumentNullException(nameof(outer));
         _inner = inner ?? throw new ArgumentNullException(nameof(inner));
