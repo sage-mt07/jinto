@@ -158,7 +158,7 @@ internal class DlqProducer : IErrorSink, IDisposable
     /// <summary>
     /// デシリアライズ失敗データをDLQへ送信
     /// </summary>
-    public async Task SendAsync(byte[]? data, Exception exception, string originalTopic)
+    public async Task SendAsync(byte[]? data, System.Exception exception, string originalTopic)
     {
         var context = new KafkaMessageContext
         {
