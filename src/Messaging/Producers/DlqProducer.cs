@@ -1,7 +1,7 @@
-using Kafka.Ksql.Linq.Configuration;
 using Kafka.Ksql.Linq.Core.Abstractions;
 using Kafka.Ksql.Linq.Messaging.Abstractions;
 using Kafka.Ksql.Linq.Messaging.Contracts;
+using Kafka.Ksql.Linq.Core.Attributes;
 using Confluent.Kafka;
 using KsqlDsl.Messaging.Models;
 using Microsoft.Extensions.Logging;
@@ -258,10 +258,13 @@ public class DlqOptions
     /// <summary>
     /// 共通DLQトピック名
     /// </summary>
+    [DefaultValue("dead.letter.queue")]
     public string TopicName { get; set; } = "dead.letter.queue";
 
     public bool EnableCompression { get; set; } = true;
+    [DefaultValue(3)]
     public int MaxRetryAttempts { get; set; } = 3;
+    [DefaultValue("00:00:01")]
     public TimeSpan RetryInterval { get; set; } = TimeSpan.FromSeconds(1);
     public Action<DlqMetrics>? MetricsCallback { get; set; }
 }

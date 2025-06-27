@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
+using Kafka.Ksql.Linq.Core.Attributes;
 
 namespace Kafka.Ksql.Linq.Messaging.Configuration;
 
@@ -15,16 +16,19 @@ public class ConsumerSection
     /// <summary>
     /// オートオフセットリセット（Latest, Earliest, None）
     /// </summary>
+    [DefaultValue("Latest")]
     public string AutoOffsetReset { get; init; } = "Latest";
 
     /// <summary>
     /// 自動コミット有効化
     /// </summary>
+    [DefaultValue(true)]
     public bool EnableAutoCommit { get; init; } = true;
 
     /// <summary>
     /// 自動コミット間隔（ミリ秒）
     /// </summary>
+    [DefaultValue(5000)]
     public int AutoCommitIntervalMs { get; init; } = 5000;
 
     /// <summary>

@@ -1,5 +1,6 @@
 using Kafka.Ksql.Linq.Core.Abstractions;
 using Kafka.Ksql.Linq.Messaging.Contracts;
+using Kafka.Ksql.Linq.Core.Attributes;
 using System;
 using System.Threading.Tasks;
 
@@ -9,16 +10,19 @@ public class ErrorHandlingContext
     /// <summary>
     /// エラー発生時のアクション
     /// </summary>
+    [DefaultValue(ErrorAction.Skip)]
     public ErrorAction ErrorAction { get; set; } = ErrorAction.Skip;
 
     /// <summary>
     /// リトライ回数
     /// </summary>
+    [DefaultValue(3)]
     public int RetryCount { get; set; } = 3;
 
     /// <summary>
     /// リトライ間隔
     /// </summary>
+    [DefaultValue("00:00:01")]
     public TimeSpan RetryInterval { get; set; } = TimeSpan.FromSeconds(1);
 
     /// <summary>

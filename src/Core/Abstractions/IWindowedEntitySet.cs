@@ -6,6 +6,7 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Kafka.Ksql.Linq.Core.Attributes;
 
 namespace Kafka.Ksql.Linq.Core.Abstractions;
 
@@ -81,21 +82,25 @@ public record WindowAggregationConfig
     /// <summary>
     /// グレースピリオド（遅延許容時間）
     /// </summary>
+    [DefaultValue("00:00:03")]
     public TimeSpan GracePeriod { get; set; } = TimeSpan.FromSeconds(3);
 
     /// <summary>
     /// ウィンドウタイプ
     /// </summary>
+    [DefaultValue(WindowType.Tumbling)]
     public WindowType WindowType { get; set; } = WindowType.Tumbling;
 
     /// <summary>
     /// 出力モード
     /// </summary>
+    [DefaultValue(WindowOutputMode.Changes)]
     public WindowOutputMode OutputMode { get; set; } = WindowOutputMode.Changes;
 
     /// <summary>
     /// Heartbeatトピックの使用
     /// </summary>
+    [DefaultValue(true)]
     public bool UseHeartbeat { get; set; } = true;
 }
 

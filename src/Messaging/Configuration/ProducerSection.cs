@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
+using Kafka.Ksql.Linq.Core.Attributes;
 
 namespace Kafka.Ksql.Linq.Messaging.Configuration;
 public class ProducerSection
@@ -6,16 +7,19 @@ public class ProducerSection
     /// <summary>
     /// 確認応答レベル（All, Leader, None）
     /// </summary>
+    [DefaultValue("All")]
     public string Acks { get; init; } = "All";
 
     /// <summary>
     /// 圧縮タイプ
     /// </summary>
+    [DefaultValue("Snappy")]
     public string CompressionType { get; init; } = "Snappy";
 
     /// <summary>
     /// 冪等性有効化
     /// </summary>
+    [DefaultValue(true)]
     public bool EnableIdempotence { get; init; } = true;
 
     /// <summary>

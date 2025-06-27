@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Kafka.Ksql.Linq.Core.Attributes;
 
 namespace Kafka.Ksql.Linq.Core.Abstractions;
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
@@ -7,8 +8,10 @@ public class TopicAttribute : Attribute
 {
     public string TopicName { get; }
 
+    [DefaultValue(1)]
     public int PartitionCount { get; set; } = 1;
 
+    [DefaultValue(1)]
     public int ReplicationFactor { get; set; } = 1;
 
     /// <summary>
@@ -16,6 +19,7 @@ public class TopicAttribute : Attribute
     /// </summary>
     public int? MinInSyncReplicas { get; set; }
 
+    [DefaultValue(604800000)]
     public long RetentionMs { get; set; } = 604800000; // 7 days
 
     public bool Compaction { get; set; } = false;

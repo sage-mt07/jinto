@@ -1,5 +1,6 @@
 using Kafka.Ksql.Linq.Messaging.Configuration;
 using Kafka.Ksql.Linq.Core.Abstractions;
+using Kafka.Ksql.Linq.Core.Attributes;
 using System.Collections.Generic;
 
 namespace Kafka.Ksql.Linq.Configuration;
@@ -27,6 +28,7 @@ public class KsqlDslOptions
 
     public List<EntityConfiguration> Entities { get; init; } = new();
 
+    [DefaultValue("dead.letter.queue")]
     public string DlqTopicName { get; set; } = "dead.letter.queue";
 
     public DlqTopicConfiguration DlqConfiguration { get; init; } = new();
