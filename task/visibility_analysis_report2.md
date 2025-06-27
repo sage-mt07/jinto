@@ -379,11 +379,11 @@ public interface IEntitySet<T>
 - [x] `WindowBuilder` → internal
 
 ### Phase 3 (Pipeline群)
-- [ ] `DMLQueryGenerator` → internal
-- [ ] `QueryDiagnostics` → internal
-- [ ] `QueryExecutionResult` → internal
-- [ ] `QueryExecutionMode` → internal enum
-- [ ] `DerivedObjectType` → internal enum
+- [x] `DMLQueryGenerator` → internal
+- [x] `QueryDiagnostics` → internal
+- [x] `QueryExecutionResult` → internal
+- [x] `QueryExecutionMode` → internal enum
+- [x] `DerivedObjectType` → internal enum
 
 ### Phase 4 (Serialization層)
 - [ ] `AvroSchema` → internal
