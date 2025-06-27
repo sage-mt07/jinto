@@ -145,6 +145,52 @@ internal class ProjectionBuilder : IKsqlBuilder
                     _sb.Append(")");
                     break;
                 default:
+                    if (IsAggregateFunction(methodName))
+                    {
+                        methodName = TransformMethodName(methodName);
+
+                        if (methodName == "COUNT" &&
+                            (node.Arguments.Count == 0 ||
+                             (node.Arguments.Count == 1 && !(node.Arguments[0] is LambdaExpression))))
+                        {
+                            _sb.Append("COUNT(*)");
+                            break;
+                        }
+
+                        if (node.Arguments.Count == 1 && node.Arguments[0] is LambdaExpression lambda)
+                        {
+                            var memberExpr = ExtractMember(lambda.Body);
+                            if (memberExpr != null)
+                            {
+                                _sb.Append($"{methodName}({memberExpr.Member.Name})");
+                                break;
+                            }
+                        }
+
+                        if (node.Method.IsStatic && node.Arguments.Count >= 2)
+                        {
+                            var staticLambda = ExtractLambda(node.Arguments[1]);
+                            if (staticLambda != null)
+                            {
+                                var memberExpr = ExtractMember(staticLambda.Body);
+                                if (memberExpr != null)
+                                {
+                                    _sb.Append($"{methodName}({memberExpr.Member.Name})");
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (node.Object is MemberExpression objMember)
+                        {
+                            _sb.Append($"{methodName}({objMember.Member.Name})");
+                            break;
+                        }
+
+                        _sb.Append($"{methodName}(UNKNOWN)");
+                        break;
+                    }
+
                     // For unknown methods, just use the method name as a function
                     _sb.Append($"{methodName}(");
                     if (node.Object != null)
@@ -173,6 +219,50 @@ internal class ProjectionBuilder : IKsqlBuilder
             Visit(node.Right);
             _sb.Append(")");
             return node;
+        }
+
+        private static bool IsAggregateFunction(string methodName)
+        {
+            return methodName switch
+            {
+                "SUM" or "COUNT" or "MAX" or "MIN" or "AVG" or "AVERAGE" or
+                "LATESTBYOFFSET" or "EARLIESTBYOFFSET" or
+                "COLLECTLIST" or "COLLECTSET" => true,
+                _ => false
+            };
+        }
+
+        private static string TransformMethodName(string methodName)
+        {
+            return methodName switch
+            {
+                "LATESTBYOFFSET" => "LATEST_BY_OFFSET",
+                "EARLIESTBYOFFSET" => "EARLIEST_BY_OFFSET",
+                "COLLECTLIST" => "COLLECT_LIST",
+                "COLLECTSET" => "COLLECT_SET",
+                "AVERAGE" => "AVG",
+                _ => methodName
+            };
+        }
+
+        private static MemberExpression? ExtractMember(Expression body)
+        {
+            return body switch
+            {
+                MemberExpression member => member,
+                UnaryExpression unary => ExtractMember(unary.Operand),
+                _ => null
+            };
+        }
+
+        private static LambdaExpression? ExtractLambda(Expression expr)
+        {
+            return expr switch
+            {
+                LambdaExpression lambda => lambda,
+                UnaryExpression { Operand: LambdaExpression lambda } => lambda,
+                _ => null
+            };
         }
 
         private static string GetSqlOperator(ExpressionType nodeType) => nodeType switch
