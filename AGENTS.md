@@ -69,6 +69,7 @@ OSSプロジェクト AIメンバー／エージェント定義
 | window|✅ 実装完了|✅ 観点記述|✅ UT作成|⬜ レビュー待ち||||||差分反映必要箇所あり|
 | builder_visibility_phase2|✅ 変換完了|-|✅ ビルド確認|⬜ レビュー待ち||||||Builder群internal化済|
 | pipeline_visibility_phase3|✅ 変換完了|-|✅ ビルド確認|⬜ レビュー待ち||||||Pipeline群internal化済|
+| serialization_visibility_phase4|✅ 変換完了|-|✅ ビルド確認|⬜ レビュー待ち||||||Serialization層internal化済|
 
 
 

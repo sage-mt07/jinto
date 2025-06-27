@@ -386,14 +386,14 @@ public interface IEntitySet<T>
 - [x] `DerivedObjectType` → internal enum
 
 ### Phase 4 (Serialization層)
-- [ ] `AvroSchema` → internal
-- [ ] `AvroField` → internal
-- [ ] `AvroSchemaInfo` → internal
-- [ ] `UnifiedSchemaGenerator` → internal static
-- [ ] `AvroSerializerFactory` → internal
-- [ ] `AvroSerializerCache` → internal
-- [ ] `AvroSchemaBuilder` → internal
-- [ ] `AvroSchemaRepository` → internal
+- [x] `AvroSchema` → internal
+- [x] `AvroField` → internal
+- [x] `AvroSchemaInfo` → internal
+- [x] `UnifiedSchemaGenerator` → internal static
+- [x] `AvroSerializerFactory` → internal
+- [x] `AvroSerializerCache` → internal
+- [x] `AvroSchemaBuilder` → internal
+- [x] `AvroSchemaRepository` → internal
 
 ### Phase 5 (Messaging層・要慎重)
 - [ ] **事前調査**: Manager系のDI使用状況確認
