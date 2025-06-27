@@ -18,6 +18,7 @@ public class WindowDslTests
         public override System.Threading.Tasks.Task<List<T>> ExecutePullQueryAsync<T>(string query) where T : class => System.Threading.Tasks.Task.FromResult(new List<T>());
         public override System.Threading.Tasks.Task<List<T>> ExecutePushQueryAsync<T>(string query) where T : class => System.Threading.Tasks.Task.FromResult(new List<T>());
         public override System.Threading.Tasks.Task StopAllQueriesAsync() => System.Threading.Tasks.Task.CompletedTask;
+        public override void Dispose() { }
     }
 
     private static QueryExecutionPipeline CreatePipeline()
