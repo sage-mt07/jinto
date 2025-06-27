@@ -70,6 +70,16 @@ public class EntityModelBuilder<T> : IEntityBuilder<T> where T : class
         return this;
     }
 
+    public EntityModelBuilder<T> WithPartitioner(string partitioner)
+    {
+        if (string.IsNullOrWhiteSpace(partitioner))
+            throw new ArgumentException("Partitioner cannot be null or empty", nameof(partitioner));
+
+        var attr = EnsureTopicAttribute();
+        attr.Partitioner = partitioner;
+        return this;
+    }
+
     public EntityModel GetModel()
     {
         return _entityModel;

@@ -17,6 +17,11 @@ public class TopicAttribute : Attribute
 
     public bool DeadLetterQueue { get; set; } = false;
 
+    /// <summary>
+    /// カスタムパーティショニング戦略名
+    /// </summary>
+    public string? Partitioner { get; set; }
+
     public string? Description { get; set; }
 
     public int? MaxMessageBytes { get; set; }

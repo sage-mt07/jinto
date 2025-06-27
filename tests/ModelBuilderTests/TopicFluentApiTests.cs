@@ -19,12 +19,14 @@ public class TopicFluentApiTests
         builder.Entity<Order>()
             .HasTopic("orders")
             .WithPartitions(3)
-            .WithReplicationFactor(2);
+            .WithReplicationFactor(2)
+            .WithPartitioner("custom");
 
         var model = builder.GetEntityModel<Order>();
         Assert.NotNull(model.TopicAttribute);
         Assert.Equal("orders", model.TopicAttribute!.TopicName);
         Assert.Equal(3, model.TopicAttribute.PartitionCount);
         Assert.Equal(2, model.TopicAttribute.ReplicationFactor);
+        Assert.Equal("custom", model.TopicAttribute.Partitioner);
     }
 }

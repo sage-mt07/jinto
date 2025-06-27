@@ -72,4 +72,11 @@ public class TopicAttributeTests
         Assert.Contains("desc", str);
         Assert.Contains("topic1", str);
     }
+
+    [Fact]
+    public void Partitioner_Property_RoundTrips()
+    {
+        var attr = new TopicAttribute("topic1") { Partitioner = "p" };
+        Assert.Equal("p", attr.Partitioner);
+    }
 }
