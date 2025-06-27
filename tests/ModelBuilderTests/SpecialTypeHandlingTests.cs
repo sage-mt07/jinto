@@ -1,5 +1,7 @@
 using Kafka.Ksql.Linq.Core.Abstractions;
 using Kafka.Ksql.Linq.Core.Modeling;
+using Kafka.Ksql.Linq.Configuration;
+using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
 namespace Kafka.Ksql.Linq.Tests.ModelBuilderTests;
@@ -23,7 +25,7 @@ public class SpecialTypeHandlingTests
     [Fact]
     public void CharProperty_ProducesWarning()
     {
-        var builder = new ModelBuilder(ValidationMode.Loose);
+        var builder = new ModelBuilder(ValidationMode.Relaxed);
         builder.Entity<CharEntity>();
 
         var model = builder.GetEntityModel<CharEntity>()!;
@@ -33,10 +35,8 @@ public class SpecialTypeHandlingTests
     [Fact]
     public void ShortProperty_MappedAsInteger()
     {
-        var generator = new Kafka.Ksql.Linq.Query.Pipeline.DDLQueryGenerator(new Kafka.Ksql.Linq.Query.Pipeline.SelectBuilder(), new Kafka.Ksql.Linq.Query.Pipeline.WhereBuilder(), new Kafka.Ksql.Linq.Query.Pipeline.GroupByBuilder());
-        var type = typeof(short);
-        var method = typeof(Kafka.Ksql.Linq.Query.Pipeline.DDLQueryGenerator).GetMethod("MapToKsqlType", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!;
-        var result = (string)method.Invoke(generator, new object[] { type })!;
+        var generator = new Kafka.Ksql.Linq.Query.Pipeline.DDLQueryGenerator(new NullLoggerFactory());
+        var result = PrivateAccessor.InvokePrivate<string>(generator, "MapToKsqlType", new[] { typeof(Type) }, args: new object?[] { typeof(short) });
         Assert.Equal("INTEGER", result);
     }
 }
