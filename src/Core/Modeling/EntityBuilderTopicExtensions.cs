@@ -28,5 +28,12 @@ public static class EntityBuilderTopicExtensions
             throw new ArgumentException("Invalid builder type", nameof(builder));
         return concrete.WithReplicationFactor(replicationFactor);
     }
+
+    public static IEntityBuilder<T> WithPartitioner<T>(this IEntityBuilder<T> builder, string partitioner) where T : class
+    {
+        if (builder is not EntityModelBuilder<T> concrete)
+            throw new ArgumentException("Invalid builder type", nameof(builder));
+        return concrete.WithPartitioner(partitioner);
+    }
 }
 
