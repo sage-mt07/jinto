@@ -8,6 +8,7 @@ using Confluent.SchemaRegistry;
 using Kafka.Ksql.Linq.Configuration;
 using Kafka.Ksql.Linq.Configuration.Abstractions;
 using Kafka.Ksql.Linq.Messaging.Configuration;
+using Kafka.Ksql.Linq.Messaging.Producers;
 using Kafka.Ksql.Linq.Messaging.Consumers;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -53,7 +54,9 @@ public class KafkaConsumerManagerTests
                 }
             }
         };
-        var manager = new KafkaConsumerManager(Options.Create(options), new NullLoggerFactory());
+        var producerManager = new KafkaProducerManager(Options.Create(options), new NullLoggerFactory());
+        var dlqProducer = new DlqProducer(producerManager, new DlqOptions { TopicName = options.DlqTopicName });
+        var manager = new KafkaConsumerManager(Options.Create(options), dlqProducer, new NullLoggerFactory());
         var config = InvokePrivate<ConsumerConfig>(manager, "BuildConsumerConfig", new[] { typeof(string), typeof(KafkaSubscriptionOptions) }, null, "topic", null);
 
         Assert.Equal("server", config.BootstrapServers);
