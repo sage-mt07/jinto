@@ -358,7 +358,7 @@ internal class EventSetWithServices<T> : IEntitySet<T> where T : class
     /// <summary>
     /// IAsyncEnumerable実装：ストリーミング消費
     /// </summary>
-    public async IAsyncEnumerator<T> GetAsyncEnumerator([EnumeratorCancellation] CancellationToken cancellationToken = default)
+    public async IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default)
     {
         // 簡略実装：実際のストリーミングConsumerと連携
         var results = await ToListAsync(cancellationToken);
@@ -373,8 +373,12 @@ internal class EventSetWithServices<T> : IEntitySet<T> where T : class
 
     public async IAsyncEnumerable<object> ForEachAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        await foreach (var item in GetAsyncEnumerator(cancellationToken))
+        await using var enumerator = GetAsyncEnumerator(cancellationToken);
+
+        while (await enumerator.MoveNextAsync())
         {
+            var item = enumerator.Current;
+
             if (_entityModel.UseManualCommit)
             {
                 yield return CreateManualCommitMessage(item);
