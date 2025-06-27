@@ -124,7 +124,7 @@ internal class WindowedEntitySet<T> : IWindowedEntitySet<T> where T : class
 
     public EntityModel GetEntityModel() => _baseEntitySet.GetEntityModel();
 
-    public IKafkaContext GetContext() => _baseEntitySet.GetContext();
+    public IKsqlContext GetContext() => _baseEntitySet.GetContext();
 
     // ✅ IAsyncEnumerable<T> インターフェース実装
     public async IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default)

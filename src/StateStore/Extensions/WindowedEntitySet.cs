@@ -68,7 +68,7 @@ internal class WindowedEntitySet<T> : IWindowedEntitySet<T> where T : class
 
     public EntityModel GetEntityModel() => _entityModel;
 
-    public IKafkaContext GetContext() => _baseEntitySet.GetContext();
+    public IKsqlContext GetContext() => _baseEntitySet.GetContext();
 
     public async System.Collections.Generic.IAsyncEnumerator<T> GetAsyncEnumerator(System.Threading.CancellationToken cancellationToken = default)
     {

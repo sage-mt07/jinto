@@ -412,7 +412,7 @@ internal class EventSetWithServices<T> : IEntitySet<T> where T : class
     // Metadata取得
     public string GetTopicName() => _entityModel.TopicAttribute?.TopicName ?? typeof(T).Name;
     public EntityModel GetEntityModel() => _entityModel;
-    public IKafkaContext GetContext() => _ksqlContext;
+    public IKsqlContext GetContext() => _ksqlContext;
 
     public override string ToString()
     {

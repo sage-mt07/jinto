@@ -23,7 +23,7 @@ internal class UnifiedThreeWayJoinResult<TOuter, TInner, TThird> : IJoinResult<T
     private readonly Expression _thirdKeySelector;
     private readonly JoinKeySource _secondJoinKeySource;
     private readonly JoinBuilder _joinBuilder;
-    private readonly IKafkaContext _context;
+    private readonly IKsqlContext _context;
 
     public UnifiedThreeWayJoinResult(
         IEntitySet<TOuter> outer,
@@ -35,7 +35,7 @@ internal class UnifiedThreeWayJoinResult<TOuter, TInner, TThird> : IJoinResult<T
         Expression thirdKeySelector,
         JoinKeySource secondJoinKeySource,
         JoinBuilder joinBuilder,
-        IKafkaContext context)
+        IKsqlContext context)
     {
         _outer = outer;
         _inner = inner;

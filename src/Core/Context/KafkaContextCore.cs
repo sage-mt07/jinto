@@ -13,7 +13,7 @@ namespace Kafka.Ksql.Linq.Core.Context;
 /// 制約: 完全ログフリー、副作用なし（Phase3 ログフリー版）
 /// ログ処理: Infrastructure層で実装
 /// </summary>
-public abstract class KafkaContextCore : IKafkaContext
+public abstract class KafkaContextCore : IKsqlContext
 {
     private readonly Dictionary<Type, EntityModel> _entityModels = new();
     private readonly Dictionary<Type, object> _entitySets = new();
@@ -32,7 +32,7 @@ public abstract class KafkaContextCore : IKafkaContext
         InitializeEntityModels();
     }
     protected virtual void OnModelCreating(IModelBuilder modelBuilder) { }
-    // ✅ IKafkaContext実装: エンティティセット取得（純粋関数）
+    // ✅ IKsqlContext実装: エンティティセット取得（純粋関数）
     public IEntitySet<T> Set<T>() where T : class
     {
         var entityType = typeof(T);
@@ -49,7 +49,7 @@ public abstract class KafkaContextCore : IKafkaContext
         return entitySet;
     }
 
-    // ✅ IKafkaContext実装: 非ジェネリック エンティティセット取得
+    // ✅ IKsqlContext実装: 非ジェネリック エンティティセット取得
     public object GetEventSet(Type entityType)
     {
         if (_entitySets.TryGetValue(entityType, out var entitySet))
@@ -64,7 +64,7 @@ public abstract class KafkaContextCore : IKafkaContext
         return createdSet;
     }
 
-    // ✅ IKafkaContext実装: エンティティモデル取得（純粋関数）
+    // ✅ IKsqlContext実装: エンティティモデル取得（純粋関数）
     public Dictionary<Type, EntityModel> GetEntityModels()
     {
         return new Dictionary<Type, EntityModel>(_entityModels);

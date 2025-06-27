@@ -9,10 +9,10 @@ namespace Kafka.Ksql.Linq.StateStore.Extensions;
 
 internal static class KafkaContextStateStoreExtensions
 {
-    private static readonly Dictionary<IKafkaContext, IStateStoreManager> _contextStoreManagers = new();
+    private static readonly Dictionary<IKsqlContext, IStateStoreManager> _contextStoreManagers = new();
     private static readonly object _lock = new();
 
-    internal static void InitializeStateStores(this IKafkaContext context, KsqlDslOptions options)
+    internal static void InitializeStateStores(this IKsqlContext context, KsqlDslOptions options)
     {
         lock (_lock)
         {
@@ -39,7 +39,7 @@ internal static class KafkaContextStateStoreExtensions
         }
     }
 
-    internal static IStateStoreManager? GetStateStoreManager(this IKafkaContext context)
+    internal static IStateStoreManager? GetStateStoreManager(this IKsqlContext context)
     {
         lock (_lock)
         {
@@ -47,7 +47,7 @@ internal static class KafkaContextStateStoreExtensions
         }
     }
 
-    internal static void CleanupStateStores(this IKafkaContext context)
+    internal static void CleanupStateStores(this IKsqlContext context)
     {
         lock (_lock)
         {

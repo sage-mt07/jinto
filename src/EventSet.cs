@@ -12,16 +12,16 @@ namespace Kafka.Ksql.Linq;
 
 /// <summary>
 /// EventSet基底クラス - IEntitySet<T>を実装
-/// 修正理由: KafkaContextとの統合、IEntitySet<T>実装追加
+/// 修正理由: KsqlContextとの統合、IEntitySet<T>実装追加
 /// </summary>
 public abstract class EventSet<T> : IEntitySet<T> where T : class
 {
-    protected readonly IKafkaContext _context;
+    protected readonly IKsqlContext _context;
     protected readonly EntityModel _entityModel;
     private readonly ErrorHandlingContext _errorHandlingContext;
     private readonly IErrorSink? _dlqErrorSink;
 
-    protected EventSet(IKafkaContext context, EntityModel entityModel, IErrorSink? dlqErrorSink = null)
+    protected EventSet(IKsqlContext context, EntityModel entityModel, IErrorSink? dlqErrorSink = null)
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
         _entityModel = entityModel ?? throw new ArgumentNullException(nameof(entityModel));
@@ -29,7 +29,7 @@ public abstract class EventSet<T> : IEntitySet<T> where T : class
         _dlqErrorSink = dlqErrorSink;
     }
 
-    private EventSet(IKafkaContext context, EntityModel entityModel, ErrorHandlingContext errorHandlingContext, IErrorSink? dlqErrorSink)
+    private EventSet(IKsqlContext context, EntityModel entityModel, ErrorHandlingContext errorHandlingContext, IErrorSink? dlqErrorSink)
     {
         _context = context;
         _entityModel = entityModel;
@@ -164,7 +164,7 @@ public abstract class EventSet<T> : IEntitySet<T> where T : class
 
     public EntityModel GetEntityModel() => _entityModel;
 
-    public IKafkaContext GetContext() => _context;
+    public IKsqlContext GetContext() => _context;
 
     /// <summary>
     /// エラーハンドリング用メッセージコンテキスト作成
@@ -318,7 +318,7 @@ public abstract class EventSet<T> : IEntitySet<T> where T : class
     }
 
     // ✅ 抽象メソッド：派生クラスで新しいインスタンス作成
-    protected virtual EventSet<T> CreateNewInstance(IKafkaContext context, EntityModel entityModel, ErrorHandlingContext errorContext, IErrorSink? dlqErrorSink)
+    protected virtual EventSet<T> CreateNewInstance(IKsqlContext context, EntityModel entityModel, ErrorHandlingContext errorContext, IErrorSink? dlqErrorSink)
     {
         // デフォルト実装：具象クラスでオーバーライド必要
         throw new NotImplementedException("Derived classes must implement CreateNewInstance");
@@ -456,7 +456,7 @@ internal class MappedEventSet<T> : EventSet<T> where T : class
     private readonly List<T> _mapped;
     private readonly EntityModel _originalEntityModel;
 
-    public MappedEventSet(List<T> mappedItems, IKafkaContext context, EntityModel originalEntityModel, IErrorSink? errorSink = null)
+    public MappedEventSet(List<T> mappedItems, IKsqlContext context, EntityModel originalEntityModel, IErrorSink? errorSink = null)
         : base(context, CreateMappedEntityModel<T>(originalEntityModel), errorSink)
     {
         _mapped = mappedItems ?? throw new ArgumentNullException(nameof(mappedItems));
@@ -504,7 +504,7 @@ internal class MappedEventSet<T> : EventSet<T> where T : class
     /// <summary>
     /// MappedEventSet作成用ヘルパーメソッド
     /// </summary>
-    public static MappedEventSet<T> Create(List<T> mappedItems, IKafkaContext context, EntityModel originalEntityModel, IErrorSink? errorSink = null)
+    public static MappedEventSet<T> Create(List<T> mappedItems, IKsqlContext context, EntityModel originalEntityModel, IErrorSink? errorSink = null)
     {
         return new MappedEventSet<T>(mappedItems, context, originalEntityModel, errorSink);
     }
@@ -512,7 +512,7 @@ internal class MappedEventSet<T> : EventSet<T> where T : class
     /// <summary>
     /// DLQ対応MappedEventSet作成
     /// </summary>
-    public static MappedEventSet<T> CreateWithDlq(List<T> mappedItems, IKafkaContext context, EntityModel originalEntityModel, IErrorSink dlqErrorSink)
+    public static MappedEventSet<T> CreateWithDlq(List<T> mappedItems, IKsqlContext context, EntityModel originalEntityModel, IErrorSink dlqErrorSink)
     {
         return new MappedEventSet<T>(mappedItems, context, originalEntityModel, dlqErrorSink);
     }

@@ -20,7 +20,7 @@ internal static class CoreDependencyConfiguration
     {
         var coreTypes = new[]
         {
-            typeof(IKafkaContext),
+            typeof(IKsqlContext),
             typeof(IEntitySet<>),
             typeof(ISerializationManager<>)
 

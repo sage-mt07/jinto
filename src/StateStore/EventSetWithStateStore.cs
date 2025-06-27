@@ -16,11 +16,11 @@ namespace Kafka.Ksql.Linq.StateStore;
 /// </summary>
 internal class EventSetWithStateStore<T> : IEntitySet<T> where T : class
 {
-    private readonly IKafkaContext _context;
+    private readonly IKsqlContext _context;
     private readonly EntityModel _entityModel;
     private readonly IEntitySet<T> _baseEntitySet;
 
-    internal EventSetWithStateStore(IKafkaContext context, EntityModel entityModel)
+    internal EventSetWithStateStore(IKsqlContext context, EntityModel entityModel)
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
         _entityModel = entityModel ?? throw new ArgumentNullException(nameof(entityModel));
@@ -110,7 +110,7 @@ internal class EventSetWithStateStore<T> : IEntitySet<T> where T : class
         return _entityModel;
     }
 
-    public IKafkaContext GetContext()
+    public IKsqlContext GetContext()
     {
         return _context;
     }
@@ -125,14 +125,14 @@ internal class EventSetWithStateStore<T> : IEntitySet<T> where T : class
 }
 
 /// <summary>
-/// IKafkaContext拡張メソッド（StateStore統合用）
+/// IKsqlContext拡張メソッド（StateStore統合用）
 /// </summary>
 internal static class KafkaContextStateStoreIntegrationExtensions
 {
     /// <summary>
     /// StateStore機能付きEntitySetを取得
     /// </summary>
-    public static EventSetWithStateStore<T> SetWithStateStore<T>(this IKafkaContext context) where T : class
+    public static EventSetWithStateStore<T> SetWithStateStore<T>(this IKsqlContext context) where T : class
     {
         var entityModel = context.GetEntityModels().FirstOrDefault(x => x.Key == typeof(T)).Value;
         if (entityModel == null)
