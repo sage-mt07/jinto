@@ -1,8 +1,11 @@
+using System;
 using Kafka.Ksql.Linq.Core.Abstractions;
 using Kafka.Ksql.Linq.Core.Modeling;
 using Kafka.Ksql.Linq.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
+
+#nullable enable
 
 namespace Kafka.Ksql.Linq.Tests.ModelBuilderTests;
 

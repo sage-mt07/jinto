@@ -85,5 +85,9 @@ JSON比較時は空白・改行・大文字小文字を柔軟に許容し、必�
 13. 「テストの期待値（Expected）がダミーデータ/セットアップ値と一致しているか」
 14. 「バージョンや履歴等、リスト要素数も期待値どおりか」
 
+15. ビルド成果物
+ Kafka.Ksql.Linq -> /home/runner/work/jinto/jinto/src/bin/Release/net8.0/Kafka.Ksql.Linq.dll
+ Kafka.Ksql.Linq.Importer -> /home/runner/work/jinto/jinto/Kafka.Ksql.Linq.Importer/bin/Release/net8.0/Kafka.Ksql.Linq.Importer.dll
+
 
 本ガイドラインは、今後も現場運用・AI反省のたびに随時アップデートせよ！
