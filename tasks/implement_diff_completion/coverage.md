@@ -5,7 +5,7 @@
 | 機能カテゴリ | 機能 | 状況 | 対応タスク名 | 備考 |
 | --- | --- | --- | --- | --- |
 | Topics | Fluent APIによるトピック設定 | ✅ 実装済 | topic_fluent_api_extension | EntityModelBuilder, extension methods |
-| Topics | パーティショニング戦略設定 | ❌ 未実装 | topic_fluent_api_extension | | 
+| Topics | パーティショニング戦略設定 | ✅ 実装済 | topic_fluent_api_extension | Partitioner option added |
 | Topics | ISRの最小数設定 | ❌ 未実装 | topic_fluent_api_extension | |
 | Streams | Window DSL機能 | ❌ 未実装 | window_dsl_feature | TumblingWindow等 |
 | Streams | 購読モードの固定化制御 | ⏳ 部分実装 | subscription_mode_fixed | UseManualCommitの実行時切替未実装 |
