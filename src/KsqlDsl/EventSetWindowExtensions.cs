@@ -1,5 +1,5 @@
-using Kafka.Ksql.Linq.Query.Abstractions;
 using System;
+using System.Linq;
 
 namespace Kafka.Ksql.Linq;
 
@@ -8,7 +8,7 @@ namespace Kafka.Ksql.Linq;
 /// </summary>
 internal static class EventSetWindowExtensions
 {
-    internal static IEventSet<T> Window<T>(this IEventSet<T> source, WindowDef windowDef) where T : class
+    internal static IQueryable<T> Window<T>(this IQueryable<T> source, WindowDef windowDef) where T : class
     {
         // This method is only for expression translation and should not be executed
         throw new NotSupportedException("Window is for expression translation only.");

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using Kafka.Ksql.Linq.Query.Pipeline;
+using Kafka.Ksql.Linq;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
