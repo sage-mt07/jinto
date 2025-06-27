@@ -409,6 +409,8 @@ Chart_60min
 ```csharp
 var candles1m = ctx.Charts.Window(1).ToList();
 var candles5m = ctx.Charts.Window(5).ToList();
+// TimeSpan 指定も可能
+var candles15m = ctx.Charts.Window(TimeSpan.FromMinutes(15)).ToList();
 ```
 戻り値は IQueryable<Chart> として取得され、通常のLINQ式が適用可能です。
 

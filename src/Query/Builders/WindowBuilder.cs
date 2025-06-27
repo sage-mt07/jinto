@@ -129,6 +129,14 @@ internal class WindowBuilder : IKsqlBuilder
                 case "EmitFinal":
                     _emitBehavior = "FINAL";
                     break;
+
+                case "Window":
+                    _windowType = "TUMBLING";
+                    if (node.Arguments.Count > 1)
+                    {
+                        _size = ExtractTimeSpanValue(node);
+                    }
+                    break;
             }
 
             return node;

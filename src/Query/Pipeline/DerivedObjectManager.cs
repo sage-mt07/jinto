@@ -96,6 +96,29 @@ internal class DerivedObjectManager : IDerivedObjectManager
         return derivedName;
     }
 
+    public async Task<string> CreateWindowedStreamAsync(string baseName, int minutes, Expression linqExpression)
+    {
+        var derivedName = $"{baseName.ToLower()}_{minutes}min_window";
+        var createQuery = _ddlGenerator.GenerateCreateStreamAs(derivedName, baseName, linqExpression);
+
+        await _executor.ExecuteDDLAsync(createQuery);
+
+        var derivedInfo = new DerivedObjectInfo
+        {
+            Name = derivedName,
+            Type = DerivedObjectType.Stream,
+            BaseObject = baseName,
+            Expression = linqExpression,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        _derivedObjects.TryAdd(derivedName, derivedInfo);
+
+        _logger.LogDebug("Created windowed stream async: {DerivedName} from {BaseName}", derivedName, baseName);
+
+        return derivedName;
+    }
+
     public async Task<string> CreateDerivedTableAsync(string baseName, Expression linqExpression)
     {
         var derivedName = GenerateDerivedName(baseName, "TABLE");

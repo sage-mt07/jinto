@@ -122,9 +122,20 @@ internal class QueryExecutionPipeline : IQueryTranslator, IDisposable
                     _logger.LogDebug("Created derived table for GROUP BY: {DerivedObject}", currentObjectName);
                     break;
                 case "Window":
-                    currentObjectName = await _derivedObjectManager.CreateDerivedTableAsync(
-                        currentObjectName, methodCall);
-                    _logger.LogDebug("Created derived table for WINDOW: {DerivedObject}", currentObjectName);
+                    if (methodCall.Arguments.Count > 1 &&
+                        (methodCall.Arguments[1].Type == typeof(TimeSpan) || methodCall.Arguments[1].Type == typeof(int)))
+                    {
+                        var minutes = ExtractWindowMinutes(methodCall.Arguments[1]);
+                        currentObjectName = await _derivedObjectManager.CreateWindowedStreamAsync(
+                            currentObjectName, minutes, methodCall);
+                        _logger.LogDebug("Created windowed stream for WINDOW: {DerivedObject}", currentObjectName);
+                    }
+                    else
+                    {
+                        currentObjectName = await _derivedObjectManager.CreateDerivedTableAsync(
+                            currentObjectName, methodCall);
+                        _logger.LogDebug("Created derived table for WINDOW: {DerivedObject}", currentObjectName);
+                    }
                     break;
             }
         }
@@ -202,15 +213,36 @@ internal class QueryExecutionPipeline : IQueryTranslator, IDisposable
                 case "Select":
                 case "GroupBy":
                 case "Window":
-                    // シミュレーション用の名前生成
-                    var timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-                    var objectType = (methodCall.Method.Name == "GroupBy" || analysis.HasAggregation) ? "table" : "stream";
-                    currentObjectName = $"{currentObjectName}_{objectType}_{timestamp}";
+                    if (methodCall.Method.Name == "Window" && methodCall.Arguments.Count > 1 &&
+                        (methodCall.Arguments[1].Type == typeof(TimeSpan) || methodCall.Arguments[1].Type == typeof(int)))
+                    {
+                        var minutes = ExtractWindowMinutes(methodCall.Arguments[1]);
+                        currentObjectName = $"{currentObjectName}_{minutes}min_window";
+                    }
+                    else
+                    {
+                        var timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                        var objectType = (methodCall.Method.Name == "GroupBy" || analysis.HasAggregation) ? "table" : "stream";
+                        currentObjectName = $"{currentObjectName}_{objectType}_{timestamp}";
+                    }
                     break;
             }
         }
 
         return currentObjectName;
+    }
+
+    private int ExtractWindowMinutes(Expression expression)
+    {
+        var lambda = Expression.Lambda(expression);
+        var value = lambda.Compile().DynamicInvoke();
+
+        return value switch
+        {
+            TimeSpan ts => (int)ts.TotalMinutes,
+            int m => m,
+            _ => 0
+        };
     }
 
     public async Task StopAllStreamingQueriesAsync()
