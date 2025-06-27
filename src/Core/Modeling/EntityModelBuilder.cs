@@ -43,7 +43,8 @@ public class EntityModelBuilder<T> : IEntityBuilder<T> where T : class
             DeadLetterQueue = current.DeadLetterQueue,
             Description = current.Description,
             MaxMessageBytes = current.MaxMessageBytes,
-            SegmentBytes = current.SegmentBytes
+            SegmentBytes = current.SegmentBytes,
+            MinInSyncReplicas = current.MinInSyncReplicas
         };
 
         _entityModel.TopicAttribute = newAttr;
@@ -67,6 +68,16 @@ public class EntityModelBuilder<T> : IEntityBuilder<T> where T : class
 
         var attr = EnsureTopicAttribute();
         attr.ReplicationFactor = replicationFactor;
+        return this;
+    }
+
+    public EntityModelBuilder<T> WithMinInSyncReplicas(int minInSyncReplicas)
+    {
+        if (minInSyncReplicas <= 0)
+            throw new ArgumentException("MinInSyncReplicas must be greater than 0", nameof(minInSyncReplicas));
+
+        var attr = EnsureTopicAttribute();
+        attr.MinInSyncReplicas = minInSyncReplicas;
         return this;
     }
 

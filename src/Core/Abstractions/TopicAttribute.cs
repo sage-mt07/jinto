@@ -11,6 +11,11 @@ public class TopicAttribute : Attribute
 
     public int ReplicationFactor { get; set; } = 1;
 
+    /// <summary>
+    /// ISR最小数。Kafkaのトピック可用性を保つには必須
+    /// </summary>
+    public int? MinInSyncReplicas { get; set; }
+
     public long RetentionMs { get; set; } = 604800000; // 7 days
 
     public bool Compaction { get; set; } = false;
@@ -54,6 +59,9 @@ public class TopicAttribute : Attribute
 
         if (SegmentBytes.HasValue)
             config["segment.bytes"] = (int)SegmentBytes.Value;
+
+        if (MinInSyncReplicas.HasValue)
+            config["min.insync.replicas"] = MinInSyncReplicas.Value;
 
         return config;
     }
