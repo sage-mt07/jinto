@@ -1,5 +1,7 @@
 using System;
 using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
 
 namespace Kafka.Ksql.Linq;
 
@@ -8,27 +10,85 @@ namespace Kafka.Ksql.Linq;
 /// </summary>
 internal static class EventSetWindowExtensions
 {
+    private static readonly MethodInfo WindowMethod = typeof(EventSetWindowExtensions)
+        .GetMethods(BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public)
+        .First(m => m.Name == nameof(Window) && m.IsGenericMethodDefinition);
+
     internal static IQueryable<T> Window<T>(this IQueryable<T> source, WindowDef windowDef) where T : class
     {
-        // This method is only for expression translation and should not be executed
-        throw new NotSupportedException("Window is for expression translation only.");
+        if (source is null) throw new ArgumentNullException(nameof(source));
+        if (windowDef is null) throw new ArgumentNullException(nameof(windowDef));
+
+        var call = Expression.Call(
+            null,
+            WindowMethod.MakeGenericMethod(typeof(T)),
+            source.Expression,
+            Expression.Constant(windowDef, typeof(WindowDef)));
+
+        return source.Provider.CreateQuery<T>(call);
     }
 }
 
 /// <summary>
 /// Represents a chainable window definition used only for LINQ expression generation.
 /// </summary>
-public class WindowDef
+internal class WindowDef
 {
-    public WindowDef TumblingWindow() => this;
-    public WindowDef HoppingWindow() => this;
-    public WindowDef SessionWindow() => this;
-    public WindowDef Size(TimeSpan ts) => this;
-    public WindowDef AdvanceBy(TimeSpan ts) => this;
-    public WindowDef Gap(TimeSpan ts) => this;
-    public WindowDef Retention(TimeSpan ts) => this;
-    public WindowDef GracePeriod(TimeSpan ts) => this;
-    public WindowDef EmitFinal() => this;
+    internal readonly List<(string Name, object? Value)> Operations = new();
+
+    public WindowDef TumblingWindow()
+    {
+        Operations.Add((nameof(TumblingWindow), null));
+        return this;
+    }
+
+    public WindowDef HoppingWindow()
+    {
+        Operations.Add((nameof(HoppingWindow), null));
+        return this;
+    }
+
+    public WindowDef SessionWindow()
+    {
+        Operations.Add((nameof(SessionWindow), null));
+        return this;
+    }
+
+    public WindowDef Size(TimeSpan ts)
+    {
+        Operations.Add((nameof(Size), ts));
+        return this;
+    }
+
+    public WindowDef AdvanceBy(TimeSpan ts)
+    {
+        Operations.Add((nameof(AdvanceBy), ts));
+        return this;
+    }
+
+    public WindowDef Gap(TimeSpan ts)
+    {
+        Operations.Add((nameof(Gap), ts));
+        return this;
+    }
+
+    public WindowDef Retention(TimeSpan ts)
+    {
+        Operations.Add((nameof(Retention), ts));
+        return this;
+    }
+
+    public WindowDef GracePeriod(TimeSpan ts)
+    {
+        Operations.Add((nameof(GracePeriod), ts));
+        return this;
+    }
+
+    public WindowDef EmitFinal()
+    {
+        Operations.Add((nameof(EmitFinal), null));
+        return this;
+    }
 }
 
 public static class TumblingWindow
