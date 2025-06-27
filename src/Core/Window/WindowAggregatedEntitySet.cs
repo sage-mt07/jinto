@@ -304,6 +304,8 @@ internal class AggregationExpressionVisitor : ExpressionVisitor
             "COUNT" => "COUNT(*)",
             "MAX" => GenerateFunctionCall("MAX", methodCall),
             "MIN" => GenerateFunctionCall("MIN", methodCall),
+            "LATESTBYOFFSET" => GenerateFunctionCall("LATEST_BY_OFFSET", methodCall),
+            "EARLIESTBYOFFSET" => GenerateFunctionCall("EARLIEST_BY_OFFSET", methodCall),
             "AVERAGE" => GenerateFunctionCall("AVG", methodCall),
             _ => $"{methodName}(UNKNOWN)"
         };
