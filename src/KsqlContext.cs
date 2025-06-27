@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Runtime.CompilerServices;
 using ConfluentSchemaRegistry = Confluent.SchemaRegistry;
 
 namespace Kafka.Ksql.Linq.Application;
@@ -357,7 +358,7 @@ internal class EventSetWithServices<T> : IEntitySet<T> where T : class
     /// <summary>
     /// IAsyncEnumerable実装：ストリーミング消費
     /// </summary>
-    public async IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default)
+    public async IAsyncEnumerator<T> GetAsyncEnumerator([EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         // 簡略実装：実際のストリーミングConsumerと連携
         var results = await ToListAsync(cancellationToken);
