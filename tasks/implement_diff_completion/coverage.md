@@ -10,7 +10,7 @@
 | Streams | Window DSL機能 | ✅ 実装済 | window_dsl_feature | TumblingWindow等 |
 | Streams | 購読モードの固定化制御 | ⏳ 部分実装 | subscription_mode_fixed | UseManualCommitの実行時切替未実装 |
 | Tables | LATEST_BY_OFFSET / EARLIEST_BY_OFFSET | ✅ 実装済 | ksql_offset_aggregates | ProjectionBuilderで変換完了 |
-| Tables | 複数ウィンドウ定義とアクセス | ❌ 未実装 | multi_window_access | |
+| Tables | 複数ウィンドウ定義とアクセス | ✅ 実装済 | multi_window_access | |
 | Tables | HasTopic()メソッド | ✅ 実装済 | has_topic_api_extension | EntityModelBuilder & tests |
 | Tables | WindowStart / WindowEndプロパティ | ❌ 未実装 | window_start_end_support | |
 | Query & Subscription | 手動コミット購読処理の型分岐 | ⏳ 不完全 | manual_commit_extension | Ack操作・型分岐不足 |
