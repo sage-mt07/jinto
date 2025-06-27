@@ -34,7 +34,13 @@ public class CoreSettingsProviderTests
             Assert.Equal(ValidationMode.Strict, e.OldSettings.ValidationMode);
             Assert.Equal(ValidationMode.Relaxed, e.NewSettings.ValidationMode);
         };
-        var newSettings = new CoreSettings { ValidationMode = ValidationMode.Relaxed };
+        var newSettings = new CoreSettings
+        {
+            ValidationMode = ValidationMode.Relaxed,
+            KafkaBootstrapServers = "localhost:9092",
+            ApplicationId = "app",
+            StateStoreDirectory = "/tmp"
+        };
         provider.UpdateSettings(newSettings);
         Assert.True(raised);
         var retrieved = provider.GetSettings();

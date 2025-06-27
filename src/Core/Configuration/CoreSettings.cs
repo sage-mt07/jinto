@@ -1,5 +1,6 @@
 ﻿using Kafka.Ksql.Linq.Configuration;
 using Kafka.Ksql.Linq.Core.Exceptions;
+using System;
 
 namespace Kafka.Ksql.Linq.Core.Configuration;
 
