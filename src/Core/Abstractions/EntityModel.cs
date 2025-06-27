@@ -78,4 +78,14 @@ public class EntityModel
     /// 手動コミットモード使用フラグ
     /// </summary>
     public bool UseManualCommit { get; set; } = false;
+
+    /// <summary>
+    /// 処理エラー発生時のアクション
+    /// </summary>
+    public ErrorAction ErrorAction { get; set; } = ErrorAction.Skip;
+
+    /// <summary>
+    /// デシリアライズ失敗時のポリシー
+    /// </summary>
+    public DeserializationErrorPolicy DeserializationErrorPolicy { get; set; } = DeserializationErrorPolicy.Skip;
 }

@@ -3,6 +3,7 @@ using Kafka.Ksql.Linq.Core.Abstractions;
 using Kafka.Ksql.Linq.Core.Context;
 using Kafka.Ksql.Linq.Infrastructure.Admin;
 using Kafka.Ksql.Linq.Messaging.Consumers;
+using Kafka.Ksql.Linq.Messaging.Producers;
 using Kafka.Ksql.Linq.Serialization.Abstractions;
 using Kafka.Ksql.Linq.Serialization.Avro.Management;
 using System;
@@ -21,10 +22,12 @@ public abstract class KsqlContext : KafkaContextCore
 {
     private readonly KafkaProducerManager _producerManager;
     private readonly KafkaConsumerManager _consumerManager;
+    private readonly DlqProducer _dlqProducer;
     private readonly Lazy<ConfluentSchemaRegistry.ISchemaRegistryClient> _schemaRegistryClient;
     private readonly IAvroSchemaRegistrationService _schemaRegistrationService;
 
     private readonly KafkaAdminService _adminService;
+    private readonly KsqlDslOptions _dslOptions;
     /// <summary>
     /// テスト用にスキーマ登録をスキップするか判定するフック
     /// </summary>
@@ -34,8 +37,9 @@ public abstract class KsqlContext : KafkaContextCore
     {
         _schemaRegistryClient = new Lazy<ConfluentSchemaRegistry.ISchemaRegistryClient>(CreateSchemaRegistryClient);
         _schemaRegistrationService = CreateSchemaRegistrationService();
+        _dslOptions = new KsqlDslOptions();
         _adminService = new KafkaAdminService(
-        Microsoft.Extensions.Options.Options.Create(new KsqlDslOptions()),
+        Microsoft.Extensions.Options.Options.Create(_dslOptions),
         null);
         try
         {
@@ -45,11 +49,17 @@ public abstract class KsqlContext : KafkaContextCore
             }
 
             _producerManager = new KafkaProducerManager(
-                Microsoft.Extensions.Options.Options.Create(new KsqlDslOptions()),
+                Microsoft.Extensions.Options.Options.Create(_dslOptions),
                 null);
 
+            _dlqProducer = new DlqProducer(
+                _producerManager,
+                new DlqOptions { TopicName = _dslOptions.DlqTopicName });
+            _dlqProducer.InitializeAsync().GetAwaiter().GetResult();
+
             _consumerManager = new KafkaConsumerManager(
-                Microsoft.Extensions.Options.Options.Create(new KsqlDslOptions()),
+                Microsoft.Extensions.Options.Options.Create(_dslOptions),
+                _dlqProducer,
                 null);
         }
         catch (Exception ex)
@@ -63,8 +73,9 @@ public abstract class KsqlContext : KafkaContextCore
     {
         _schemaRegistryClient = new Lazy<ConfluentSchemaRegistry.ISchemaRegistryClient>(CreateSchemaRegistryClient);
         _schemaRegistrationService = CreateSchemaRegistrationService();
+        _dslOptions = new KsqlDslOptions();
         _adminService = new KafkaAdminService(
-        Microsoft.Extensions.Options.Options.Create(new KsqlDslOptions()),
+        Microsoft.Extensions.Options.Options.Create(_dslOptions),
         null);
         try
         {
@@ -74,11 +85,17 @@ public abstract class KsqlContext : KafkaContextCore
             }
 
             _producerManager = new KafkaProducerManager(
-                Microsoft.Extensions.Options.Options.Create(new KsqlDslOptions()),
+                Microsoft.Extensions.Options.Options.Create(_dslOptions),
                 null);
 
+            _dlqProducer = new DlqProducer(
+                _producerManager,
+                new DlqOptions { TopicName = _dslOptions.DlqTopicName });
+            _dlqProducer.InitializeAsync().GetAwaiter().GetResult();
+
             _consumerManager = new KafkaConsumerManager(
-                Microsoft.Extensions.Options.Options.Create(new KsqlDslOptions()),
+                Microsoft.Extensions.Options.Options.Create(_dslOptions),
+                _dlqProducer,
                 null);
         }
         catch (Exception ex)
@@ -136,7 +153,7 @@ public abstract class KsqlContext : KafkaContextCore
     }
     public string GetDlqTopicName()
     {
-        return new KsqlDslOptions().DlqTopicName; // デフォルトは "dead.letter.queue"
+        return _dslOptions.DlqTopicName;
     }
     /// <summary>
     /// スキーマ登録の同期実行（接続確認も兼ねる）
@@ -242,6 +259,7 @@ public abstract class KsqlContext : KafkaContextCore
         {
             _producerManager?.Dispose();
             _consumerManager?.Dispose();
+            _dlqProducer?.Dispose();
             _adminService?.Dispose();
 
             if (_schemaRegistryClient.IsValueCreated)
@@ -257,6 +275,7 @@ public abstract class KsqlContext : KafkaContextCore
     {
         _producerManager?.Dispose();
         _consumerManager?.Dispose();
+        _dlqProducer?.Dispose();
         _adminService?.Dispose();
 
         if (_schemaRegistryClient.IsValueCreated)

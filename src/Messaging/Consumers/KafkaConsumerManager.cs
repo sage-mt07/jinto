@@ -6,6 +6,7 @@ using Kafka.Ksql.Linq.Core.Extensions;
 using Kafka.Ksql.Linq.Messaging.Abstractions;
 using Kafka.Ksql.Linq.Messaging.Configuration;
 using Kafka.Ksql.Linq.Messaging.Consumers.Core;
+using Kafka.Ksql.Linq.Messaging.Producers;
 using Kafka.Ksql.Linq.Serialization.Abstractions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -33,11 +34,15 @@ internal class KafkaConsumerManager : IDisposable
     private readonly Lazy<ConfluentSchemaRegistry.ISchemaRegistryClient> _schemaRegistryClient;
     private bool _disposed = false;
 
+    private readonly DlqProducer _dlqProducer;
+
     public KafkaConsumerManager(
         IOptions<KsqlDslOptions> options,
+        DlqProducer dlqProducer,
         ILoggerFactory? loggerFactory = null)
     {
         _options = options?.Value ?? throw new ArgumentNullException(nameof(options));
+        _dlqProducer = dlqProducer ?? throw new ArgumentNullException(nameof(dlqProducer));
         _logger = loggerFactory.CreateLoggerOrNull<KafkaConsumerManager>();
         _loggerFactory = loggerFactory;
 
@@ -73,12 +78,19 @@ internal class KafkaConsumerManager : IDisposable
             var deserializerPair = await serializationManager.GetDeserializersAsync();
 
             // 統合Consumer作成
+            var policy = entityModel.DeserializationErrorPolicy == default
+                ? _options.DeserializationErrorPolicy
+                : entityModel.DeserializationErrorPolicy;
+
             var consumer = new KafkaConsumer<T, object>(
                 rawConsumer,
                 deserializerPair.KeyDeserializer,
                 deserializerPair.ValueDeserializer,
                 topicName,
                 entityModel,
+                policy,
+                _options.DlqTopicName,
+                _dlqProducer,
                 _loggerFactory);
 
             _consumers.TryAdd(entityType, consumer);

@@ -15,7 +15,7 @@ namespace Kafka.Ksql.Linq.Messaging.Producers;
 internal class DlqProducer : IErrorSink, IDisposable
 {
     private readonly KafkaProducerManager _producerManager;
-    private readonly string _dlqTopicSuffix;
+    private readonly string _dlqTopicName;
     private readonly DlqOptions _options;
     private bool _isInitialized = false;
     private bool _disposed = false;
@@ -26,7 +26,7 @@ internal class DlqProducer : IErrorSink, IDisposable
     {
         _producerManager = producerManager ?? throw new ArgumentNullException(nameof(producerManager));
         _options = options ?? new DlqOptions();
-        _dlqTopicSuffix = _options.TopicSuffix;
+        _dlqTopicName = _options.TopicName;
     }
 
     /// <summary>
@@ -42,15 +42,14 @@ internal class DlqProducer : IErrorSink, IDisposable
         try
         {
             var dlqMessage = CreateDlqMessage(errorContext, messageContext);
-            var dlqTopicName = GenerateDlqTopicName(messageContext);
 
             // DLQトピックに送信
-            await SendToDlqTopicAsync(dlqTopicName, dlqMessage);
+            await SendToDlqTopicAsync(dlqMessage);
 
             // メトリクス更新
             _options.MetricsCallback?.Invoke(new DlqMetrics
             {
-                TopicName = dlqTopicName,
+                TopicName = _dlqTopicName,
                 OriginalTopic = messageContext.Tags.GetValueOrDefault("original_topic")?.ToString() ?? "unknown",
                 ErrorType = errorContext.Exception.GetType().Name,
                 ProcessedAt = DateTime.UtcNow
@@ -149,23 +148,39 @@ internal class DlqProducer : IErrorSink, IDisposable
     }
 
     /// <summary>
-    /// DLQトピック名の生成
+    /// DLQトピックへの送信
     /// </summary>
-    private string GenerateDlqTopicName(KafkaMessageContext messageContext)
+    private async Task SendToDlqTopicAsync(DlqEnvelope dlqMessage)
     {
-        var originalTopic = messageContext.Tags.GetValueOrDefault("original_topic")?.ToString() ?? "unknown";
-        return $"{originalTopic}{_dlqTopicSuffix}";
+        await _producerManager.SendAsync(_dlqTopicName, dlqMessage);
     }
 
     /// <summary>
-    /// DLQトピックへの送信
+    /// デシリアライズ失敗データをDLQへ送信
     /// </summary>
-    private async Task SendToDlqTopicAsync(string dlqTopicName, DlqEnvelope dlqMessage)
+    public async Task SendAsync(byte[]? data, System.Exception exception, string originalTopic)
     {
-        // TODO: 実際のProducerManager経由での送信実装
-        // 現在は仮実装
-        Console.WriteLine($"[DLQ] Sending to topic: {dlqTopicName}");
-        await Task.Delay(10); // 送信模擬
+        var context = new KafkaMessageContext
+        {
+            MessageId = Guid.NewGuid().ToString(),
+            Tags = new Dictionary<string, object>
+            {
+                ["original_topic"] = originalTopic,
+                ["error_phase"] = "Deserialization"
+            }
+        };
+
+        var errorContext = new ErrorContext
+        {
+            Exception = exception,
+            OriginalMessage = data,
+            AttemptCount = 1,
+            FirstAttemptTime = DateTime.UtcNow,
+            LastAttemptTime = DateTime.UtcNow,
+            ErrorPhase = "Deserialization"
+        };
+
+        await HandleErrorAsync(errorContext, context);
     }
 
     public void Dispose()
@@ -183,7 +198,11 @@ internal class DlqProducer : IErrorSink, IDisposable
 /// </summary>
 public class DlqOptions
 {
-    public string TopicSuffix { get; set; } = "_dlq";
+    /// <summary>
+    /// 共通DLQトピック名
+    /// </summary>
+    public string TopicName { get; set; } = "dead.letter.queue";
+
     public bool EnableCompression { get; set; } = true;
     public int MaxRetryAttempts { get; set; } = 3;
     public TimeSpan RetryInterval { get; set; } = TimeSpan.FromSeconds(1);

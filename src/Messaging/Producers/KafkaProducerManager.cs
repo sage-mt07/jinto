@@ -26,6 +26,7 @@ internal class KafkaProducerManager : IDisposable
     private readonly ILogger? _logger;
     private readonly ILoggerFactory? _loggerFactory;
     private readonly ConcurrentDictionary<Type, object> _producers = new();
+    private readonly ConcurrentDictionary<(Type, string), object> _topicProducers = new();
     private readonly ConcurrentDictionary<Type, object> _serializationManagers = new();
     private readonly Lazy<ConfluentSchemaRegistry.ISchemaRegistryClient> _schemaRegistryClient;
     private bool _disposed = false;
@@ -89,6 +90,34 @@ internal class KafkaProducerManager : IDisposable
             _logger?.LogError(ex, "Failed to create producer: {EntityType}", entityType.Name);
             throw;
         }
+    }
+
+    private async Task<IKafkaProducer<T>> GetProducerAsync<T>(string topicName) where T : class
+    {
+        var key = (typeof(T), topicName);
+        if (_topicProducers.TryGetValue(key, out var existing))
+        {
+            return (IKafkaProducer<T>)existing;
+        }
+
+        var entityModel = GetEntityModel<T>();
+
+        var config = BuildProducerConfig(topicName);
+        var rawProducer = new ProducerBuilder<object, object>(config).Build();
+
+        var serializationManager = GetOrCreateSerializationManager<T>();
+        var serializerPair = await serializationManager.GetSerializersAsync();
+
+        var producer = new KafkaProducer<T>(
+            rawProducer,
+            serializerPair.KeySerializer,
+            serializerPair.ValueSerializer,
+            topicName,
+            entityModel,
+            _loggerFactory);
+
+        _topicProducers.TryAdd(key, producer);
+        return producer;
     }
     /// <summary>
     /// Producer設定構築
@@ -256,6 +285,25 @@ internal class KafkaProducerManager : IDisposable
 
         await producer.SendAsync(entity, context, cancellationToken);
     }
+
+    public async Task SendAsync<T>(string topicName, T entity, CancellationToken cancellationToken = default) where T : class
+    {
+        if (entity == null)
+            throw new ArgumentNullException(nameof(entity));
+
+        var producer = await GetProducerAsync<T>(topicName);
+        var context = new KafkaMessageContext
+        {
+            MessageId = Guid.NewGuid().ToString(),
+            Tags = new Dictionary<string, object>
+            {
+                ["entity_type"] = typeof(T).Name,
+                ["method"] = "SendAsync"
+            }
+        };
+
+        await producer.SendAsync(entity, context, cancellationToken);
+    }
     // 既存のメソッドは変更なし（SendAsync, SendRangeAsync, BuildProducerConfig）
 
     // ✅ 修正：Disposeメソッドの更新
@@ -274,6 +322,15 @@ internal class KafkaProducerManager : IDisposable
                 }
             }
             _producers.Clear();
+
+            foreach (var producer in _topicProducers.Values)
+            {
+                if (producer is IDisposable disposable)
+                {
+                    disposable.Dispose();
+                }
+            }
+            _topicProducers.Clear();
 
             // ✅ 追加：SerializationManagerの解放
             foreach (var manager in _serializationManagers.Values)

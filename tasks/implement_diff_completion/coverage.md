@@ -18,6 +18,6 @@
 | Query & Subscription | yield型ForEachAsyncでのtry-catch | ✅ 実装済 | foreach_trycatch_support | |
 | Special Types | char型警告 | ✅ 実装済 | special_type_handling | ModelBuilderで警告 |
 | Special Types | short型自動int変換 | ✅ 実装済 | special_type_handling | DDL/Avro変換対応 |
-| Error Handling | チェーン可能なエラー処理DSL | ⏳ 部分実装 | chainable_error_dsl | OnError→Map→Retryの連鎖未完成 |
-| Error Handling | デシリアライズエラーポリシー | ❌ 未実装 | deserialization_error_policy | |
-| Error Handling | ModelBuilderでのDLQ設定 | ⏳ 部分実装 | dlq_configuration_support | TopicAttributeには存在 |
+| Error Handling | チェーン可能なエラー処理DSL | ✅ 実装済 | chainable_error_dsl | EventSetErrorHandlingExtensionsで実装 |
+| Error Handling | デシリアライズエラーポリシー | ✅ 実装済 | deserialization_error_policy | 失敗バイト列をDLQへ送信 |
+| Error Handling | ModelBuilderでのDLQ設定 | ❌ 未実装 | dlq_configuration_support | グローバルDLQ固定 |
