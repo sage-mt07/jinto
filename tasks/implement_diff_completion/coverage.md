@@ -7,7 +7,7 @@
 | Topics | Fluent APIによるトピック設定 | ✅ 実装済 | topic_fluent_api_extension | EntityModelBuilder, extension methods |
 | Topics | パーティショニング戦略設定 | ✅ 実装済 | topic_fluent_api_extension | Partitioner option added |
 | Topics | ISRの最小数設定 | ❌ 未実装 | topic_fluent_api_extension | |
-| Streams | Window DSL機能 | ❌ 未実装 | window_dsl_feature | TumblingWindow等 |
+| Streams | Window DSL機能 | ✅ 実装済 | window_dsl_feature | TumblingWindow等 |
 | Streams | 購読モードの固定化制御 | ⏳ 部分実装 | subscription_mode_fixed | UseManualCommitの実行時切替未実装 |
 | Tables | LATEST_BY_OFFSET / EARLIEST_BY_OFFSET | ✅ 実装済 | ksql_offset_aggregates | ProjectionBuilderで変換完了 |
 | Tables | 複数ウィンドウ定義とアクセス | ❌ 未実装 | multi_window_access | |

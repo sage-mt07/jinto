@@ -41,6 +41,12 @@ internal class StreamTableAnalyzer
                 CanChain = false,
                 IsAggregation = true
             },
+            ["Window"] = new OperationCharacteristics
+            {
+                ResultType = StreamTableType.Table,
+                RequiresDerivedObject = true,
+                CanChain = true
+            },
             ["Take"] = new OperationCharacteristics
             {
                 ResultType = StreamTableType.Stream,
@@ -135,6 +141,13 @@ internal class StreamTableAnalyzer
                     RequiresTableOutput = true;
                     RequiresStreamOutput = false;
                     _logger.LogDebug("Detected GroupBy operation - requires TABLE output");
+                }
+
+                if (methodName == "Window")
+                {
+                    RequiresTableOutput = true;
+                    RequiresStreamOutput = false;
+                    _logger.LogDebug("Detected Window operation - requires TABLE output");
                 }
 
                 // Select after GroupBy should produce Table

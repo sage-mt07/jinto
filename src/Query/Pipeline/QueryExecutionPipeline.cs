@@ -121,6 +121,11 @@ internal class QueryExecutionPipeline : IQueryTranslator, IDisposable
                         currentObjectName, methodCall);
                     _logger.LogDebug("Created derived table for GROUP BY: {DerivedObject}", currentObjectName);
                     break;
+                case "Window":
+                    currentObjectName = await _derivedObjectManager.CreateDerivedTableAsync(
+                        currentObjectName, methodCall);
+                    _logger.LogDebug("Created derived table for WINDOW: {DerivedObject}", currentObjectName);
+                    break;
             }
         }
 
@@ -196,6 +201,7 @@ internal class QueryExecutionPipeline : IQueryTranslator, IDisposable
                 case "Where":
                 case "Select":
                 case "GroupBy":
+                case "Window":
                     // シミュレーション用の名前生成
                     var timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
                     var objectType = (methodCall.Method.Name == "GroupBy" || analysis.HasAggregation) ? "table" : "stream";
