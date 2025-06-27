@@ -367,6 +367,24 @@ internal class EventSetWithServices<T> : IEntitySet<T> where T : class
         }
     }
 
+    protected virtual IManualCommitMessage<T> CreateManualCommitMessage(T item)
+        => new ManualCommitMessage<T>(item, () => Task.CompletedTask, () => Task.CompletedTask);
+
+    public async IAsyncEnumerable<object> ForEachAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        await foreach (var item in GetAsyncEnumerator(cancellationToken))
+        {
+            if (_entityModel.UseManualCommit)
+            {
+                yield return CreateManualCommitMessage(item);
+            }
+            else
+            {
+                yield return item;
+            }
+        }
+    }
+
     // Metadata取得
     public string GetTopicName() => _entityModel.TopicAttribute?.TopicName ?? typeof(T).Name;
     public EntityModel GetEntityModel() => _entityModel;

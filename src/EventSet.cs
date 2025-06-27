@@ -47,8 +47,37 @@ public abstract class EventSet<T> : IEntitySet<T> where T : class
     {
         await using var enumerator = GetAsyncEnumerator(cancellationToken);
 
-        while (await enumerator.MoveNextAsync())
+        while (true)
         {
+            bool hasNext;
+            try
+            {
+                hasNext = await enumerator.MoveNextAsync();
+            }
+            catch (Exception ex)
+            {
+                var ctx = new KafkaMessageContext
+                {
+                    MessageId = Guid.NewGuid().ToString(),
+                    Tags = new Dictionary<string, object>
+                    {
+                        ["processing_phase"] = "ForEachAsync"
+                    }
+                };
+
+                var shouldContinue = await _errorHandlingContext.HandleErrorAsync(default(T)!, ex, ctx);
+
+                if (!shouldContinue)
+                {
+                    continue;
+                }
+
+                throw;
+            }
+
+            if (!hasNext)
+                yield break;
+
             yield return enumerator.Current;
         }
     }
@@ -153,6 +182,32 @@ public abstract class EventSet<T> : IEntitySet<T> where T : class
                 ["timestamp"] = DateTime.UtcNow
             }
         };
+    }
+
+    /// <summary>
+    /// ManualCommitMessage インスタンスを作成します
+    /// </summary>
+    protected virtual IManualCommitMessage<T> CreateManualCommitMessage(T item)
+    {
+        return new ManualCommitMessage<T>(item, () => Task.CompletedTask, () => Task.CompletedTask);
+    }
+
+    /// <summary>
+    /// UseManualCommit に応じて型を切り替えてメッセージをyieldします
+    /// </summary>
+    public virtual async IAsyncEnumerable<object> ForEachAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        await foreach (var item in GetAsyncEnumeratorWrapper(cancellationToken))
+        {
+            if (_entityModel.UseManualCommit)
+            {
+                yield return CreateManualCommitMessage(item);
+            }
+            else
+            {
+                yield return item;
+            }
+        }
     }
 
     /// <summary>
