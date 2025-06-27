@@ -1,4 +1,5 @@
-﻿using Kafka.Ksql.Linq.Query.Abstractions;
+using Kafka.Ksql.Linq.Query.Abstractions;
+using Kafka.Ksql.Linq;
 using System;
 using System.Linq.Expressions;
 
@@ -18,7 +19,16 @@ internal class WindowBuilder : IKsqlBuilder
             throw new ArgumentNullException(nameof(expression));
 
         var visitor = new WindowExpressionVisitor();
-        visitor.Visit(expression);
+
+        if (expression is ConstantExpression { Value: WindowDef def })
+        {
+            visitor.VisitWindowDef(def);
+        }
+        else
+        {
+            visitor.Visit(expression);
+        }
+
         return visitor.BuildWindowClause();
     }
 
@@ -34,6 +44,43 @@ internal class WindowBuilder : IKsqlBuilder
         private string _retention = "";
         private string _gracePeriod = "";
         private string _emitBehavior = ""; // "FINAL" or empty (default CHANGES)
+
+        public void VisitWindowDef(WindowDef def)
+        {
+            foreach (var (Name, Value) in def.Operations)
+            {
+                switch (Name)
+                {
+                    case nameof(WindowDef.TumblingWindow):
+                        _windowType = "TUMBLING";
+                        break;
+                    case nameof(WindowDef.HoppingWindow):
+                        _windowType = "HOPPING";
+                        break;
+                    case nameof(WindowDef.SessionWindow):
+                        _windowType = "SESSION";
+                        break;
+                    case nameof(WindowDef.Size):
+                        _size = FormatTimeSpan((TimeSpan)Value!);
+                        break;
+                    case nameof(WindowDef.AdvanceBy):
+                        _advanceBy = FormatTimeSpan((TimeSpan)Value!);
+                        break;
+                    case nameof(WindowDef.Gap):
+                        _gap = FormatTimeSpan((TimeSpan)Value!);
+                        break;
+                    case nameof(WindowDef.Retention):
+                        _retention = FormatTimeSpan((TimeSpan)Value!);
+                        break;
+                    case nameof(WindowDef.GracePeriod):
+                        _gracePeriod = FormatTimeSpan((TimeSpan)Value!);
+                        break;
+                    case nameof(WindowDef.EmitFinal):
+                        _emitBehavior = "FINAL";
+                        break;
+                }
+            }
+        }
 
         protected override Expression VisitMethodCall(MethodCallExpression node)
         {

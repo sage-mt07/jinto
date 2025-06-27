@@ -23,6 +23,7 @@ internal class DDLQueryGenerator : IDDLQueryGenerator
     private readonly IKsqlBuilder _whereBuilder;
     private readonly IKsqlBuilder _projectionBuilder;
     private readonly IKsqlBuilder _groupByBuilder;
+    private readonly IKsqlBuilder _windowBuilder;
     private readonly StreamTableAnalyzer _analyzer;
     private readonly ILogger _logger;
 
@@ -31,6 +32,7 @@ internal class DDLQueryGenerator : IDDLQueryGenerator
         _whereBuilder = new SelectBuilder();
         _projectionBuilder = new ProjectionBuilder();
         _groupByBuilder = new GroupByBuilder();
+        _windowBuilder = new WindowBuilder();
         _analyzer = new StreamTableAnalyzer();
         _logger = loggerFactory.CreateLoggerOrNull<DDLQueryGenerator>();
     }
@@ -80,6 +82,7 @@ internal class DDLQueryGenerator : IDDLQueryGenerator
         var analysis = _analyzer.AnalyzeExpression(linqExpression);
         var selectClause = GenerateSelectClause(linqExpression, analysis);
         var whereClause = GenerateWhereClause(linqExpression, analysis);
+        var windowClause = GenerateWindowClause(linqExpression, analysis);
         var groupByClause = GenerateGroupByClause(linqExpression, analysis);
 
         var query = new StringBuilder($"CREATE TABLE {tableName} AS SELECT {selectClause} FROM {baseObject}");
@@ -87,6 +90,11 @@ internal class DDLQueryGenerator : IDDLQueryGenerator
         if (!string.IsNullOrEmpty(whereClause))
         {
             query.Append($" {whereClause}");
+        }
+
+        if (!string.IsNullOrEmpty(windowClause))
+        {
+            query.Append($" {windowClause}");
         }
 
         if (!string.IsNullOrEmpty(groupByClause))
@@ -168,6 +176,19 @@ internal class DDLQueryGenerator : IDDLQueryGenerator
             {
                 return _whereBuilder.Build(whereExpression);
             }
+        }
+
+        return string.Empty;
+    }
+
+    private string GenerateWindowClause(Expression expression, ExpressionAnalysisResult analysis)
+    {
+        var windowCall = analysis.MethodCalls.FirstOrDefault(mc => mc.Method.Name == "Window");
+
+        if (windowCall != null)
+        {
+            var windowExpression = windowCall.Arguments[1];
+            return _windowBuilder.Build(windowExpression);
         }
 
         return string.Empty;
