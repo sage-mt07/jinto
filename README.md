@@ -24,30 +24,4 @@
 
 このプロジェクトは「AIの能力は使う人の知性に比例する」という信念のもと構築されています。
 
-### Manual Commit Subscription Example
-Entity streams can be marked with `.WithManualCommit()` to disable automatic offset commits.
-When enabled, `ForEachAsync()` yields `IManualCommitMessage<T>` allowing manual control:
-
-```csharp
-await foreach (var msg in context.HighValueOrders.ForEachAsync())
-{
-    try
-    {
-        Process(msg.Value);
-        await msg.CommitAsync();
-    }
-    catch
-    {
-        await msg.NegativeAckAsync();
-    }
-}
-```
-
-Without `.WithManualCommit()` the same call returns entities directly:
-
-```csharp
-await foreach (var order in context.Orders.ForEachAsync())
-{
-    Console.WriteLine(order.OrderId);
-}
-```
+手動コミット機能の使い方については [docs/manual_commit.md](docs/manual_commit.md) を参照してください。
