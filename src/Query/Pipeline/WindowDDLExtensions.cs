@@ -188,6 +188,8 @@ internal class WindowSelectExpressionVisitor : ExpressionVisitor
 
         return methodName switch
         {
+            "WindowStart" => "WINDOWSTART",
+            "WindowEnd" => "WINDOWEND",
             "Sum" => ExtractAggregationColumn("SUM", methodCall),
             "Count" => "COUNT(*)",
             "Max" => ExtractAggregationColumn("MAX", methodCall),

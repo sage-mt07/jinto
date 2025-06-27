@@ -117,6 +117,12 @@ internal class ProjectionBuilder : IKsqlBuilder
             // Handle common KSQL functions that might appear in projections
             switch (methodName)
             {
+                case "WINDOWSTART":
+                    _sb.Append("WINDOWSTART");
+                    break;
+                case "WINDOWEND":
+                    _sb.Append("WINDOWEND");
+                    break;
                 case "TOSTRING":
                     _sb.Append("CAST(");
                     Visit(node.Object ?? node.Arguments[0]);
