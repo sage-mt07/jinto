@@ -16,8 +16,8 @@
 | Query & Subscription | 手動コミット購読処理の型分岐 | ✅ 実装済 | manual_commit_extension | ForEachAsyncでIManualCommitMessageを返す |
 | Query & Subscription | 購読処理の完全実装 | ✅ 実装済 | manual_commit_extension | Commit/NegativeAck呼び出し対応 |
 | Query & Subscription | yield型ForEachAsyncでのtry-catch | ✅ 実装済 | foreach_trycatch_support | |
-| Special Types | char型警告 | ❌ 未実装 | special_type_handling | 警告処理なし |
-| Special Types | short型自動int変換 | ❌ 未実装 | special_type_handling | 変換処理不明確 |
+| Special Types | char型警告 | ✅ 実装済 | special_type_handling | ModelBuilderで警告 |
+| Special Types | short型自動int変換 | ✅ 実装済 | special_type_handling | DDL/Avro変換対応 |
 | Error Handling | チェーン可能なエラー処理DSL | ⏳ 部分実装 | chainable_error_dsl | OnError→Map→Retryの連鎖未完成 |
 | Error Handling | デシリアライズエラーポリシー | ❌ 未実装 | deserialization_error_policy | |
 | Error Handling | ModelBuilderでのDLQ設定 | ⏳ 部分実装 | dlq_configuration_support | TopicAttributeには存在 |

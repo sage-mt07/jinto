@@ -136,8 +136,10 @@ internal class DDLQueryGenerator : IDDLQueryGenerator
         return underlyingType switch
         {
             Type t when t == typeof(int) => "INTEGER",
+            Type t when t == typeof(short) => "INTEGER",
             Type t when t == typeof(long) => "BIGINT",
             Type t when t == typeof(double) => "DOUBLE",
+            Type t when t == typeof(char) => "VARCHAR",
             Type t when t == typeof(decimal) => "DECIMAL",
             Type t when t == typeof(string) => "VARCHAR",
             Type t when t == typeof(bool) => "BOOLEAN",

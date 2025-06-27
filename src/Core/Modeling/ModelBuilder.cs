@@ -170,7 +170,13 @@ internal class ModelBuilder : IModelBuilder
         // プロパティの検証
         foreach (var property in model.AllProperties)
         {
-            if (!IsValidPropertyType(property.PropertyType))
+            var underlying = Nullable.GetUnderlyingType(property.PropertyType) ?? property.PropertyType;
+
+            if (underlying == typeof(char))
+            {
+                result.Warnings.Add($"Property {property.Name} is of type char which may not map cleanly to KSQL. Consider using string instead.");
+            }
+            else if (!IsValidPropertyType(property.PropertyType))
             {
                 result.Warnings.Add($"Property {property.Name} has potentially unsupported type {property.PropertyType.Name}");
             }
