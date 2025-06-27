@@ -77,7 +77,8 @@ public class ManualCommitTests
         }
 
         Assert.Equal(1, set.CommitCalls);
-        Assert.Equal(1, set.NackCalls);
+        // CommitAsync 呼び出し後は NegativeAckAsync は無効となるため 0 を期待
+        Assert.Equal(0, set.NackCalls);
     }
 
     [Fact]
