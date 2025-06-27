@@ -229,13 +229,13 @@ internal class KafkaConsumer<TValue, TKey> : IKafkaConsumer<TValue, TKey>
         }
         catch (Exception ex)
         {
-            HandleDeserializationFailure(valueBytes, ex);
+            HandleDeserializationFailure(valueBytes, ex, consumeResult);
             return null;
         }
 
         if (message == null)
         {
-            HandleDeserializationFailure(valueBytes, new InvalidOperationException($"Failed to deserialize message to type {typeof(TValue).Name}"));
+            HandleDeserializationFailure(valueBytes, new InvalidOperationException($"Failed to deserialize message to type {typeof(TValue).Name}"), consumeResult);
             return null;
         }
 
@@ -283,14 +283,24 @@ internal class KafkaConsumer<TValue, TKey> : IKafkaConsumer<TValue, TKey>
         };
     }
 
-    private void HandleDeserializationFailure(byte[]? data, Exception ex)
+    private void HandleDeserializationFailure(byte[]? data, Exception ex, ConsumeResult<object, object> result)
     {
         _logger?.LogWarning(ex, "Deserialization failed for topic {Topic}", TopicName);
         if (_deserializationPolicy == DeserializationErrorPolicy.DLQ)
         {
             try
             {
-                _dlqProducer.SendAsync(data, ex, TopicName).GetAwaiter().GetResult();
+                _dlqProducer.SendAsync(
+                    data,
+                    ex,
+                    result.Topic,
+                    result.Partition.Value,
+                    result.Offset.Value,
+                    result.Message.Timestamp.UtcDateTime,
+                    result.Message.Headers,
+                    typeof(TKey).FullName ?? string.Empty,
+                    typeof(TValue).FullName ?? string.Empty)
+                    .GetAwaiter().GetResult();
             }
             catch (Exception dlqEx)
             {
