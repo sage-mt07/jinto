@@ -588,6 +588,11 @@ DLQはフレームワークレベルで一元的に構成されており、個�
 
 Kafkaトピック名の変更が必要な場合は、`KsqlDslOptions.DlqTopicName` により一括設定可能です。
 
+#### EventSet拡張: エラーハンドリング & DLQ
+`EventSet<T>` は `.OnError(ErrorAction)` でエラー処理方針を指定し、`.WithRetry() と組み合わせてリトライ制御を行います。内部では `ErrorHandlingContext` が試行回数を管理し、`IErrorSink` 実装の `DlqProducer` が DLQ トピックへ送信します。
+
+DLQの詳細は `KsqlDslOptions.DlqConfiguration` を通じて設定でき、`DlqTopicConfiguration` では保持期間やパーティション数、レプリケーション係数のカスタマイズが可能です。Kafka 起動時には `KafkaAdminService` が DLQ トピックの存在確認と自動作成を行うため、利用者は初期化のみで DLQ 機能を利用できます。
+
 
 DLQは明示的な設定を必要とせず、エラー発生時に内部的に `DlqProducer` が自動的に送信処理を行います。  
 これにより、利用者は特別な設定なしでエラールーティングの恩恵を受けることができます。
