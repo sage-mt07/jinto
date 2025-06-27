@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Kafka.Ksql.Linq.Core.Attributes;
 
 namespace Kafka.Ksql.Linq.Configuration;
 
@@ -9,24 +10,28 @@ public class DlqTopicConfiguration
     /// DLQデータ保持時間（ミリ秒）
     /// デフォルト: 5000（5秒） - 一時退避先として機能
     /// </summary>
+    [DefaultValue(5000)]
     public long RetentionMs { get; set; } = 5000;
 
     /// <summary>
     /// DLQトピックパーティション数
     /// デフォルト: 1（可観測性目的、パフォーマンス重視ではない）
     /// </summary>
+    [DefaultValue(1)]
     public int NumPartitions { get; set; } = 1;
 
     /// <summary>
     /// DLQトピックレプリケーション係数
     /// デフォルト: 1（単一ブローカー環境対応）
     /// </summary>
+    [DefaultValue(1)]
     public short ReplicationFactor { get; set; } = 1;
 
     /// <summary>
     /// DLQトピック自動作成を有効にするか
     /// デフォルト: true（Fail-Fast防止）
     /// </summary>
+    [DefaultValue(true)]
     public bool EnableAutoCreation { get; set; } = true;
 
     /// <summary>
