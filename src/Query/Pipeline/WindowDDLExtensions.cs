@@ -136,11 +136,13 @@ internal static class WindowDDLExtensions
         return type switch
         {
             Type t when t == typeof(int) => "int",
+            Type t when t == typeof(short) => "int",
             Type t when t == typeof(long) => "long",
             Type t when t == typeof(double) => "double",
             Type t when t == typeof(float) => "float",
             Type t when t == typeof(bool) => "boolean",
             Type t when t == typeof(string) => "string",
+            Type t when t == typeof(char) => "string",
             Type t when t == typeof(DateTime) => "long",
             Type t when t == typeof(DateTimeOffset) => "long",
             Type t when t == typeof(decimal) => "bytes",
