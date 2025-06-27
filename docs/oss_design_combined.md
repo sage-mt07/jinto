@@ -776,6 +776,26 @@ Kafka インフラ未構築でも開発可能：先に LINQ や POCO を定義�
 
 学習コスト低減：Kafka 環境のセットアップを待たずに、DSL定義の学習・試行錯誤が可能。。
 
+### 10.5 ReadyStateMonitor による Lag 監視と Ready 判定
+
+StateStore バインディングでは、Kafka コンシューマの Lag を定期的に計測し、完全に追いついた時点を
+"Ready" として通知する `ReadyStateMonitor` を使用します。`TopicStateStoreBinding` 生成時に
+内部でこのモニターが起動し、5 秒間隔で `QueryWatermarkOffsets` と `Position` を照会して Lag を
+計算します。Lag が 0 になると `ReadyStateChanged` イベントが発火し、`WaitUntilReadyAsync` が完了
+します。
+
+```csharp
+// バインディング作成後に同期完了を待機
+var binding = await manager.CreateBindingAsync(stateStore, consumer, entityModel);
+var ready = await binding.WaitUntilReadyAsync(TimeSpan.FromMinutes(5));
+if (!ready) throw new TimeoutException("StateStore sync timed out.");
+
+var info = binding.GetReadyStateInfo();
+Console.WriteLine($"Lag:{info.TotalLag} Ready:{info.IsReady}");
+```
+
+詳細フローやクラス構成は `docs/namespaces/statestore_namespace_doc.md` の Monitoring セクションを参照してください。
+
 
 ## 11. Kafkaのcommit/DB commit・障害時の動作（DBエンジニア必読）
 
