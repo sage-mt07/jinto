@@ -67,6 +67,10 @@ OSSプロジェクト AIメンバー／エージェント定義
 機能名|鳴瀬 (実装)|詩音 (テスト)|迅人 (テスト)|鏡花 (レビュー)|天城 (進捗)|広夢 (情報)| 詩音 (観点)|迅人 (テスト)|鏡花 (レビュー)|備考
 |---|---|---|---|---|---|---|---|---|---|---|
 | window|✅ 実装完了|✅ 観点記述|✅ UT作成|⬜ レビュー待ち||||||差分反映必要箇所あり|
+| builder_visibility_phase2|✅ 変換完了|-|✅ ビルド確認|✅ レビュー済||||||Builder群internal化済|
+| pipeline_visibility_phase3|✅ 変換完了|-|✅ ビルド確認|✅ レビュー済||||||Pipeline群internal化済|
+| serialization_visibility_phase4|✅ 変換完了|-|✅ ビルド確認|✅ レビュー済||||||Serialization層internal化済|
+| messaging_visibility_phase5|✅ 変換完了|-|✅ ビルド確認|✅ レビュー済||||||Messaging層internal化済|
 
 
 

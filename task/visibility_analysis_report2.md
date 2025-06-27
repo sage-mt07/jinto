@@ -371,40 +371,40 @@ public interface IEntitySet<T>
 - [x] REST APIクラス群(5個) → internal
 
 ### Phase 2 (Builder群)
-- [ ] `GroupByBuilder` → internal
-- [ ] `HavingBuilder` → internal
-- [ ] `JoinBuilder` → internal
-- [ ] `ProjectionBuilder` → internal
-- [ ] `SelectBuilder` → internal
-- [ ] `WindowBuilder` → internal
+- [x] `GroupByBuilder` → internal
+- [x] `HavingBuilder` → internal
+- [x] `JoinBuilder` → internal
+- [x] `ProjectionBuilder` → internal
+- [x] `SelectBuilder` → internal
+- [x] `WindowBuilder` → internal
 
 ### Phase 3 (Pipeline群)
-- [ ] `DMLQueryGenerator` → internal
-- [ ] `QueryDiagnostics` → internal
-- [ ] `QueryExecutionResult` → internal
-- [ ] `QueryExecutionMode` → internal enum
-- [ ] `DerivedObjectType` → internal enum
+- [x] `DMLQueryGenerator` → internal
+- [x] `QueryDiagnostics` → internal
+- [x] `QueryExecutionResult` → internal
+- [x] `QueryExecutionMode` → internal enum
+- [x] `DerivedObjectType` → internal enum
 
 ### Phase 4 (Serialization層)
-- [ ] `AvroSchema` → internal
-- [ ] `AvroField` → internal
-- [ ] `AvroSchemaInfo` → internal
-- [ ] `UnifiedSchemaGenerator` → internal static
-- [ ] `AvroSerializerFactory` → internal
-- [ ] `AvroSerializerCache` → internal
-- [ ] `AvroSchemaBuilder` → internal
-- [ ] `AvroSchemaRepository` → internal
+- [x] `AvroSchema` → internal
+- [x] `AvroField` → internal
+- [x] `AvroSchemaInfo` → internal
+- [x] `UnifiedSchemaGenerator` → internal static
+- [x] `AvroSerializerFactory` → internal
+- [x] `AvroSerializerCache` → internal
+- [x] `AvroSchemaBuilder` → internal
+- [x] `AvroSchemaRepository` → internal
 
 ### Phase 5 (Messaging層・要慎重)
-- [ ] **事前調査**: Manager系のDI使用状況確認
-- [ ] `KafkaConsumer<T>` → internal
-- [ ] `KafkaProducer<T>` → internal
-- [ ] `ConsumerInstance` → internal
-- [ ] `PooledConsumer` → internal
-- [ ] `PooledProducer` → internal
-- [ ] `PoolMetrics` → internal
-- [ ] (**条件付き**) `KafkaProducerManager` → internal
-- [ ] (**条件付き**) `KafkaConsumerManager` → internal
+- [x] **事前調査**: Manager系のDI使用状況確認
+- [x] `KafkaConsumer<T>` → internal
+- [x] `KafkaProducer<T>` → internal
+- [x] `ConsumerInstance` → internal
+- [x] `PooledConsumer` → internal
+- [x] `PooledProducer` → internal
+- [x] `PoolMetrics` → internal
+- [x] (**条件付き**) `KafkaProducerManager` → internal
+- [x] (**条件付き**) `KafkaConsumerManager` → internal
 
 ---
 
