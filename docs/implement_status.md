@@ -8,5 +8,5 @@
 | LATEST_BY_OFFSET / EARLIEST_BY_OFFSET | ✅ 実装済 | ksql_offset_aggregates | ProjectionBuilder, WindowAggregatedEntitySet 対応 |
 | DLQ設定（ModelBuilder） | ⏳ 部分実装 | dlq_configuration_support | `TopicAttribute` 定義はある |
 | HasTopic API | ✅ 実装済 | has_topic_api_extension | EntityBuilderTopicExtensions|
-| ManualCommit切替 | ⏳ 不完全 | manual_commit_extension | 分岐・Ack操作なし |
+| ManualCommit切替 | ✅ 実装済 | manual_commit_extension | ForEachAsync型分岐対応 |
 | char/shortサポート | ❌ 未実装 | special_type_handling | 警告・自動変換未実装 |

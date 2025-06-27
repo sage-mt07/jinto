@@ -6,6 +6,7 @@
 - [アーキテクチャ責務早見表](docs/arch_overview.md)
 - [Query Builder品質観点表（鏡花視点）](docs/querybuilder_kyouka.md)
 - [設計議論・廃止機能ログ（Amagi Protocol）](docs/design_decision_log.md)
+- [手動コミット機能の利用方法](docs/manual_commit.md)
 
 ## モジュール一覧（概要）
 - [Core](src/Core): DSL全体の共通構造とモデル定義
@@ -23,3 +24,4 @@
 設計方針・命名ルール・出力形式などは [instructions.md](./instructions.md) を参照してください。
 
 このプロジェクトは「AIの能力は使う人の知性に比例する」という信念のもと構築されています。
+

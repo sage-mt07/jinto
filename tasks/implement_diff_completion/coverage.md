@@ -13,9 +13,9 @@
 | Tables | 複数ウィンドウ定義とアクセス | ✅ 実装済 | multi_window_access | |
 | Tables | HasTopic()メソッド | ✅ 実装済 | has_topic_api_extension | EntityModelBuilder & tests |
 | Tables | WindowStart / WindowEndプロパティ | ✅ 実装済 | window_start_end_support | ProjectionBuilder, WindowDDLExtensions |
-| Query & Subscription | 手動コミット購読処理の型分岐 | ⏳ 不完全 | manual_commit_extension | Ack操作・型分岐不足 |
-| Query & Subscription | 購読処理の完全実装 | ⏳ 部分実装 | manual_commit_extension | Commit/NegativeAck methods implemented; type branch pending
-| Query & Subscription | yield型ForEachAsyncでのtry-catch | ❌ 未実装 | foreach_trycatch_support | |
+| Query & Subscription | 手動コミット購読処理の型分岐 | ✅ 実装済 | manual_commit_extension | ForEachAsyncでIManualCommitMessageを返す |
+| Query & Subscription | 購読処理の完全実装 | ✅ 実装済 | manual_commit_extension | Commit/NegativeAck呼び出し対応 |
+| Query & Subscription | yield型ForEachAsyncでのtry-catch | ✅ 実装済 | foreach_trycatch_support | |
 | Special Types | char型警告 | ❌ 未実装 | special_type_handling | 警告処理なし |
 | Special Types | short型自動int変換 | ❌ 未実装 | special_type_handling | 変換処理不明確 |
 | Error Handling | チェーン可能なエラー処理DSL | ⏳ 部分実装 | chainable_error_dsl | OnError→Map→Retryの連鎖未完成 |

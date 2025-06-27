@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Runtime.CompilerServices;
 using ConfluentSchemaRegistry = Confluent.SchemaRegistry;
 
 namespace Kafka.Ksql.Linq.Application;
@@ -364,6 +365,28 @@ internal class EventSetWithServices<T> : IEntitySet<T> where T : class
         foreach (var item in results)
         {
             yield return item;
+        }
+    }
+
+    protected virtual IManualCommitMessage<T> CreateManualCommitMessage(T item)
+        => new ManualCommitMessage<T>(item, () => Task.CompletedTask, () => Task.CompletedTask);
+
+    public async IAsyncEnumerable<object> ForEachAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        await using var enumerator = GetAsyncEnumerator(cancellationToken);
+
+        while (await enumerator.MoveNextAsync())
+        {
+            var item = enumerator.Current;
+
+            if (_entityModel.UseManualCommit)
+            {
+                yield return CreateManualCommitMessage(item);
+            }
+            else
+            {
+                yield return item;
+            }
         }
     }
 
