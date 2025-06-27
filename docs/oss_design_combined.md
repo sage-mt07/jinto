@@ -786,6 +786,93 @@ Kafka インフラ未構築でも開発可能：先に LINQ や POCO を定義�
 
 学習コスト低減：Kafka 環境のセットアップを待たずに、DSL定義の学習・試行錯誤が可能。。
 
+## 10. 代表的な利用パターン
+
+本ライブラリの主な使用パターンは以下の4つに分類されます：
+
+### 10.1 モデル定義（KsqlContextの拡張）
+
+```
+public class MyKsqlContext : KsqlContext
+{
+    protected override void OnModelCreating(IModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Order>();
+    }
+}
+```
+
+### 10.2 プロデュース（Kafkaへの送信）
+
+基本版（自動コミット）
+```
+await context.Orders.AddAsync(new Order
+{
+    OrderId = 1001,
+    Amount = 1200,
+    OrderDate = DateTime.UtcNow
+});
+```
+
+
+### 10.3 コンシューム（ForEachAsyncによる購読）
+
+基本版（自動コミット）
+```
+await foreach (var order in context.Orders.ForEachAsync())
+{
+    Console.WriteLine($"OrderId: {order.OrderId}");
+}
+```
+
+手動コミット（WithManualCommit指定時）
+
+```
+await foreach (var order in context.Orders.ForEachAsync())
+{
+    try
+    {
+        Console.WriteLine(order.Value.OrderId);
+        await order.CommitAsync(); // 必須
+    }
+    catch
+    {
+        await order.NegativeAckAsync(); // 任意（失敗通知）
+    }
+}
+
+```
+
+.OnError() .WithRetry() などのチェーン付加
+
+```
+await foreach (var order in context.Orders
+    .OnError(ErrorAction.DLQ)
+    .Map(o => Process(o))
+    .WithRetry(3)
+    .ForEachAsync())
+{
+    Console.WriteLine($"OrderId: {order.OrderId}");
+}
+```
+
+
+
+### 10.4 キャッシュアクセス
+
+```
+public class MyKsqlContext : KsqlContext
+{
+    protected override void OnModelCreating(IModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Order>()
+             .AsTable(useCache: true);
+    }
+}
+```
+
+
+
 ### 10.5 ReadyStateMonitor による Lag 監視と Ready 判定
 
 StateStore バインディングでは、Kafka コンシューマの Lag を定期的に計測し、完全に追いついた時点を
