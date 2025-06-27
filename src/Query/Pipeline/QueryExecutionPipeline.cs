@@ -84,7 +84,7 @@ internal class QueryExecutionPipeline : IQueryTranslator, IDisposable
         Expression linqExpression,
         ExpressionAnalysisResult analysis)
     {
-        var currentObjectName = baseObjectName;
+        var currentObjectName = baseObjectName.ToLower();
 
         _logger.LogDebug("Processing {MethodCallCount} method calls for derived object creation", analysis.MethodCalls.Count);
 
@@ -203,7 +203,7 @@ internal class QueryExecutionPipeline : IQueryTranslator, IDisposable
 
     private string SimulateDerivedObjectCreation(string baseObjectName, ExpressionAnalysisResult analysis)
     {
-        var currentObjectName = baseObjectName;
+        var currentObjectName = baseObjectName.ToLower();
 
         foreach (var methodCall in analysis.MethodCalls)
         {
