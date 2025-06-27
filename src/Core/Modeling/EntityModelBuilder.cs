@@ -28,6 +28,48 @@ public class EntityModelBuilder<T> : IEntityBuilder<T> where T : class
         return this;
     }
 
+    public EntityModelBuilder<T> HasTopic(string topicName)
+    {
+        if (string.IsNullOrWhiteSpace(topicName))
+            throw new ArgumentException("Topic name cannot be null or empty", nameof(topicName));
+
+        var current = EnsureTopicAttribute();
+        var newAttr = new TopicAttribute(topicName)
+        {
+            PartitionCount = current.PartitionCount,
+            ReplicationFactor = current.ReplicationFactor,
+            RetentionMs = current.RetentionMs,
+            Compaction = current.Compaction,
+            DeadLetterQueue = current.DeadLetterQueue,
+            Description = current.Description,
+            MaxMessageBytes = current.MaxMessageBytes,
+            SegmentBytes = current.SegmentBytes
+        };
+
+        _entityModel.TopicAttribute = newAttr;
+        return this;
+    }
+
+    public EntityModelBuilder<T> WithPartitions(int partitions)
+    {
+        if (partitions <= 0)
+            throw new ArgumentException("Partitions must be greater than 0", nameof(partitions));
+
+        var attr = EnsureTopicAttribute();
+        attr.PartitionCount = partitions;
+        return this;
+    }
+
+    public EntityModelBuilder<T> WithReplicationFactor(int replicationFactor)
+    {
+        if (replicationFactor <= 0)
+            throw new ArgumentException("ReplicationFactor must be greater than 0", nameof(replicationFactor));
+
+        var attr = EnsureTopicAttribute();
+        attr.ReplicationFactor = replicationFactor;
+        return this;
+    }
+
     public EntityModel GetModel()
     {
         return _entityModel;
@@ -53,5 +95,15 @@ public class EntityModelBuilder<T> : IEntityBuilder<T> where T : class
         var validStatus = _entityModel.IsValid ? "有効" : "無効";
 
         return $"Entity: {entityName}, Topic: {topicName}, Keys: {keyCount}, Status: {validStatus}";
+    }
+
+    private TopicAttribute EnsureTopicAttribute()
+    {
+        if (_entityModel.TopicAttribute == null)
+        {
+            _entityModel.TopicAttribute = new TopicAttribute(_entityModel.EntityType.Name.ToLowerInvariant());
+        }
+
+        return _entityModel.TopicAttribute;
     }
 }
