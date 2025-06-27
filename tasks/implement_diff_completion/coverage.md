@@ -9,7 +9,7 @@
 | Topics | ISRの最小数設定 | ❌ 未実装 | topic_fluent_api_extension | |
 | Streams | Window DSL機能 | ❌ 未実装 | window_dsl_feature | TumblingWindow等 |
 | Streams | 購読モードの固定化制御 | ⏳ 部分実装 | subscription_mode_fixed | UseManualCommitの実行時切替未実装 |
-| Tables | LATEST_BY_OFFSET / EARLIEST_BY_OFFSET | ⏳ 実装中 | ksql_offset_aggregates | プレースホルダあり |
+| Tables | LATEST_BY_OFFSET / EARLIEST_BY_OFFSET | ✅ 実装済 | ksql_offset_aggregates | ProjectionBuilderで変換完了 |
 | Tables | 複数ウィンドウ定義とアクセス | ❌ 未実装 | multi_window_access | |
 | Tables | HasTopic()メソッド | ❌ 未実装 | has_topic_api_extension | |
 | Tables | WindowStart / WindowEndプロパティ | ❌ 未実装 | window_start_end_support | |
