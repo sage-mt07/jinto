@@ -6,6 +6,8 @@ using Confluent.SchemaRegistry;
 
 namespace Kafka.Ksql.Linq.Tests.Serialization;
 
+#nullable enable
+
 internal class FakeSchemaRegistryClient : DispatchProxy
 {
     public List<string> RegisterSubjects { get; } = new();

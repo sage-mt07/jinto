@@ -4,6 +4,8 @@ using System;
 using System.Linq;
 using Xunit;
 
+#nullable enable
+
 namespace Kafka.Ksql.Linq.Tests.Core;
 
 public class CoreExtensionsMoreTests

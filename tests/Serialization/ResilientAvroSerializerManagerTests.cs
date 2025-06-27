@@ -16,7 +16,7 @@ public class ResilientAvroSerializerManagerTests
 
     private static ResilientAvroSerializerManager CreateUninitialized()
     {
-        var mgr = (ResilientAvroSerializerManager)FormatterServices.GetUninitializedObject(typeof(ResilientAvroSerializerManager));
+        var mgr = (ResilientAvroSerializerManager)System.Runtime.CompilerServices.RuntimeHelpers.GetUninitializedObject(typeof(ResilientAvroSerializerManager));
         typeof(ResilientAvroSerializerManager).GetField("_logger", BindingFlags.Instance | BindingFlags.NonPublic)!
             .SetValue(mgr, NullLogger<ResilientAvroSerializerManager>.Instance);
         return mgr;

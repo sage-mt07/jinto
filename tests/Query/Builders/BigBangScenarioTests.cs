@@ -5,6 +5,8 @@ using System.Linq.Expressions;
 using Kafka.Ksql.Linq.Query.Builders;
 using Xunit;
 
+#nullable enable
+
 namespace Kafka.Ksql.Linq.Tests.Query.Builders;
 
 public record OrderCustomerInfo(DateTime OrderDate, decimal TotalAmount, string? Region);

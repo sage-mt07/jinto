@@ -13,6 +13,8 @@ using Microsoft.Extensions.Options;
 using static Kafka.Ksql.Linq.Tests.PrivateAccessor;
 using Xunit;
 
+#nullable enable
+
 namespace Kafka.Ksql.Linq.Tests.Messaging;
 
 public class KafkaProducerManagerTests
@@ -65,7 +67,7 @@ public class KafkaProducerManagerTests
     public void GetOrCreateSerializationManager_CachesInstance()
     {
         var options = new KsqlDslOptions();
-        var manager = (KafkaProducerManager)FormatterServices.GetUninitializedObject(typeof(KafkaProducerManager));
+        var manager = (KafkaProducerManager)System.Runtime.CompilerServices.RuntimeHelpers.GetUninitializedObject(typeof(KafkaProducerManager));
         typeof(KafkaProducerManager).GetField("_options", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(manager, options);
         typeof(KafkaProducerManager).GetField("_loggerFactory", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(manager, new NullLoggerFactory());
         typeof(KafkaProducerManager).GetField("_serializationManagers", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(manager, new ConcurrentDictionary<Type, object>());
@@ -81,7 +83,7 @@ public class KafkaProducerManagerTests
     [Fact]
     public void GetEntityModel_ReturnsModelWithAttributes()
     {
-        var manager = (KafkaProducerManager)FormatterServices.GetUninitializedObject(typeof(KafkaProducerManager));
+        var manager = (KafkaProducerManager)System.Runtime.CompilerServices.RuntimeHelpers.GetUninitializedObject(typeof(KafkaProducerManager));
         typeof(KafkaProducerManager).GetField("_serializationManagers", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(manager, new ConcurrentDictionary<Type, object>());
         var model = InvokePrivate<Kafka.Ksql.Linq.Core.Abstractions.EntityModel>(manager, "GetEntityModel", Type.EmptyTypes, new[] { typeof(SampleEntity) });
         Assert.Equal(typeof(SampleEntity), model.EntityType);

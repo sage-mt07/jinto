@@ -17,11 +17,11 @@ public class KsqlContextTests
 
         protected override bool SkipSchemaRegistration => true;
 
-        public new IEntitySet<T> CallCreateEntitySet<T>(EntityModel model) where T : class
+        public IEntitySet<T> CallCreateEntitySet<T>(EntityModel model) where T : class
             => base.CreateEntitySet<T>(model);
 
-        public new KafkaProducerManager CallGetProducerManager() => base.GetProducerManager();
-        public new KafkaConsumerManager CallGetConsumerManager() => base.GetConsumerManager();
+        public KafkaProducerManager CallGetProducerManager() => base.GetProducerManager();
+        public KafkaConsumerManager CallGetConsumerManager() => base.GetConsumerManager();
     }
 
     [Fact]

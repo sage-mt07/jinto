@@ -6,6 +6,8 @@ using Confluent.SchemaRegistry;
 using Kafka.Ksql.Linq.Serialization.Avro.Core;
 using Xunit;
 
+#nullable enable
+
 namespace Kafka.Ksql.Linq.Tests.Serialization;
 
 public class SchemaRegistryClientWrapperTests

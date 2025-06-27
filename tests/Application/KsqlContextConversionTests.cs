@@ -21,7 +21,7 @@ public class KsqlContextConversionTests
     {
         public TestContext() : base() { }
         protected override bool SkipSchemaRegistration => true;
-        public new IReadOnlyDictionary<Type, AvroEntityConfiguration> Convert(Dictionary<Type, EntityModel> models)
+        public IReadOnlyDictionary<Type, AvroEntityConfiguration> Convert(Dictionary<Type, EntityModel> models)
             => base.ConvertToAvroConfigurations(models);
     }
 
