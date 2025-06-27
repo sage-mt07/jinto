@@ -2,11 +2,13 @@ using Kafka.Ksql.Linq.Configuration;
 using Kafka.Ksql.Linq.Core.Abstractions;
 using Kafka.Ksql.Linq.Messaging.Abstractions;
 using Kafka.Ksql.Linq.Messaging.Contracts;
-using Kafka.Ksql.Linq.Messaging.Models;
+using Confluent.Kafka;
+using KsqlDsl.Messaging.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -124,26 +126,49 @@ internal class DlqProducer : IErrorSink, IDisposable
     /// </summary>
     private DlqEnvelope CreateDlqMessage(ErrorContext errorContext, KafkaMessageContext messageContext)
     {
+        var messageId = Guid.TryParse(messageContext.MessageId, out var id)
+            ? id
+            : Guid.NewGuid();
+
+        var topic = messageContext.Tags.GetValueOrDefault("original_topic")?.ToString()
+            ?? messageContext.Tags.GetValueOrDefault("topic")?.ToString()
+            ?? string.Empty;
+
+        var partition = messageContext.Tags.GetValueOrDefault("original_partition") as int?
+            ?? messageContext.Tags.GetValueOrDefault("partition") as int?
+            ?? -1;
+
+        var offset = messageContext.Tags.GetValueOrDefault("original_offset") as long?
+            ?? messageContext.Tags.GetValueOrDefault("offset") as long?
+            ?? -1L;
+
+        var timestamp = messageContext.Tags.TryGetValue("timestamp_utc", out var tsObj) && tsObj is DateTime dt
+            ? dt
+            : DateTime.UtcNow;
+
+        var keyType = messageContext.Tags.GetValueOrDefault("key_type")?.ToString() ?? string.Empty;
+        var valueType = messageContext.Tags.GetValueOrDefault("value_type")?.ToString() ?? string.Empty;
+
+        var headers = new Dictionary<string, string>();
+        foreach (var kvp in messageContext.Headers)
+        {
+            headers[kvp.Key] = kvp.Value.ToString();
+        }
+
         return new DlqEnvelope
         {
-            OriginalMessage = errorContext.OriginalMessage,
-            Exception = new DlqExceptionInfo
-            {
-                Type = errorContext.Exception.GetType().FullName ?? "Unknown",
-                Message = errorContext.Exception.Message,
-                StackTrace = errorContext.Exception.StackTrace,
-                InnerException = errorContext.Exception.InnerException?.Message
-            },
-            OriginalTopic = messageContext.Tags.GetValueOrDefault("original_topic")?.ToString(),
-            OriginalPartition = (int?)messageContext.Tags.GetValueOrDefault("original_partition"),
-            OriginalOffset = (long?)messageContext.Tags.GetValueOrDefault("original_offset"),
-            ErrorPhase = errorContext.ErrorPhase,
-            AttemptCount = errorContext.AttemptCount,
-            FirstAttemptTime = errorContext.FirstAttemptTime,
-            LastAttemptTime = errorContext.LastAttemptTime,
-            DlqTimestamp = DateTime.UtcNow,
-            MessageId = messageContext.MessageId,
-            CorrelationId = messageContext.CorrelationId
+            MessageId = messageId,
+            Topic = topic,
+            Partition = partition,
+            Offset = offset,
+            TimestampUtc = timestamp,
+            KeyType = keyType,
+            ValueType = valueType,
+            RawBytes = errorContext.OriginalMessage as byte[] ?? Array.Empty<byte>(),
+            ErrorMessage = errorContext.Exception.Message,
+            ErrorType = errorContext.Exception.GetType().Name,
+            StackTrace = errorContext.Exception.StackTrace,
+            Headers = headers
         };
     }
 
@@ -155,17 +180,49 @@ internal class DlqProducer : IErrorSink, IDisposable
         await _producerManager.SendAsync(_dlqTopicName, dlqMessage);
     }
 
+    private static Dictionary<string, object> ConvertHeadersToDictionary(Headers? headers)
+    {
+        var dict = new Dictionary<string, object>();
+        if (headers == null) return dict;
+
+        foreach (var header in headers)
+        {
+            if (header.GetValueBytes() != null)
+            {
+                var value = System.Text.Encoding.UTF8.GetString(header.GetValueBytes());
+                dict[header.Key] = value;
+            }
+        }
+
+        return dict;
+    }
+
     /// <summary>
     /// デシリアライズ失敗データをDLQへ送信
     /// </summary>
-    public async Task SendAsync(byte[]? data, System.Exception exception, string originalTopic)
+    public async Task SendAsync(
+        byte[]? data,
+        System.Exception exception,
+        string originalTopic,
+        int partition,
+        long offset,
+        DateTime timestampUtc,
+        Headers? headers,
+        string keyType,
+        string valueType)
     {
         var context = new KafkaMessageContext
         {
             MessageId = Guid.NewGuid().ToString(),
+            Headers = ConvertHeadersToDictionary(headers),
             Tags = new Dictionary<string, object>
             {
                 ["original_topic"] = originalTopic,
+                ["original_partition"] = partition,
+                ["original_offset"] = offset,
+                ["timestamp_utc"] = timestampUtc,
+                ["key_type"] = keyType,
+                ["value_type"] = valueType,
                 ["error_phase"] = "Deserialization"
             }
         };
