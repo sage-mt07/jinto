@@ -21,18 +21,20 @@
 
 ## LINQ 風 DSL 一覧
 
-| DSL メソッド | 説明 | 対象レイヤ | 実装状態 |
-|---------------|------|------------|---------|
-| `.Where(predicate)` | 条件フィルタ | Stream/Table | ✅ |
-| `.Window(int | TimeSpan)` | タイムウィンドウ指定 | Stream | ✅ |
-| `.GroupBy(...)` | グループ化および集約 | Stream/Table | ✅ |
-| `.OnError(ErrorAction)` | エラー処理方針指定 | Stream | ✅ |
-| `.WithRetry(int)` | リトライ設定 | Stream | ✅ |
-| `.WithManualCommit()` | 手動コミットモード切替 | Subscription | ✅ |
+| DSL メソッド | 説明 | 戻り値型 | 対象レイヤ | 実装状態 |
+|---------------|------|-----------|------------|---------|
+| `.Where(predicate)` | 条件フィルタ | `IEventSet<T>` | Stream/Table | ✅ |
+| `.Window(int \| TimeSpan)` | タイムウィンドウ指定 | `IQueryable<T>` | Stream | ✅ |
+| `.GroupBy(...)` | グループ化および集約 | `IEventSet<IGrouping<TKey, T>>` | Stream/Table | ✅ |
+| `.OnError(ErrorAction)` | エラー処理方針指定 | `EventSet<T>` | Stream | ✅ |
+| `.WithRetry(int)` | リトライ設定 | `EventSet<T>` | Stream | ✅ |
+| `.WithManualCommit()` | 手動コミットモード切替 | `IEntityBuilder<T>` | Subscription | ✅ |
 
 - `ToList`/`ToListAsync` は Pull Query として実行されます【F:src/Query/Pipeline/DMLQueryGenerator.cs†L27-L34】。
 - `WithManualCommit()` を指定しない `ForEachAsync()` は自動コミット動作となります【F:docs/manual_commit.md†L1-L23】。
 - `OnError(ErrorAction.DLQ)` を指定すると DLQ トピックへ送信されます【F:docs/oss_design_combined.md†L580-L599】。
+
+これらの戻り値型を把握することで、DSLチェーンにおける次の操作を判断しやすくなります。特に `OnError()` や `WithRetry()` は `EventSet<T>` を返すため、続けて `IEventSet` 系メソッドを利用できます。
 
 ## 属性 (Attribute) 定義
 
