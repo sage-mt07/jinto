@@ -7,4 +7,5 @@ internal interface IWindowedEntitySet<T> : IEntitySet<T> where T : class
 {
     int WindowMinutes { get; }
     IStateStore<string, T> GetStateStore();
+    string GetWindowTableName();
 }

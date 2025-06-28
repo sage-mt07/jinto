@@ -34,6 +34,12 @@ internal class WindowedEntitySet<T> : IWindowedEntitySet<T> where T : class
 
     public IStateStore<string, T> GetStateStore() => _stateStore;
 
+    public string GetWindowTableName()
+    {
+        var baseTopicName = _baseEntitySet.GetTopicName();
+        return $"{baseTopicName}_WINDOW_{_windowMinutes}MIN";
+    }
+
     // IEntitySet<T> 実装を委譲
     public async System.Threading.Tasks.Task AddAsync(T entity, System.Threading.CancellationToken cancellationToken = default)
     {
