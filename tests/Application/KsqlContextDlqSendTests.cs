@@ -5,6 +5,7 @@ using Kafka.Ksql.Linq.Messaging.Producers.Core;
 using Kafka.Ksql.Linq.Messaging.Producers;
 using Kafka.Ksql.Linq.Configuration;
 using Kafka.Ksql.Linq.Application;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Reflection;
