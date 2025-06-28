@@ -1,5 +1,6 @@
 using Kafka.Ksql.Linq.Application;
 using Kafka.Ksql.Linq.Core.Context;
+using Microsoft.Extensions.Configuration;
 using Xunit;
 
 namespace Kafka.Ksql.Linq.Tests.Application;
