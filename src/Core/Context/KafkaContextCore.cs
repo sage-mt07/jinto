@@ -101,10 +101,14 @@ public abstract class KafkaContextCore : IKsqlContext
         var models = modelBuilder.GetAllEntityModels();
         foreach (var (type, model) in models)
         {
-            if (_entityModels.ContainsKey(type))
+            if (_entityModels.TryGetValue(type, out var existing))
             {
-                // Stream/Table型のみ上書き
-                _entityModels[type].SetStreamTableType(model.GetExplicitStreamTableType());
+                // Stream/Table 型のみ上書き
+                existing.SetStreamTableType(model.GetExplicitStreamTableType());
+            }
+            else
+            {
+                _entityModels[type] = model;
             }
         }
     }
