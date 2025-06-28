@@ -867,7 +867,7 @@ public class MyKsqlContext : KsqlContext
     protected override void OnModelCreating(IModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Order>()
-             .AsTable(useCache: true);
+             .AsTable(topicName: "orders", useCache: true);
     }
 }
 ```

@@ -115,6 +115,15 @@ public class AvroEntityConfigurationBuilderTests
         Assert.False(cfg.EnableCaching);
     }
 
+    [Fact]
+    public void AsTable_SetsTopicNameWhenProvided()
+    {
+        var builder = CreateBuilder();
+        builder.AsTable(topicName: "topic-a");
+        var cfg = builder.Build();
+        Assert.Equal("topic-a", cfg.TopicName);
+    }
+
 
     [Fact]
     public void Build_ReturnsConfiguration()
