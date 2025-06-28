@@ -397,7 +397,6 @@
 - `public EntityModel GetEntityModel() => _entityModel`
 - `public EventSet<T> WithRetry(int maxRetries, TimeSpan? retryInterval = null)`
 - `public EventSet<TResult> Map<TResult>(Func<T, TResult> mapper) where TResult : class`
-- `public IEnumerable<T> GetResults()`
 - `public IKsqlContext GetContext() => _context`
 - `public MappedEventSet(List<T> mappedItems, IKsqlContext context, EntityModel originalEntityModel, IErrorSink? errorSink = null)`
 - `public abstract IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default)`
