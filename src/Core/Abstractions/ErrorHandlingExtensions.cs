@@ -52,31 +52,4 @@ public static class ErrorHandlingExtensions
         return eventSet.WithErrorPolicy(policy);
     }
 
-    /// <summary>
-    /// エラーメトリクス収集付きエラーハンドリング
-    /// </summary>
-    public static EventSet<T> OnErrorWithMetrics<T>(this EventSet<T> eventSet,
-        ErrorAction errorAction,
-        Action<ErrorMetrics>? metricsCallback = null) where T : class
-    {
-        var policy = new ErrorHandlingPolicy
-        {
-            Action = errorAction,
-            MetricsCallback = metricsCallback
-        };
-
-        return eventSet.WithErrorPolicy(policy);
-    }
-}
-/// <summary>
-/// エラーメトリクス情報
-/// </summary>
-public class ErrorMetrics
-{
-    public string EntityType { get; set; } = string.Empty;
-    public string ErrorPhase { get; set; } = string.Empty;
-    public Exception Exception { get; set; } = default!;
-    public int AttemptCount { get; set; }
-    public TimeSpan TotalDuration { get; set; }
-    public DateTime OccurredAt { get; set; } = DateTime.UtcNow;
 }
