@@ -384,7 +384,6 @@
 ### ErrorHandlingExtensions
 
 - `public static EventSet<T> OnError<T>(this EventSet<T> eventSet,`
-- `public static EventSet<T> OnErrorWithMetrics<T>(this EventSet<T> eventSet,`
 - `public static EventSet<T> WithRetryWhen<T>(this EventSet<T> eventSet,`
 
 ### ErrorHandlingPolicy

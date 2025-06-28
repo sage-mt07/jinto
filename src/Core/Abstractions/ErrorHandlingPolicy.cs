@@ -17,10 +17,6 @@ public class ErrorHandlingPolicy
     /// </summary>
     public Predicate<Exception>? RetryCondition { get; set; }
 
-    /// <summary>
-    /// エラーメトリクス収集コールバック
-    /// </summary>
-    public Action<ErrorMetrics>? MetricsCallback { get; set; }
 
     /// <summary>
     /// エラー発生時の追加ログ情報
