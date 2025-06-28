@@ -11,4 +11,9 @@ public class WindowConfiguration<T> where T : class
     public int RetentionHours { get; set; } = 24;
     public Func<List<T>, object> AggregationFunc { get; set; } = events => events.Count;
     public IKafkaProducer FinalTopicProducer { get; set; } = null!;
+
+    public string GetFinalTopicName(int windowMinutes)
+    {
+        return $"{TopicName}_window_{windowMinutes}_final";
+    }
 }

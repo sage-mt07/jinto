@@ -28,11 +28,13 @@ internal class WindowFinalConsumer : IDisposable
     /// 確定足データを購読してRocksDBに保存
     /// </summary>
     public async Task SubscribeToFinalizedWindows(string topicName,
+        int windowMinutes,
         Func<WindowFinalMessage, Task> messageHandler)
     {
-        _logger.LogInformation("Starting subscription to finalized windows: {Topic} → RocksDB", topicName);
+        _logger.LogInformation("Starting subscription to finalized windows: {Topic}({Window}) → RocksDB",
+            topicName, windowMinutes);
 
-        var finalTopic = $"{topicName}_window_final";
+        var finalTopic = $"{topicName}_window_{windowMinutes}_final";
 
         // Kafka Consumer setup for final topic
         // await foreach (var message in kafkaConsumer.ConsumeAsync())

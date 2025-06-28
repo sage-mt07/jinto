@@ -150,13 +150,15 @@ internal class WindowProcessor<T> : WindowProcessor where T : class
 
         // KafkaProducerを使用して送信
         // 重複送信対策：同一キーの場合は最初に到着したものが有効
+        var finalTopic = _config.GetFinalTopicName(windowState.WindowMinutes);
+
         await _config.FinalTopicProducer.SendAsync(
-            topic: $"{_config.TopicName}_window_final",
+            topic: finalTopic,
             key: windowKey,
             value: finalTopicMessage);
 
         _logger.LogDebug("Sent finalized window to topic: {Topic}, Key: {Key}",
-            $"{_config.TopicName}_window_final", windowKey);
+            finalTopic, windowKey);
     }
 
     /// <summary>
