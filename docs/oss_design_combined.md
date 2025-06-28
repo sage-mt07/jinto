@@ -2,14 +2,12 @@
 
 ## Overview
 
-### Readme
-
-﻿# KSQL Entity Framework 要件定義書
+本ドキュメントは、Kafka.Ksql.Linq OSSの設計思想、アーキテクチャ、構成ルール、拡張指針を一体的にまとめた設計仕様書です。高度な利用者やOSS開発チーム向けに設計されており、全体像の把握と構成要素の関係理解を支援します。
 
 ## 目次 (Table of Contents)
 
-- [1. 概要](#1-概要)
-- [2. 基本原則](#2-基本原則)
+- [1. 設計原則](#1-設計原則)
+- [2. アーキテクチャ概観（Architecture Overview）](#2-アーキテクチャ概要)
 - [3. 主要コンポーネント](#3-主要コンポーネント)
   - [3.1 トピック (Kafka Topics)](#31-トピック-kafka-topics)
   - [3.2 ストリーム (KSQL Streams)](#32-ストリーム-ksql-streams)
@@ -34,18 +32,61 @@
   - [コアコンポーネント](#コアコンポーネント)
   - [主要インターフェース](#主要インターフェース)
   - 
-## 1. 概要
+## 1. 設計原則
 
-KSQL Entity Frameworkは、C#プログラマがEntityFrameworkライクなAPIを使用してKSQL/KafkaStreamsを操作できるようにするライブラリです。トピック中心の設計、POCOベースのクエリ定義、LINQライクなストリーム操作を特徴とします。
+### 1.1 型安全・Fail Fast
 
-## 2. 基本原則
+- LINQベースでKSQL構文を表現し、ビルド時に構文誤りを排除、
+AVROフォーマットの採用
+- Context生成時に検出
+- モード切替による型安全性の確保
 
-1. **トピック中心設計**: すべての操作はKafkaトピックを起点とする
-2. **型安全性**: C#の型システムを活用してスキーマの整合性を確保
-3. **使い慣れたAPI**: EntityFrameworkに類似したAPIデザイン
-4. **LINQサポート**: ストリーム処理をLINQクエリとして表現
-5. **段階的デプロイ**: 基本機能から高度な機能へと段階的に実装
-6. **購読モードの固定化**: ストリーム定義時に自動コミット／手動コミットの方式を明示し、実行時に切り替え不可とする
+####  🔍 検証時の強制レベル一覧（Strict / Relaxed モード）
+検証項目|Strict|Relaxed|備考
+---|---|---|---
+Topic属性なし|❌ エラー|⚠️ 警告|クラス名をトピック名に使用
+Key属性なし|⚠️ 警告|⚠️ 警告|Streamとして動作
+抽象クラス|❌ エラー|❌ エラー|基本要件のため両方エラー
+char型プロパティ|⚠️ 警告|⚠️ 警告|KSQL互換性の警告
+未サポート型|⚠️ 警告|⚠️ 警告型|変換の警告
+
+### 1.2 宣言的構文による表現力
+
+- POCO + 属性 + LINQ = KSQLクエリ構築
+- Entity Framework的な直感性を保つ
+
+### 1.3 OSSとしての拡張性
+
+- Builder、Query、Messaging、Windowなど明確な層構造
+- Fluent APIによる構文追加・拡張が容易
+
+### 1.4 AI協調開発を前提とした構成
+
+- Entity/Query定義とドキュメントのリンク
+- 自動生成コードとの協調設計
+
+## 2. アーキテクチャ概観（Architecture Overview）
+
+### 2.1 主な構成層と責務
+
+- Application層：ユーザーコードとPOCO定義
+- Core層：IEntitySet/IQueryableベースの抽象定義
+- Query層：LINQ式→KSQLクエリへの変換
+- Messaging層：KafkaとのProducer/Consumer連携
+- Serialization層：Avroスキーマ管理と変換
+- StateStore層：KTable結果のキャッシュ（RocksDB）
+- Window層：時間窓、集計処理の記述
+
+##  2.2 データフロー
+
+```
+POCO + LINQ
+   ↓ OnModelCreating()
+SchemaRegistry登録 //ここまでksqlContextのコンストラクタで実行
+   ↓
+KafkaProducer/Consumer連携
+```
+kafkaへの接続エラーはksqlContextのコンストラクタでthrowされます。
 
 
 ## 3. POCO属性ベースDSL設計ルール（Fluent APIの排除方針）
@@ -111,20 +152,17 @@ POCO属性を中心とした設計方針を採る本DSLでは、Fluent API は�
 
 🧱 1. KsqlContextBuilder（KSQL DSL全体の構成）
 ```csharp
-var context = CsharpKsqlContextBuilder.Create()
+var context = KsqlContextBuilder.Create()
     .UseSchemaRegistry("http://localhost:8081")
     .EnableLogging(loggerFactory)
     .ConfigureValidation(autoRegister: true, failOnErrors: false, enablePreWarming: true)
     .WithTimeouts(TimeSpan.FromSeconds(5))
-    .EnableDebugMode(true)
-    .Build()
     .BuildContext<MyKsqlContext>();
 ```
 主な用途：
 
 スキーマレジストリ連携
 
-ログ出力の設定
 
 バリデーションやタイムアウト等の動作制御
 
@@ -136,27 +174,30 @@ protected override void OnModelCreating(IModelBuilder modelBuilder)
         .AsTable(); // または .AsStream()
 }
 ```
-POCO属性に Stream/Table 指定がない場合のみ使用可
+- Linq文の構成によりStream/Tableを判断する。
+- 別途POCO属性に Stream/Table 指定で強制することができる。
 
-明示的な型指定を可能にする（ただし key/topic 設定は禁止）
-
-📦 3. AvroEntityConfigurationBuilder（Avroスキーマ定義の詳細制御）
 ```csharp
-configuration.Configure<Order>()
-    .ToTopic("orders")                   // ❌ 非推奨（属性優先）
-    .HasKey(o => o.Id)                   // ❌ 非推奨
-    .WithPartitions(3)
-    .WithReplicationFactor(2)
-    .AsStream();                         // ✅ Stream/Table指定のみ許可
+public class MyKsqlContext : KsqlContext
+{
+    protected override void OnModelCreating(IModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Order>()
+            // .ToTopic("orders")           // ❌ 未実装
+            // .HasKey(o => o.Id)           // ❌ Obsolete
+            .WithPartitions(3)               // ✅ 可能
+            .WithReplicationFactor(2)        // ✅ 可能
+            .AsStream();                     // ✅ 可能
+    }
+}
 ```    
 このビルダーは、Avroスキーマ生成時に高度な制御が必要な場合に限り使用される。
 ただし、以下のメソッド呼び出しは設計原則違反となる。
 
 🚫 制限事項
-メソッド	理由
-.ToTopic("...")	トピック名は [Topic] 属性で指定するため禁止
-.HasKey(...)	キー定義は [Key] 属性に一本化されている
-.AsStream() / .AsTable()	属性またはModelBuilderと重複可能。両方指定で一致しない場合はエラー
+メソッド|	理由
+|---|---|
+.AsStream() / .AsTable()	|属性またはModelBuilderと重複可能。両方指定で一致しない場合はエラー
 
 これらのメソッドは呼び出された場合に NotSupportedException をスローする設計とし、誤用を防止する。
 
@@ -164,7 +205,7 @@ configuration.Configure<Order>()
 
 [Topic] 属性でトピックを定義。
 
-パーティション数やレプリケーション係数のFluent APIによる設定予定。
+パーティション数やレプリケーション係数のFluent APIによる設定をおこなう。
 #### トピック定義
 ```csharp
 // 属性によるマッピング
@@ -565,77 +606,70 @@ Kafka における「Exactly Once Semantics (EOS)」をサポートする構成�
 
 
 ## 6. エラー処理とデータ品質
-OnError(ErrorAction.Skip), .WithRetry(int), .Map(...) などのDSL提供予定。
 
-yield 型の ForEachAsync にて try-catch 処理をサポート。
+### 6.1 OnError構文とErrorActionの種類
+エラーハンドリングは以下の3種類の ErrorAction により制御されます：
 
-Kafka接続・デシリアライズ・業務エラーの分類的対応を検討中。
+Skip: 該当レコードをスキップして処理継続
 
-DLQ構成は ModelBuilder 経由で指定可能予定。
-### 6.1 エラー処理戦略
+Retry: 指定回数リトライして継続
+
+DLQ: Dead Letter Queue にエラーレコードを送信
 ```csharp
-// エラー処理ポリシーの設定
-context.Options.DeserializationErrorPolicy = ErrorPolicy.Skip;
+context.Orders
+    .OnError(ErrorAction.Skip)
+    .ForEachAsync(...);
 
-// エラーハンドリング付きストリーム処理
-var processedOrders = context.Orders
-    .OnError(ErrorAction.Skip)  // エラーレコードをスキップ
-    .Map(order => ProcessOrder(order))
-    .WithRetry(3);  // 失敗時に3回リトライ
+context.Orders
+    .OnError(ErrorAction.Retry)
+    .WithRetry(3)
+    .ForEachAsync(...);
+
+context.Orders
+    .OnError(ErrorAction.DLQ)
+    .ForEachAsync(...);
 ```
 
 ### 6.2 デッドレターキュー
-DLQはフレームワークレベルで一元的に構成されており、個々のエンティティやmodelBuilder設定で明示的に指定する必要はありません。
 
-エラー発生時には、内部の `DlqProducer` により、共通のDLQトピック（デフォルトは `"dead.letter.queue"`）へ自動的に送信されます。
+DLQはシステム全体で1つのトピックに自動送信（例：dead.letter.queue）
 
-Kafkaトピック名の変更が必要な場合は、`KsqlDslOptions.DlqTopicName` により一括設定可能です。
+.WithDeadLetterQueue("custom-dlq") により名称変更も可能
 
-#### EventSet拡張: エラーハンドリング & DLQ
-`EventSet<T>` は `.OnError(ErrorAction)` でエラー処理方針を指定し、`.WithRetry() と組み合わせてリトライ制御を行います。内部では `ErrorHandlingContext` が試行回数を管理し、`IErrorSink` 実装の `DlqProducer` が DLQ トピックへ送信します。
-
-DLQの詳細は `KsqlDslOptions.DlqConfiguration` を通じて設定でき、`DlqTopicConfiguration` では保持期間やパーティション数、レプリケーション係数のカスタマイズが可能です。Kafka 起動時には `KafkaAdminService` が DLQ トピックの存在確認と自動作成を行うため、利用者は初期化のみで DLQ 機能を利用できます。
+Kafka起動時にDLQトピックは自動作成されます
 
 
-DLQは明示的な設定を必要とせず、エラー発生時に内部的に `DlqProducer` が自動的に送信処理を行います。  
-これにより、利用者は特別な設定なしでエラールーティングの恩恵を受けることができます。
+DLQ内のメッセージ構造
 
-
-```csharp
-var result = context.Orders
-    .OnError(ErrorAction.DLQ)
-    .Map(order => Process(order));
-    // 共通のDLQトピックに送信されます
+DLQに送信されるレコードは、以下の形式で構成されます：
 ```
-DLQ（Dead Letter Queue）への送信は、LINQクエリチェーンの中で `OnError(ErrorAction.DLQ)` を指定することで実現されます。
-
-この指定がある場合、エラーが発生したレコードは内部の `DlqProducer` により共通DLQトピック（既定は `"dead.letter.queue"`）に送信されます。
-
-この方式により、開発者は個別のDLQ設定やトピック定義を意識せずに、エラー発生時の処理方針をDSLで明確に記述できます。
-
-DLQポリシーの詳細は `docs_advanced_rules.md` セクション3 を参照してください。
-
-
-### 6.3 スキーマフォーマットについて
-
-本フレームワークでは、Kafka のスキーマレジストリと連携するフォーマットとして Avro のみ をサポートしています。
-
-JSON Schema は扱いません（理由：データサイズ・速度・互換性管理の観点から）
-
-POCO から Avro スキーマは自動生成され、初回登録 or 更新時にレジストリへ登録されます
-
-スキーマレジストリの互換性設定（BACKWARD, FULL など）に応じた開発を推奨します
-
-## 7. テーブル管理操作（開発・検証用途）
-本フレームワークでは、KSQL上に定義されるストリーム／テーブルの初期化・削除を、開発・検証用途に限り API として提供します。
-
-```csharp
-await context.EnsureTableCreatedAsync<HourlyStats>();
-await context.DropTableAsync("hourly_stats");
+{
+  "timestamp": "2025-06-28T14:30:00Z",
+  "topic": "orders",
+  "partition": 3,
+  "offset": 125,
+  "errorType": "DeserializationException",
+  "exceptionMessage": "Cannot deserialize Avro record...",
+  "payload": "...base64 or hex string..."
+}
 ```
-注意:
-これらの操作は 開発・CI/CD 環境での利用を前提 としており、本番環境での実行は推奨されません。
-本番では modelBuilder による明示的な定義と、デプロイ時のDDL管理が基本となります。
+timestamp: 処理失敗時刻（UTC）
+
+topic/partition/offset: 元レコードのメタ情報
+
+errorType: 想定されるエラー種別（例：DeserializationException, BusinessExceptionなど）
+
+exceptionMessage: スタックトレースまたはメッセージ
+
+payload: 生のレコードデータ（形式はシステムによる）
+
+この構造により、DLQトピックからの再処理・原因分析が容易になります。
+
+.OnError(ErrorAction) でスキップ・リトライ・DLQ送信の方針を指定できます。DLQは自動的にトピックへ送信され、再処理や分析が可能です。
+
+DLQの詳細は `KsqlDslOptions.DlqConfiguration` を通じて設定でき、`DlqTopicConfiguration` では保持期間やパーティション数、レプリケーション係数のカスタマイズが可能です。
+
+
 
 
 ## 8. リリース計画
@@ -726,9 +760,17 @@ JSON Schema はサポート対象外です（理由：サイズ効率・速度�
 
 ### 9.3 補足
 
-スキーマレジストリの接続設定や互換性ルール（BACKWARD 等）は別途構成で指定。
+### 9.3 補足
 
-ストリーム／テーブルの定義、DLQ設定、LINQ DSL、プロデュース／購読などの責務が明確に分離されており、将来的な拡張やプラガブルアーキテクチャが可能です。
+スキーマレジストリの接続設定や互換性ルール（BACKWARD 等）は、`KsqlContextBuilder` で構成可能です。
+
+このフレームワークでは、**KafkaDbContext（KsqlContext）生成時に** LINQ DSL の構築と同時に、
+POCO 定義の解析・KSQL文の生成・Avroスキーマの登録処理が自動で行われます。
+
+Kafka接続やスキーマレジストリが未接続の場合は、**コンテキスト生成時に例外として検出**されます。
+
+> Kafka 環境が未整備な状態で構文のみを検証したい場合は、アプリケーションの `LogLevel` を `"Debug"` に設定することで、生成される KSQL文をログとして確認することが可能です。
+
 
  #### RocksDBキャッシュ設計思想
 
@@ -747,25 +789,8 @@ DbContext のインスタンスが解決されると、内部的に OnModelCreat
 
 コンストラクタは軽量であり、DSL構文の構築のみを行います。
 
-Kafkaやスキーマレジストリへの接続確認・リソース作成は、以下のように明示的に EnsureKafkaReadyAsync() を呼び出して実行します：
 
-```
-public class KafkaInitializer
-{
-    private readonly KafkaDbContext _context;
 
-    public KafkaInitializer(KafkaDbContext context)
-    {
-        _context = context;
-    }
-
-    public async Task InitializeAsync()
-    {
-        await _context.EnsureKafkaReadyAsync();
-    }
-}
-
-```
 注意点：このタイミングで Schema Registry への通信や Kafka メタデータ取得処理が走るため、接続先が利用可能でない場合に例外が発生する可能性があります。
 
 そのため、KafkaDbContext 自体は軽量な構築とし、重い外部接続処理は明示的な初期化メソッドに切り出しています。
