@@ -20,7 +20,7 @@ public static class Example2_ManagedMode
         try
         {
             builder.Entity<LogEntry>()
-                .HasTopic("logs")
+                .AsTable("logs")
                 .WithPartitions(6)
                 .WithReplicationFactor(3)
                 // 既存トピックとの衝突を検出して自動管理モードへ

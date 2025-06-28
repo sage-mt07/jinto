@@ -16,7 +16,7 @@ public static class Example3_AdvancedOptions
     public static void Configure(ModelBuilder builder)
     {
         builder.Entity<EventLog>()
-            .HasTopic("event_log")
+            .AsTable("event_log")
             .WithPartitions(3)
             .WithReplicationFactor(2)
             .WithRetention(TimeSpan.FromDays(3))

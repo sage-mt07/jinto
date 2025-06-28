@@ -15,7 +15,7 @@ public static class Example1_Basic
     public static void Configure(ModelBuilder builder)
     {
         builder.Entity<Order>()
-            .HasTopic("orders")
+            .AsTable("orders")
             .WithPartitions(3);
     }
 }

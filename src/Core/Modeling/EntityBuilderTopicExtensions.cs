@@ -8,12 +8,6 @@ namespace Kafka.Ksql.Linq.Core.Modeling;
 /// </summary>
 public static class EntityBuilderTopicExtensions
 {
-    public static IEntityBuilder<T> HasTopic<T>(this IEntityBuilder<T> builder, string topicName) where T : class
-    {
-        if (builder is not EntityModelBuilder<T> concrete)
-            throw new ArgumentException("Invalid builder type", nameof(builder));
-        return concrete.HasTopic(topicName);
-    }
 
     public static IEntityBuilder<T> WithPartitions<T>(this IEntityBuilder<T> builder, int partitions) where T : class
     {
@@ -29,12 +23,6 @@ public static class EntityBuilderTopicExtensions
         return concrete.WithReplicationFactor(replicationFactor);
     }
 
-    public static IEntityBuilder<T> WithMinInSyncReplicas<T>(this IEntityBuilder<T> builder, int minInSyncReplicas) where T : class
-    {
-        if (builder is not EntityModelBuilder<T> concrete)
-            throw new ArgumentException("Invalid builder type", nameof(builder));
-        return concrete.WithMinInSyncReplicas(minInSyncReplicas);
-    }
 
     public static IEntityBuilder<T> WithPartitioner<T>(this IEntityBuilder<T> builder, string partitioner) where T : class
     {

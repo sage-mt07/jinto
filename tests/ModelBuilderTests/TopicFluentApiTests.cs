@@ -17,7 +17,7 @@ public class TopicFluentApiTests
     {
         var builder = new ModelBuilder();
         builder.Entity<Order>()
-            .HasTopic("orders")
+            .AsTable("orders")
             .WithPartitions(3)
             .WithReplicationFactor(2)
             .WithPartitioner("custom");
