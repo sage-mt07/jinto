@@ -8,7 +8,7 @@ for the message to be published, and then consumes it with `ForEachAsync`.
 ## Prerequisites
 
 - .NET 8 SDK
-- Docker (for Kafka and Schema Registry)
+- Docker (for Kafka and ksqlDB)
 
 ## Setup
 
