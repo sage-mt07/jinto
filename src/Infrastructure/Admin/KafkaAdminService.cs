@@ -1,6 +1,7 @@
 using Confluent.Kafka;
 using Confluent.Kafka.Admin;
 using Kafka.Ksql.Linq.Configuration;
+using Kafka.Ksql.Linq.Core.Abstractions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
@@ -57,6 +58,60 @@ internal class KafkaAdminService : IDisposable
             throw new InvalidOperationException(
                 $"FATAL: Cannot ensure DLQ topic '{dlqTopicName}' exists. " +
                 "DLQ functionality will be unavailable.", ex);
+        }
+    }
+
+    internal async Task EnsureTopicExistsAsync(string topicName, CancellationToken cancellationToken = default)
+    {
+        if (TopicExists(topicName, cancellationToken))
+        {
+            _logger?.LogDebug("Topic already exists: {TopicName}", topicName);
+            return;
+        }
+
+        var spec = new TopicSpecification
+        {
+            Name = topicName,
+            NumPartitions = 1,
+            ReplicationFactor = 1
+        };
+
+        try
+        {
+            await _adminClient.CreateTopicsAsync(new[] { spec }, new CreateTopicsOptions
+            {
+                RequestTimeout = TimeSpan.FromSeconds(30)
+            });
+
+            _logger?.LogInformation("Topic created: {TopicName}", topicName);
+        }
+        catch (CreateTopicsException ex)
+        {
+            var result = ex.Results.FirstOrDefault(r => r.Topic == topicName);
+            if (result?.Error.Code == ErrorCode.TopicAlreadyExists)
+            {
+                _logger?.LogDebug("Topic already exists (race): {TopicName}", topicName);
+                return;
+            }
+
+            throw new InvalidOperationException($"Failed to create topic '{topicName}': {result?.Error.Reason ?? "Unknown"}", ex);
+        }
+    }
+
+    internal async Task EnsureWindowFinalTopicsExistAsync(Dictionary<Type, EntityModel> entityModels, CancellationToken cancellationToken = default)
+    {
+        foreach (var model in entityModels.Values)
+        {
+            var entityName = model.TopicAttribute?.TopicName ?? model.EntityType.Name;
+            var config = _options.Entities?.Find(e => string.Equals(e.Entity, model.EntityType.Name, StringComparison.OrdinalIgnoreCase));
+            if (config == null || config.Windows.Count == 0)
+                continue;
+
+            foreach (var window in config.Windows)
+            {
+                var topic = $"{entityName}_window_{window}_final";
+                await EnsureTopicExistsAsync(topic, cancellationToken);
+            }
         }
     }
 

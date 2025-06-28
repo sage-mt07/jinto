@@ -1,6 +1,7 @@
 using Kafka.Ksql.Linq.Core.Abstractions;
 using Kafka.Ksql.Linq.StateStore.Core;
 using Kafka.Ksql.Linq.StateStore.Management;
+using Kafka.Ksql.Linq.StateStore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +11,7 @@ namespace Kafka.Ksql.Linq.StateStore.Extensions;
 
 
 
-internal class WindowedEntitySet<T> : IWindowedEntitySet<T> where T : class
+internal class WindowedEntitySet<T> : Kafka.Ksql.Linq.StateStore.IWindowedEntitySet<T> where T : class
 {
     private readonly IEntitySet<T> _baseEntitySet;
     private readonly int _windowMinutes;
@@ -35,6 +36,12 @@ internal class WindowedEntitySet<T> : IWindowedEntitySet<T> where T : class
     public int WindowMinutes => _windowMinutes;
 
     public IStateStore<string, T> GetStateStore() => _stateStore;
+
+    public string GetWindowTableName()
+    {
+        var baseTopicName = _baseEntitySet.GetTopicName();
+        return $"{baseTopicName}_WINDOW_{_windowMinutes}MIN";
+    }
 
     // IEntitySet<T> 実装を委譲
     public async System.Threading.Tasks.Task AddAsync(T entity, System.Threading.CancellationToken cancellationToken = default)

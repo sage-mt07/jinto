@@ -50,5 +50,7 @@
 - `ToList`/`ToListAsync` は Pull Query として実行されます【F:src/Query/Pipeline/DMLQueryGenerator.cs†L27-L34】。
 - `WithManualCommit()` を指定しない `ForEachAsync()` は自動コミットで `T` を返します【F:docs/manual_commit.md†L1-L23】。
 - `OnError(ErrorAction.DLQ)` を付与するとエラー時に共通DLQへ送信します【F:docs/oss_design_combined.md†L604-L615】。
+- `UseFinalized()` を指定しない場合、`ToListAsync()` は通常トピックから読み取ります。
+  `KsqlDslOptions.ReadFromFinalTopicByDefault` を `true` にすると既定で Final トピックを使用します。
 
 更新時はこのファイルを基点に整合性を保ってください。
