@@ -8,7 +8,7 @@ using System.IO;
 
 namespace Kafka.Ksql.Linq.StateStore.Core;
 
-public class RocksDbStateStore<TKey, TValue> : IStateStore<TKey, TValue>
+internal class RocksDbStateStore<TKey, TValue> : IStateStore<TKey, TValue>
     where TKey : notnull
     where TValue : class
 {

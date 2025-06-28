@@ -34,7 +34,7 @@
 
 - `public AvroEntityConfiguration Build()`
 - `public AvroEntityConfigurationBuilder<T> AsStream()`
-- `public AvroEntityConfigurationBuilder<T> AsTable()`
+ - `public AvroEntityConfigurationBuilder<T> AsTable(string? topicName = null, bool useCache = true)`
 - `public AvroEntityConfigurationBuilder<T> EnableCaching(bool enable = true)`
 - `public AvroEntityConfigurationBuilder<T> HasKey<TKey>(System.Linq.Expressions.Expression<Func<T, TKey>> keyExpression)`
 - `public AvroEntityConfigurationBuilder<T> ToTopic(string topicName)`
@@ -367,8 +367,8 @@
 - `public EntityModelBuilder<T> WithPartitioner(string partitioner)`
 - `public EntityModelBuilder<T> WithPartitions(int partitions)`
 - `public EntityModelBuilder<T> WithReplicationFactor(int replicationFactor)`
-- `public IEntityBuilder<T> AsStream()`
-- `public IEntityBuilder<T> AsTable()`
+ - `public IEntityBuilder<T> AsStream()`
+ - `public IEntityBuilder<T> AsTable(string? topicName = null, bool useCache = true)`
 - `public IEntityBuilder<T> WithManualCommit()`
 - `public override string ToString()`
 
@@ -909,16 +909,6 @@
 - `public void ExtractTopicFromSubject_ReturnsTopic(string subject, string expected)`
 - `public void ShouldRetry_RespectsPolicy()`
 
-### RocksDbStateStore<TKey
-
-- `public IEnumerable<KeyValuePair<TKey, TValue>> All()`
-- `public TValue? Get(TKey key)`
-- `public bool Delete(TKey key)`
-- `public void Close()`
-- `public void Dispose()`
-- `public void Flush()`
-- `public void Put(TKey key, TValue value)`
-
 ### SchemaGenerationOptions
 
 - `public SchemaGenerationOptions Clone()`
@@ -1104,14 +1094,6 @@
 
 - `public static IWindowCollection<T> Windows<T>(this IEntitySet<T> entitySet, params int[] windowSizes)`
 - `public static IWindowedEntitySet<T> Window<T>(this IEntitySet<T> entitySet, int windowMinutes)`
-
-### WindowFinalConsumer
-
-- `public List<WindowFinalMessage> GetFinalizedWindowsBySize(int windowMinutes, DateTime? since = null)`
-- `public List<WindowFinalMessage> GetFinalizedWindowsInRange(DateTime start, DateTime end)`
-- `public WindowFinalMessage? GetFinalizedWindow(string windowKey)`
-- `public async Task SubscribeToFinalizedWindows(string topicName,`
-- `public void Dispose()`
 
 ### WindowFinalizationManager
 

@@ -275,7 +275,7 @@ public interface IModelBuilder
 
 public interface IEntityBuilder<T> where T : class
 {
-    IEntityBuilder<T> AsTable();
+    IEntityBuilder<T> AsTable(string? topicName = null, bool useCache = true);
     IEntityBuilder<T> AsStream();
     IEntityBuilder<T> WithManualCommit();
 }

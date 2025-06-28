@@ -96,14 +96,34 @@ public class AvroEntityConfigurationBuilderTests
     }
 
     [Fact]
-    public void AsTable_SetsCustomSetting()
+    public void AsTable_SetsCustomSettingAndCaching()
     {
         var builder = CreateBuilder();
         builder.AsTable();
         var cfg = builder.Build();
         Assert.True(cfg.CustomSettings.TryGetValue("StreamTableType", out var v));
         Assert.Equal("Table", v);
+        Assert.True(cfg.EnableCaching);
     }
+
+    [Fact]
+    public void AsTable_DisablesCachingWhenSpecified()
+    {
+        var builder = CreateBuilder();
+        builder.AsTable(useCache: false);
+        var cfg = builder.Build();
+        Assert.False(cfg.EnableCaching);
+    }
+
+    [Fact]
+    public void AsTable_SetsTopicNameWhenProvided()
+    {
+        var builder = CreateBuilder();
+        builder.AsTable(topicName: "topic-a");
+        var cfg = builder.Build();
+        Assert.Equal("topic-a", cfg.TopicName);
+    }
+
 
     [Fact]
     public void Build_ReturnsConfiguration()
