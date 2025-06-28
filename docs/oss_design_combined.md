@@ -350,7 +350,13 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
 
 複数のウィンドウサイズ（例：1分・5分）に対応。
 
-orders_window_final への書き込みはPOD内タイマーによるWindow確定で自律実行。
+orders_window_{windowMinutes}_final への書き込みはPOD内タイマーによるWindow確定で自律実行。
+この Final トピックは `OnModelCreating` 実行時に自動定義される。
+アプリケーションで確定済みウィンドウを参照する場合は
+`UseFinalized()` DSL を使用して `orders_window_{windowMinutes}_final`
+から読み取る `ReadCachedWindowSet<T>` に切り替える。既定では通常トピックを
+使用するが `KsqlDslOptions.ReadFromFinalTopicByDefault` オプションで
+デフォルト動作を変更できる。
 
 最初に到着したレコードを正とする方針を採用。
 

@@ -1096,6 +1096,7 @@
 
 - `public static IWindowCollection<T> Windows<T>(this IEntitySet<T> entitySet, params int[] windowSizes)`
 - `public static IWindowedEntitySet<T> Window<T>(this IEntitySet<T> entitySet, int windowMinutes)`
+- `public static IWindowedEntitySet<T> UseFinalized<T>(this IWindowedEntitySet<T> windowSet)`
 
 ### WindowFinalizationManager
 

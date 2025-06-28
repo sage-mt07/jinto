@@ -37,4 +37,9 @@ public class KsqlDslOptions
     /// デシリアライズ失敗時のポリシー
     /// </summary>
     public DeserializationErrorPolicy DeserializationErrorPolicy { get; set; } = DeserializationErrorPolicy.Skip;
+
+    /// <summary>
+    /// Finalトピックからの読み取りをデフォルトで有効にするか
+    /// </summary>
+    public bool ReadFromFinalTopicByDefault { get; set; } = false;
 }

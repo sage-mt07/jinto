@@ -4,7 +4,7 @@
 
 ### 主要責務
 - **ウィンドウ確定処理**: Grace Period経過後のウィンドウ確定足生成
-- **確定足生成・配信**: 集約結果の`{topic}_window_final`トピック送信
+ - **確定足生成・配信**: 集約結果の`{topic}_window_{windowMinutes}_final`トピック送信
 - **RocksDB永続化**: 確定足データの永続化とWindow履歴管理
 - **重複排除・POD協調**: 複数POD環境での確定足重複排除機能
 
@@ -19,6 +19,7 @@
 - **StateStore**: RocksDB連携による確定足永続化
 - **Messaging**: 確定足トピック送信用のKafkaProducer使用
 - **Application**: WindowFinalizationManagerの初期化・設定
+- **Application**: OnModelCreatingでFinalトピックを自動生成
 
 ---
 
@@ -67,14 +68,14 @@
    ↓
 FinalizeWindow() → 集約処理実行
    ↓
-WindowFinalMessage生成 → {topic}_window_final送信
+WindowFinalMessage生成 → {topic}_window_{windowMinutes}_final送信
    ↓
 RocksDB永続化 → 確定足履歴保存
 ```
 
 ### 確定足消費・永続化フロー
 ```
-{topic}_window_final → WindowFinalConsumer.SubscribeToFinalizedWindows()
+{topic}_window_{windowMinutes}_final → WindowFinalConsumer.SubscribeToFinalizedWindows()
    ↓
 HandleFinalizedWindowWithRocksDB() → 重複排除チェック
    ↓
@@ -87,7 +88,7 @@ HandleFinalizedWindowWithRocksDB() → 重複排除チェック
 ```
 複数POD → 同一ウィンドウ確定
    ↓
-各PODから{topic}_window_final送信（同一キー）
+各PODから{topic}_window_{windowMinutes}_final送信（同一キー）
    ↓
 WindowFinalConsumer → 初回到着のみ処理
    ↓
@@ -104,6 +105,12 @@ RocksDB.Get(windowKey) → 永続化データ取得
    ↓
 結果をメモリキャッシュにも保存
 ```
+
+確定済みデータをアプリケーションから参照する際は、`WindowedEntitySet<T>`
+に対して `UseFinalized()` を呼び出すと `orders_window_{windowMinutes}_final`
+トピックを読み込む `ReadCachedWindowSet<T>` が返されます。既定では通常の
+トピックを使用しますが `KsqlDslOptions.ReadFromFinalTopicByDefault` を
+`true` にすると自動的に Final トピックを参照します。
 
 ---
 
@@ -247,10 +254,10 @@ private async Task SendToFinalTopic(string windowKey, object finalizedData, Wind
     };
 
     // KafkaProducerを使用して送信
-    await _config.FinalTopicProducer.SendAsync(
-        topic: $"{_config.TopicName}_window_final",
-        key: windowKey,
-        value: finalTopicMessage);
+     await _config.FinalTopicProducer.SendAsync(
+         topic: $"{_config.TopicName}_window_{windowState.WindowMinutes}_final",
+         key: windowKey,
+         value: finalTopicMessage);
 }
 ```
 

@@ -165,6 +165,8 @@ public abstract class KsqlContext : KafkaContextCore
             // 追加の接続確認（AdminServiceで実施）
             _adminService.ValidateKafkaConnectivity();
 
+            await _adminService.EnsureWindowFinalTopicsExistAsync(GetEntityModels());
+
             // ✅ ログ出力: DLQ準備完了
             Console.WriteLine($"✅ Kafka initialization completed. DLQ topic '{GetDlqTopicName()}' is ready with 5-second retention.");
         }
