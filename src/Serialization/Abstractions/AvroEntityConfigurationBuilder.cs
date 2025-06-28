@@ -68,9 +68,14 @@ public class AvroEntityConfigurationBuilder<T> where T : class
         return this;
     }
 
-    public AvroEntityConfigurationBuilder<T> AsTable()
+    public AvroEntityConfigurationBuilder<T> AsTable(string? topicName = null, bool useCache = true)
     {
         _configuration.CustomSettings["StreamTableType"] = "Table";
+        _configuration.EnableCaching = useCache;
+        if (!string.IsNullOrWhiteSpace(topicName))
+        {
+            _configuration.TopicName = topicName;
+        }
         return this;
     }
 

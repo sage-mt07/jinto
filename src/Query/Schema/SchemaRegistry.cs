@@ -231,13 +231,6 @@ internal class SchemaRegistry : IDisposable
             return Kafka.Ksql.Linq.Query.Abstractions.StreamTableType.Table;
         }
 
-        // 2. EF Core TableAttribute の存在確認
-        if (entityType.GetCustomAttribute<System.ComponentModel.DataAnnotations.Schema.TableAttribute>() != null)
-        {
-            _logger.LogDebug("Entity {EntityType} has EF Core [Table] attribute, defaulting to TABLE", entityType.Name);
-            return Kafka.Ksql.Linq.Query.Abstractions.StreamTableType.Table;
-        }
-
         // 3. キープロパティの有無で判定
         if (entityModel.KeyProperties != null && entityModel.KeyProperties.Length > 0)
         {

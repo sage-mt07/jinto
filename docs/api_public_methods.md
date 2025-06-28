@@ -34,7 +34,7 @@
 
 - `public AvroEntityConfiguration Build()`
 - `public AvroEntityConfigurationBuilder<T> AsStream()`
-- `public AvroEntityConfigurationBuilder<T> AsTable()`
+ - `public AvroEntityConfigurationBuilder<T> AsTable(string? topicName = null, bool useCache = true)`
 - `public AvroEntityConfigurationBuilder<T> EnableCaching(bool enable = true)`
 - `public AvroEntityConfigurationBuilder<T> HasKey<TKey>(System.Linq.Expressions.Expression<Func<T, TKey>> keyExpression)`
 - `public AvroEntityConfigurationBuilder<T> ToTopic(string topicName)`
@@ -367,8 +367,8 @@
 - `public EntityModelBuilder<T> WithPartitioner(string partitioner)`
 - `public EntityModelBuilder<T> WithPartitions(int partitions)`
 - `public EntityModelBuilder<T> WithReplicationFactor(int replicationFactor)`
-- `public IEntityBuilder<T> AsStream()`
-- `public IEntityBuilder<T> AsTable()`
+ - `public IEntityBuilder<T> AsStream()`
+ - `public IEntityBuilder<T> AsTable(string? topicName = null, bool useCache = true)`
 - `public IEntityBuilder<T> WithManualCommit()`
 - `public override string ToString()`
 
@@ -674,6 +674,7 @@
 - `public KsqlContextBuilder UseSchemaRegistry(ISchemaRegistryClient client)`
 - `public KsqlContextBuilder UseSchemaRegistry(SchemaRegistryConfig config)`
 - `public KsqlContextBuilder UseSchemaRegistry(string url)`
+- `public KsqlContextBuilder UseConfiguration(Microsoft.Extensions.Configuration.IConfiguration configuration)`
 - `public KsqlContextBuilder WithTimeouts(TimeSpan schemaRegistrationTimeout)`
 - `public KsqlContextOptions Build()`
 - `public T BuildContext<T>() where T : KsqlContext`
@@ -684,6 +685,7 @@
 - `public void BuildContext_CreatesInstance()`
 - `public void Builder_Methods_ConfigureOptions()`
 - `public void Create_ReturnsBuilder()`
+- `public void UseConfiguration_SetsOptions()`
 
 ### KsqlContextConversionTests
 
@@ -768,12 +770,14 @@
 - `public static void LogErrorWithLegacySupport<T>(this ILogger<T> logger,`
 - `public static void LogInformationWithLegacySupport<T>(this ILogger<T> logger,`
 - `public static void LogWarningWithLegacySupport<T>(this ILogger<T> logger,`
+- `public static Microsoft.Extensions.Logging.ILoggerFactory CreateLoggerFactory(this Microsoft.Extensions.Configuration.IConfiguration configuration)`
 
 ### LoggerFactoryExtensionsTests
 
 - `public void CreateLoggerOrNull_ReturnsNullLoggerWhenFactoryNull()`
 - `public void CreateLoggerOrNull_UsesFactory()`
 - `public void LogMethods_WithAndWithoutFactory()`
+- `public void CreateLoggerFactory_FromConfiguration_RespectsNamespaceLevels()`
 
 ### ManagedTopicExtensions
 
@@ -908,16 +912,6 @@
 - `public void CalculateDelay_AppliesBackoff()`
 - `public void ExtractTopicFromSubject_ReturnsTopic(string subject, string expected)`
 - `public void ShouldRetry_RespectsPolicy()`
-
-### RocksDbStateStore<TKey
-
-- `public IEnumerable<KeyValuePair<TKey, TValue>> All()`
-- `public TValue? Get(TKey key)`
-- `public bool Delete(TKey key)`
-- `public void Close()`
-- `public void Dispose()`
-- `public void Flush()`
-- `public void Put(TKey key, TValue value)`
 
 ### SchemaGenerationOptions
 
@@ -1104,14 +1098,6 @@
 
 - `public static IWindowCollection<T> Windows<T>(this IEntitySet<T> entitySet, params int[] windowSizes)`
 - `public static IWindowedEntitySet<T> Window<T>(this IEntitySet<T> entitySet, int windowMinutes)`
-
-### WindowFinalConsumer
-
-- `public List<WindowFinalMessage> GetFinalizedWindowsBySize(int windowMinutes, DateTime? since = null)`
-- `public List<WindowFinalMessage> GetFinalizedWindowsInRange(DateTime start, DateTime end)`
-- `public WindowFinalMessage? GetFinalizedWindow(string windowKey)`
-- `public async Task SubscribeToFinalizedWindows(string topicName,`
-- `public void Dispose()`
 
 ### WindowFinalizationManager
 

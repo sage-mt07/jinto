@@ -1,6 +1,5 @@
 using Kafka.Ksql.Linq.Query.Abstractions;
 using System;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.Reflection;
 
 namespace Kafka.Ksql.Linq.Core.Abstractions;
@@ -27,7 +26,7 @@ public class EntityModel
             if (streamAttribute != null)
                 return StreamTableType.Stream;
 
-            var tableAttribute = EntityType.GetCustomAttribute<TableAttribute>();
+            var tableAttribute = EntityType.GetCustomAttribute<KsqlTableAttribute>();
             if (tableAttribute != null)
                 return StreamTableType.Table;
 
@@ -88,4 +87,9 @@ public class EntityModel
     /// デシリアライズ失敗時のポリシー
     /// </summary>
     public DeserializationErrorPolicy DeserializationErrorPolicy { get; set; } = DeserializationErrorPolicy.Skip;
+
+    /// <summary>
+    /// RocksDB キャッシュ利用フラグ
+    /// </summary>
+    public bool EnableCache { get; set; } = true;
 }

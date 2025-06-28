@@ -12,9 +12,14 @@ public class EntityModelBuilder<T> : IEntityBuilder<T> where T : class
     {
         _entityModel = entityModel ?? throw new ArgumentNullException(nameof(entityModel));
     }
-    public IEntityBuilder<T> AsTable()
+    public IEntityBuilder<T> AsTable(string? topicName = null, bool useCache = true)
     {
         _entityModel.SetStreamTableType(StreamTableType.Table);
+        _entityModel.EnableCache = useCache;
+        if (!string.IsNullOrWhiteSpace(topicName))
+        {
+            _entityModel.TopicAttribute = new TopicAttribute(topicName);
+        }
         return this;
     }
     public IEntityBuilder<T> AsStream()

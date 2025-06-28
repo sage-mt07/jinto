@@ -1,5 +1,6 @@
 using Confluent.SchemaRegistry;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Configuration;
 using System;
 namespace Kafka.Ksql.Linq.Application;
 public class KsqlContextBuilder
@@ -9,6 +10,13 @@ public class KsqlContextBuilder
     public static KsqlContextBuilder Create()
     {
         return new KsqlContextBuilder();
+    }
+
+    public KsqlContextBuilder UseConfiguration(IConfiguration configuration)
+    {
+        if (configuration == null) throw new ArgumentNullException(nameof(configuration));
+        _options.Configuration = configuration;
+        return this;
     }
 
     public KsqlContextBuilder UseSchemaRegistry(string url)

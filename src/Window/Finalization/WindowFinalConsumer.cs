@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Kafka.Ksql.Linq.Window.Finalization;
 
-public class WindowFinalConsumer : IDisposable
+internal class WindowFinalConsumer : IDisposable
 {
     private readonly ILogger<WindowFinalConsumer> _logger;
     private readonly ConcurrentDictionary<string, WindowFinalMessage> _finalizedWindows = new();
