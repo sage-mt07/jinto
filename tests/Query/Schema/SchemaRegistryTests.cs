@@ -30,6 +30,12 @@ public class SchemaRegistryTests
         public int Id { get; set; }
     }
 
+    [KsqlTable]
+    private class TableEntity
+    {
+        public int Id { get; set; }
+    }
+
     [Fact]
     public async Task RegisterSchemaAsync_UsesCreateTableWhenKeysPresent()
     {
@@ -61,6 +67,22 @@ public class SchemaRegistryTests
         await registry.RegisterSchemaAsync<StreamEntity>(model);
         Assert.Contains("CREATE STREAM", executor.DdlQueries.First());
         Assert.True(registry.IsRegistered(typeof(StreamEntity)));
+    }
+
+    [Fact]
+    public async Task RegisterSchemaAsync_TableAttribute_UsesCreateTable()
+    {
+        var executor = new FakeExecutor();
+        var ddl = new DDLQueryGenerator(new NullLoggerFactory());
+        var registry = new SchemaRegistry(executor, ddl, new NullLoggerFactory());
+        var model = new EntityModel
+        {
+            EntityType = typeof(TableEntity),
+            AllProperties = typeof(TableEntity).GetProperties()
+        };
+        await registry.RegisterSchemaAsync<TableEntity>(model);
+        Assert.Contains("CREATE TABLE", executor.DdlQueries.First());
+        Assert.True(registry.IsRegistered(typeof(TableEntity)));
     }
     [Fact]
     public async Task UnregisterSchemaAsync_RemovesRegistration()
