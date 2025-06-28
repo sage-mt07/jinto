@@ -6,6 +6,7 @@ public class KsqlContextOptions
 {
     public ISchemaRegistryClient SchemaRegistryClient { get; set; } = null!;
     public ILoggerFactory? LoggerFactory { get; set; }
+    public Microsoft.Extensions.Configuration.IConfiguration? Configuration { get; set; }
     public bool EnableDebugLogging { get; set; } = false;
     public bool AutoRegisterSchemas { get; set; } = true;
     public bool EnableCachePreWarming { get; set; } = true;

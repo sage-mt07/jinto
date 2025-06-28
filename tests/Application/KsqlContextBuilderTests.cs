@@ -49,4 +49,17 @@ public class KsqlContextBuilderTests
         Assert.Equal(System.TimeSpan.FromSeconds(5), options.SchemaRegistrationTimeout);
         Assert.True(options.EnableDebugLogging);
     }
+
+    [Fact]
+    public void UseConfiguration_SetsOptions()
+    {
+        var config = new Microsoft.Extensions.Configuration.ConfigurationBuilder().AddInMemoryCollection().Build();
+
+        var options = KsqlContextBuilder.Create()
+            .UseConfiguration(config)
+            .UseSchemaRegistry("http://localhost:8081")
+            .Build();
+
+        Assert.Equal(config, options.Configuration);
+    }
 }
