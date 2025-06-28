@@ -1,5 +1,6 @@
 using Kafka.Ksql.Linq.Application;
 using Kafka.Ksql.Linq.Core.Context;
+using Microsoft.Extensions.Configuration;
 using Xunit;
 
 namespace Kafka.Ksql.Linq.Tests.Application;
@@ -48,5 +49,18 @@ public class KsqlContextBuilderTests
         Assert.False(options.EnableCachePreWarming);
         Assert.Equal(System.TimeSpan.FromSeconds(5), options.SchemaRegistrationTimeout);
         Assert.True(options.EnableDebugLogging);
+    }
+
+    [Fact]
+    public void UseConfiguration_SetsOptions()
+    {
+        var config = new Microsoft.Extensions.Configuration.ConfigurationBuilder().AddInMemoryCollection().Build();
+
+        var options = KsqlContextBuilder.Create()
+            .UseConfiguration(config)
+            .UseSchemaRegistry("http://localhost:8081")
+            .Build();
+
+        Assert.Equal(config, options.Configuration);
     }
 }

@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Configuration;
 using System;
 
 namespace Kafka.Ksql.Linq.Core.Extensions;
@@ -161,4 +162,22 @@ public static class LoggerFactoryExtensions
             Console.WriteLine($"[ERROR] Exception: {exception.Message}");
         }
     }
+
+    /// <summary>
+    /// appsettings.json の Logging セクションから LoggerFactory を生成する
+    /// </summary>
+    /// <param name="configuration">構成情報</param>
+    /// <returns>設定済みの ILoggerFactory</returns>
+    public static ILoggerFactory CreateLoggerFactory(this IConfiguration configuration)
+    {
+        if (configuration == null) throw new ArgumentNullException(nameof(configuration));
+
+        return LoggerFactory.Create(builder =>
+        {
+            builder.AddConfiguration(configuration.GetSection("Logging"));
+            builder.AddConsole();
+            builder.AddDebug();
+        });
+    }
 }
+

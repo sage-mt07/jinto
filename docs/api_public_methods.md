@@ -674,6 +674,7 @@
 - `public KsqlContextBuilder UseSchemaRegistry(ISchemaRegistryClient client)`
 - `public KsqlContextBuilder UseSchemaRegistry(SchemaRegistryConfig config)`
 - `public KsqlContextBuilder UseSchemaRegistry(string url)`
+- `public KsqlContextBuilder UseConfiguration(Microsoft.Extensions.Configuration.IConfiguration configuration)`
 - `public KsqlContextBuilder WithTimeouts(TimeSpan schemaRegistrationTimeout)`
 - `public KsqlContextOptions Build()`
 - `public T BuildContext<T>() where T : KsqlContext`
@@ -684,6 +685,7 @@
 - `public void BuildContext_CreatesInstance()`
 - `public void Builder_Methods_ConfigureOptions()`
 - `public void Create_ReturnsBuilder()`
+- `public void UseConfiguration_SetsOptions()`
 
 ### KsqlContextConversionTests
 
@@ -768,12 +770,14 @@
 - `public static void LogErrorWithLegacySupport<T>(this ILogger<T> logger,`
 - `public static void LogInformationWithLegacySupport<T>(this ILogger<T> logger,`
 - `public static void LogWarningWithLegacySupport<T>(this ILogger<T> logger,`
+- `public static Microsoft.Extensions.Logging.ILoggerFactory CreateLoggerFactory(this Microsoft.Extensions.Configuration.IConfiguration configuration)`
 
 ### LoggerFactoryExtensionsTests
 
 - `public void CreateLoggerOrNull_ReturnsNullLoggerWhenFactoryNull()`
 - `public void CreateLoggerOrNull_UsesFactory()`
 - `public void LogMethods_WithAndWithoutFactory()`
+- `public void CreateLoggerFactory_FromConfiguration_RespectsNamespaceLevels()`
 
 ### ManagedTopicExtensions
 
