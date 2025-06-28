@@ -1,6 +1,7 @@
 using Kafka.Ksql.Linq.Configuration;
 using Kafka.Ksql.Linq.Core.Abstractions;
 using Kafka.Ksql.Linq.StateStore.Management;
+using Kafka.Ksql.Linq.StateStore;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
@@ -29,7 +30,7 @@ internal static class KafkaContextStateStoreExtensions
                 var entityConfig = options.Entities?.Find(e =>
                     string.Equals(e.Entity, entityModel.EntityType.Name, StringComparison.OrdinalIgnoreCase));
 
-                if (entityConfig?.StoreType == "RocksDb")
+                if (entityConfig?.StoreType == StoreTypes.RocksDb)
                 {
                     ((StateStoreManager)storeManager).InitializeStoresForEntity(entityModel.EntityType);
                 }

@@ -1,10 +1,11 @@
 using System.Collections.Generic;
+using Kafka.Ksql.Linq.StateStore;
 
 namespace Kafka.Ksql.Linq.StateStore.Configuration
 {
     internal class StateStoreOptions
     {
-        public string StoreType { get; set; } = "RocksDb";
+        public string StoreType { get; set; } = StoreTypes.RocksDb;
         public string? StoreName { get; set; }
         public bool EnableCache { get; set; } = false;
         public List<int> Windows { get; set; } = new();

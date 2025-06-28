@@ -6,6 +6,11 @@ using Kafka.Ksql.Linq.Messaging.Consumers;
 using Kafka.Ksql.Linq.Messaging.Producers;
 using Kafka.Ksql.Linq.Serialization.Abstractions;
 using Kafka.Ksql.Linq.Serialization.Avro.Management;
+using Kafka.Ksql.Linq.StateStore.Extensions;
+using Kafka.Ksql.Linq.StateStore.Integration;
+using Kafka.Ksql.Linq.StateStore.Management;
+using Kafka.Ksql.Linq.StateStore.Monitoring;
+using Kafka.Ksql.Linq.StateStore;
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
@@ -28,6 +33,11 @@ public abstract class KsqlContext : KafkaContextCore
 
     private readonly KafkaAdminService _adminService;
     private readonly KsqlDslOptions _dslOptions;
+    private StateStoreBindingManager? _bindingManager;
+    private IStateStoreManager? _storeManager;
+    private readonly List<IDisposable> _stateBindings = new();
+
+    public event EventHandler<ReadyStateChangedEventArgs>? BindingReadyStateChanged;
     /// <summary>
     /// テスト用にスキーマ登録をスキップするか判定するフック
     /// </summary>
@@ -61,6 +71,8 @@ public abstract class KsqlContext : KafkaContextCore
                 Microsoft.Extensions.Options.Options.Create(_dslOptions),
                 _dlqProducer,
                 null);
+
+            InitializeStateStoreIntegration();
         }
         catch (Exception ex)
         {
@@ -97,6 +109,8 @@ public abstract class KsqlContext : KafkaContextCore
                 Microsoft.Extensions.Options.Options.Create(_dslOptions),
                 _dlqProducer,
                 null);
+
+            InitializeStateStoreIntegration();
         }
         catch (Exception ex)
         {
@@ -194,6 +208,58 @@ public abstract class KsqlContext : KafkaContextCore
             throw new InvalidOperationException(
                 "FATAL: Cannot connect to Kafka. Verify bootstrap servers and network connectivity.", ex);
         }
+    }
+
+    private void InitializeStateStoreIntegration()
+    {
+        try
+        {
+            this.InitializeStateStores(_dslOptions);
+            _storeManager = this.GetStateStoreManager();
+            if (_storeManager == null)
+                return;
+
+            _bindingManager = new StateStoreBindingManager();
+
+            // 全エンティティ定義を取得し、設定でRocksDbが有効なものだけバインドを作成する
+            var entityModels = GetEntityModels();
+            foreach (var model in entityModels.Values)
+            {
+                var config = _dslOptions.Entities?.Find(e =>
+                    string.Equals(e.Entity, model.EntityType.Name, StringComparison.OrdinalIgnoreCase));
+                if (config?.StoreType == StoreTypes.RocksDb)
+                {
+                    var method = GetType().GetMethod(nameof(CreateBindingForEntity), System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                    var generic = method!.MakeGenericMethod(model.EntityType);
+                    var binding = (IDisposable)generic.Invoke(this, new object[] { model })!;
+                    _stateBindings.Add(binding);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException(
+                $"StateStore initialization failed: {ex.Message}", ex);
+        }
+    }
+
+    private IDisposable CreateBindingForEntity<T>(EntityModel model) where T : class
+    {
+        var store = _storeManager!.GetOrCreateStore<string, T>(typeof(T), 0);
+        var binding = _bindingManager!.CreateBindingAsync<T>(store, _consumerManager, model, null)
+            .GetAwaiter().GetResult();
+        binding.ReadyStateChanged += HandleBindingReadyStateChanged;
+        return binding;
+    }
+
+    private void HandleBindingReadyStateChanged(object? sender, ReadyStateChangedEventArgs e)
+    {
+        if (!e.IsReady)
+        {
+            Console.WriteLine($"⚠️ StateStore not ready: {e.TopicName} Lag: {e.CurrentLag}");
+        }
+
+        BindingReadyStateChanged?.Invoke(this, e);
     }
 
     /// <summary>
@@ -309,6 +375,15 @@ public abstract class KsqlContext : KafkaContextCore
             _consumerManager?.Dispose();
             _dlqProducer?.Dispose();
             _adminService?.Dispose();
+            _bindingManager?.Dispose();
+
+            foreach (var b in _stateBindings)
+            {
+                b.Dispose();
+            }
+            _stateBindings.Clear();
+
+            this.CleanupStateStores();
 
             if (_schemaRegistryClient.IsValueCreated)
             {
@@ -325,6 +400,15 @@ public abstract class KsqlContext : KafkaContextCore
         _consumerManager?.Dispose();
         _dlqProducer?.Dispose();
         _adminService?.Dispose();
+        _bindingManager?.Dispose();
+
+        foreach (var b in _stateBindings)
+        {
+            b.Dispose();
+        }
+        _stateBindings.Clear();
+
+        this.CleanupStateStores();
 
         if (_schemaRegistryClient.IsValueCreated)
         {
@@ -389,6 +473,21 @@ internal class EventSetWithServices<T> : IEntitySet<T> where T : class
     {
         try
         {
+            var storeManager = _ksqlContext.GetStateStoreManager();
+            if (storeManager != null &&
+                _entityModel.GetExplicitStreamTableType() == StreamTableType.Table &&
+                _entityModel.EnableCache)
+            {
+                var store = storeManager.GetOrCreateStore<string, T>(_entityModel.EntityType, 0);
+                var list = new List<T>();
+                foreach (var kv in store.All())
+                {
+                    if (kv.Value != null)
+                        list.Add(kv.Value);
+                }
+                return list;
+            }
+
             var consumerManager = _ksqlContext.GetConsumerManager();
 
             // 簡略実装：実際のConsumer呼び出し
