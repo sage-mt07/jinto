@@ -51,6 +51,8 @@ internal class ReadCachedWindowSet<T> : IWindowedEntitySet<T> where T : class
 
     public EntityModel GetEntityModel() => _baseSet.GetEntityModel();
 
+    public IStateStore<string, T> GetStateStore() => _stateStore;
+
     public IKsqlContext GetContext() => _baseSet.GetContext();
 
     public async IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default)
