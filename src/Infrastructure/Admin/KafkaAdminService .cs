@@ -6,7 +6,6 @@ using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -42,7 +41,7 @@ internal class KafkaAdminService : IDisposable
         try
         {
             // 1. 既存トピック確認
-            if ( TopicExists(dlqTopicName, cancellationToken))
+            if (TopicExists(dlqTopicName, cancellationToken))
             {
                 _logger?.LogDebug("DLQ topic already exists: {DlqTopicName}", dlqTopicName);
                 return;
@@ -168,7 +167,7 @@ internal class KafkaAdminService : IDisposable
         {
             BootstrapServers = _options.Common.BootstrapServers,
             ClientId = $"{_options.Common.ClientId}-admin",
-          //  RequestTimeoutMs = _options.Common.RequestTimeoutMs,
+            //  RequestTimeoutMs = _options.Common.RequestTimeoutMs,
             MetadataMaxAgeMs = _options.Common.MetadataMaxAgeMs
         };
 

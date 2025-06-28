@@ -1,12 +1,10 @@
-using Kafka.Ksql.Linq.Core.Abstractions;
+using Kafka.Ksql.Linq.Core.Attributes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Kafka.Ksql.Linq.Core.Attributes;
 
 namespace Kafka.Ksql.Linq.Core.Abstractions;
 

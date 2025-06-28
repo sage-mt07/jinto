@@ -1,6 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
 using Kafka.Ksql.Linq.Core.Attributes;
+using System;
+using System.Collections.Generic;
 
 namespace Kafka.Ksql.Linq.Core.Abstractions;
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = true)]

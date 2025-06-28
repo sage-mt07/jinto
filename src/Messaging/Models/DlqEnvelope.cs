@@ -1,82 +1,69 @@
-using Kafka.Ksql.Linq.Messaging.Producers;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Kafka.Ksql.Linq.Messaging.Models;
 
 public class DlqEnvelope
 {
     /// <summary>
-    /// 元のメッセージオブジェクト
+    /// Unique ID of the original message for idempotency and tracing.
     /// </summary>
-    public object? OriginalMessage { get; set; }
+    public Guid MessageId { get; set; }
 
     /// <summary>
-    /// 発生した例外の情報
+    /// Original topic name where the message was published.
     /// </summary>
-    public DlqExceptionInfo Exception { get; set; } = new();
+    public string Topic { get; set; } = string.Empty;
 
     /// <summary>
-    /// 元のトピック名
+    /// Partition number of the original message.
     /// </summary>
-    public string? OriginalTopic { get; set; }
+    public int Partition { get; set; }
 
     /// <summary>
-    /// 元のパーティション番号
+    /// Offset of the original message.
     /// </summary>
-    public int? OriginalPartition { get; set; }
+    public long Offset { get; set; }
 
     /// <summary>
-    /// 元のオフセット
+    /// Timestamp of the original message in UTC.
     /// </summary>
-    public long? OriginalOffset { get; set; }
+    public DateTime TimestampUtc { get; set; }
 
     /// <summary>
-    /// エラーが発生した処理フェーズ
+    /// CLR type name of the key used when deserializing.
     /// </summary>
-    public string ErrorPhase { get; set; } = string.Empty;
+    public string KeyType { get; set; } = string.Empty;
 
     /// <summary>
-    /// 試行回数
+    /// CLR type name of the value used when deserializing.
     /// </summary>
-    public int AttemptCount { get; set; }
+    public string ValueType { get; set; } = string.Empty;
 
     /// <summary>
-    /// 最初の試行時刻
+    /// Raw bytes of the message that failed to process.
     /// </summary>
-    public DateTime FirstAttemptTime { get; set; }
+    public byte[] RawBytes { get; set; } = Array.Empty<byte>();
 
     /// <summary>
-    /// 最後の試行時刻
+    /// Short form of the error message.
     /// </summary>
-    public DateTime LastAttemptTime { get; set; }
+    public string ErrorMessage { get; set; } = string.Empty;
 
     /// <summary>
-    /// DLQ送信時刻
+    /// CLR type name of the thrown exception.
     /// </summary>
-    public DateTime DlqTimestamp { get; set; }
+    public string ErrorType { get; set; } = string.Empty;
 
     /// <summary>
-    /// メッセージID
+    /// Stack trace for debugging purposes. Optional.
     /// </summary>
-    public string? MessageId { get; set; }
+    public string? StackTrace { get; set; }
 
     /// <summary>
-    /// 相関ID
+    /// Restored Kafka headers for correlation or replay.
+    /// Values are stored as strings for human readability.
     /// </summary>
-    public string? CorrelationId { get; set; }
-
-    /// <summary>
-    /// 追加のメタデータ
-    /// </summary>
-    public System.Collections.Generic.Dictionary<string, object> Metadata { get; set; } = new();
-
-    public override string ToString()
-    {
-        return $"DlqEnvelope: Topic={OriginalTopic}, ErrorPhase={ErrorPhase}, " +
-               $"Attempts={AttemptCount}, Exception={Exception.Type}";
-    }
+    public Dictionary<string, string> Headers { get; set; } = new();
 }
+

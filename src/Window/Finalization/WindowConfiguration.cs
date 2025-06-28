@@ -1,9 +1,5 @@
-using Kafka.Ksql.Linq.Messaging.Abstractions;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Kafka.Ksql.Linq.Window.Finalization;
 

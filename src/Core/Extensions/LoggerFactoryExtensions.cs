@@ -1,6 +1,6 @@
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Configuration;
 using System;
 
 namespace Kafka.Ksql.Linq.Core.Extensions;

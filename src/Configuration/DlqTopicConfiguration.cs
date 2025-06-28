@@ -1,6 +1,6 @@
+using Kafka.Ksql.Linq.Core.Attributes;
 using System;
 using System.Collections.Generic;
-using Kafka.Ksql.Linq.Core.Attributes;
 
 namespace Kafka.Ksql.Linq.Configuration;
 

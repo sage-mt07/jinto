@@ -1,12 +1,8 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Kafka.Ksql.Linq.Core.Abstractions;
 
-public  class ErrorHandlingPolicy
+public class ErrorHandlingPolicy
 {
     public ErrorAction Action { get; set; } = ErrorAction.Skip;
     public int RetryCount { get; set; } = 3;

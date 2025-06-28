@@ -1,5 +1,4 @@
 using Kafka.Ksql.Linq.Query.Abstractions;
-using Kafka.Ksql.Linq;
 using System;
 using System.Linq.Expressions;
 

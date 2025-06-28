@@ -1,6 +1,6 @@
 using Confluent.SchemaRegistry;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using System;
 namespace Kafka.Ksql.Linq.Application;
 public class KsqlContextBuilder

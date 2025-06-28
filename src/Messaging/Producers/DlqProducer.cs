@@ -1,15 +1,10 @@
-using Kafka.Ksql.Linq.Core.Abstractions;
-using Kafka.Ksql.Linq.Messaging.Abstractions;
-using Kafka.Ksql.Linq.Messaging.Contracts;
-using Kafka.Ksql.Linq.Core.Attributes;
 using Confluent.Kafka;
-using KsqlDsl.Messaging.Models;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
+using Kafka.Ksql.Linq.Core.Abstractions;
+using Kafka.Ksql.Linq.Core.Attributes;
+using Kafka.Ksql.Linq.Messaging.Contracts;
+using Kafka.Ksql.Linq.Messaging.Models;
 using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace Kafka.Ksql.Linq.Messaging.Producers;

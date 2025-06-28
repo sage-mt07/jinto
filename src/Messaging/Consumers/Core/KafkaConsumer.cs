@@ -1,10 +1,10 @@
-﻿using Confluent.Kafka;
+using Confluent.Kafka;
 using Kafka.Ksql.Linq.Configuration.Abstractions;
 using Kafka.Ksql.Linq.Core.Abstractions;
 using Kafka.Ksql.Linq.Core.Extensions;
 using Kafka.Ksql.Linq.Messaging.Abstractions;
-using Kafka.Ksql.Linq.Messaging.Producers.Core;
 using Kafka.Ksql.Linq.Messaging.Producers;
+using Kafka.Ksql.Linq.Messaging.Producers.Core;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;

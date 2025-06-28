@@ -1,6 +1,4 @@
 using Kafka.Ksql.Linq.Core.Abstractions;
-using System;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace Kafka.Ksql.Linq.Messaging.Contracts;

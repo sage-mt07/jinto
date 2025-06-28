@@ -1,10 +1,6 @@
 using Kafka.Ksql.Linq.Core.Abstractions;
 using Kafka.Ksql.Linq.Core.Window;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Kafka.Ksql.Linq.Importer;
 

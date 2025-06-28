@@ -314,7 +314,7 @@ public abstract class EventSet<T> : IEntitySet<T> where T : class
                 itemErrorContext);
         }
         var resultEntityModel = CreateEntityModelForType<TResult>();
-       return  new MappedEventSet<TResult>(results, _context, resultEntityModel, _dlqErrorSink);
+        return new MappedEventSet<TResult>(results, _context, resultEntityModel, _dlqErrorSink);
     }
 
     // ✅ 抽象メソッド：派生クラスで新しいインスタンス作成

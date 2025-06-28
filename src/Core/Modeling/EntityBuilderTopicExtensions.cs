@@ -1,5 +1,5 @@
-using System;
 using Kafka.Ksql.Linq.Core.Abstractions;
+using System;
 
 namespace Kafka.Ksql.Linq.Core.Modeling;
 

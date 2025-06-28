@@ -8,9 +8,9 @@ using Kafka.Ksql.Linq.Serialization.Abstractions;
 using Kafka.Ksql.Linq.Serialization.Avro.Management;
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Runtime.CompilerServices;
 using ConfluentSchemaRegistry = Confluent.SchemaRegistry;
 
 namespace Kafka.Ksql.Linq.Application;
@@ -140,7 +140,7 @@ public abstract class KsqlContext : KafkaContextCore
             await _adminService.EnsureDlqTopicExistsAsync();
 
             // 追加の接続確認（AdminServiceで実施）
-             _adminService.ValidateKafkaConnectivity();
+            _adminService.ValidateKafkaConnectivity();
 
             // ✅ ログ出力: DLQ準備完了
             Console.WriteLine($"✅ Kafka initialization completed. DLQ topic '{GetDlqTopicName()}' is ready with 5-second retention.");

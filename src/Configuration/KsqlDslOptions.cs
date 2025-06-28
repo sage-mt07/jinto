@@ -1,6 +1,6 @@
-using Kafka.Ksql.Linq.Messaging.Configuration;
 using Kafka.Ksql.Linq.Core.Abstractions;
 using Kafka.Ksql.Linq.Core.Attributes;
+using Kafka.Ksql.Linq.Messaging.Configuration;
 using System.Collections.Generic;
 
 namespace Kafka.Ksql.Linq.Configuration;

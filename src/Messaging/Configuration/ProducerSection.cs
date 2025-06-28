@@ -1,5 +1,5 @@
-using System.Collections.Generic;
 using Kafka.Ksql.Linq.Core.Attributes;
+using System.Collections.Generic;
 
 namespace Kafka.Ksql.Linq.Messaging.Configuration;
 public class ProducerSection
