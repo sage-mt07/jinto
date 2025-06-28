@@ -58,6 +58,10 @@ public abstract class KsqlContext : KafkaContextCore
             {
                 InitializeWithSchemaRegistration();
             }
+            else
+            {
+                ConfigureModel();
+            }
 
             _producerManager = new KafkaProducerManager(
                 Microsoft.Extensions.Options.Options.Create(_dslOptions),
@@ -95,6 +99,10 @@ public abstract class KsqlContext : KafkaContextCore
             if (!SkipSchemaRegistration)
             {
                 InitializeWithSchemaRegistration();
+            }
+            else
+            {
+                ConfigureModel();
             }
 
             _producerManager = new KafkaProducerManager(
