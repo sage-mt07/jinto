@@ -51,7 +51,7 @@ public class UseFinalizedDslTests
             KeyProperties = new[] { typeof(Sample).GetProperty(nameof(Sample.Id))! }
         };
 
-        var baseSet = new WindowedEntitySet<Sample>(ctx.Set<Sample>(), 5, (StateStoreManager)manager, model);
+        var baseSet = new Kafka.Ksql.Linq.StateStore.WindowedEntitySet<Sample>(ctx.Set<Sample>(), 5, (StateStoreManager)manager, model);
         var finalSet = baseSet.UseFinalized();
 
         Assert.Equal("orders_window_5_final", finalSet.GetTopicName());
