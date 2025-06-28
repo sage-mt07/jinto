@@ -1,6 +1,7 @@
 using Kafka.Ksql.Linq.Core.Abstractions;
 using Kafka.Ksql.Linq.StateStore.Core;
 using Kafka.Ksql.Linq.StateStore.Management;
+using Kafka.Ksql.Linq.StateStore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +11,7 @@ namespace Kafka.Ksql.Linq.StateStore.Extensions;
 
 
 
-internal class WindowedEntitySet<T> : IWindowedEntitySet<T> where T : class
+internal class WindowedEntitySet<T> : Kafka.Ksql.Linq.StateStore.IWindowedEntitySet<T> where T : class
 {
     private readonly IEntitySet<T> _baseEntitySet;
     private readonly int _windowMinutes;

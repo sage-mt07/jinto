@@ -1,5 +1,6 @@
 using Kafka.Ksql.Linq.Core.Abstractions;
 using Kafka.Ksql.Linq.StateStore.Core;
+using Kafka.Ksql.Linq.StateStore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,12 +12,12 @@ namespace Kafka.Ksql.Linq.StateStore.Extensions;
 /// <summary>
 /// RocksDBにキャッシュされたウィンドウ確定データ読み取り用セット
 /// </summary>
-internal class ReadCachedWindowSet<T> : IWindowedEntitySet<T> where T : class
+internal class ReadCachedWindowSet<T> : Kafka.Ksql.Linq.StateStore.IWindowedEntitySet<T> where T : class
 {
-    private readonly IWindowedEntitySet<T> _baseSet;
+    private readonly Kafka.Ksql.Linq.StateStore.IWindowedEntitySet<T> _baseSet;
     private readonly IStateStore<string, T> _stateStore;
 
-    internal ReadCachedWindowSet(IWindowedEntitySet<T> baseSet, IStateStore<string, T> stateStore)
+    internal ReadCachedWindowSet(Kafka.Ksql.Linq.StateStore.IWindowedEntitySet<T> baseSet, IStateStore<string, T> stateStore)
     {
         _baseSet = baseSet ?? throw new ArgumentNullException(nameof(baseSet));
         _stateStore = stateStore ?? throw new ArgumentNullException(nameof(stateStore));
