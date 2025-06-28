@@ -244,7 +244,8 @@ public abstract class KsqlContext : KafkaContextCore
             var avroConfig = new AvroEntityConfiguration(entityModel.EntityType)
             {
                 TopicName = entityModel.TopicAttribute?.TopicName,
-                KeyProperties = entityModel.KeyProperties
+                KeyProperties = entityModel.KeyProperties,
+                EnableCaching = entityModel.EnableCache
             };
 
             avroConfigs[kvp.Key] = avroConfig;

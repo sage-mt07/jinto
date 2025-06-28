@@ -88,4 +88,9 @@ public class EntityModel
     /// デシリアライズ失敗時のポリシー
     /// </summary>
     public DeserializationErrorPolicy DeserializationErrorPolicy { get; set; } = DeserializationErrorPolicy.Skip;
+
+    /// <summary>
+    /// RocksDB キャッシュ利用フラグ
+    /// </summary>
+    public bool EnableCache { get; set; } = true;
 }

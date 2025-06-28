@@ -12,9 +12,10 @@ public class EntityModelBuilder<T> : IEntityBuilder<T> where T : class
     {
         _entityModel = entityModel ?? throw new ArgumentNullException(nameof(entityModel));
     }
-    public IEntityBuilder<T> AsTable()
+    public IEntityBuilder<T> AsTable(bool useCache = true)
     {
         _entityModel.SetStreamTableType(StreamTableType.Table);
+        _entityModel.EnableCache = useCache;
         return this;
     }
     public IEntityBuilder<T> AsStream()

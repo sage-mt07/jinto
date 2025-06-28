@@ -110,7 +110,7 @@ DLQトピックはシステム全体で1つに統一されることを前提と�
 ### 4.1 Window設計・マルチWindowパターン
 1つのPOCOエンティティに対して、複数のウィンドウ（例：1, 5, 15, 60, 240分足）を同時適用できる。
 
-設定ファイルの Windows 配列に指定することで、1つのKafkaトピック（例：trade-raw）から複数のWindow型StateStore（RocksDB）が自動生成される。
+設定ファイルの Windows 配列に指定することで、1つのKafkaトピック（例：trade-raw）から複数のWindow型StateStore（RocksDB）が自動生成される。これらのRocksDBストアは内部実装であり、利用者が直接操作することはない。
 
 これによりPOCO定義の重複を防ぎ、運用負荷を低減できる。
 
