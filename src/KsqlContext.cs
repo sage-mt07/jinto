@@ -11,6 +11,7 @@ using Kafka.Ksql.Linq.StateStore.Integration;
 using Kafka.Ksql.Linq.StateStore.Management;
 using Kafka.Ksql.Linq.StateStore.Monitoring;
 using Kafka.Ksql.Linq.StateStore;
+using Kafka.Ksql.Linq.Query.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
