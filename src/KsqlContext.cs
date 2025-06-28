@@ -229,6 +229,53 @@ public abstract class KsqlContext : KafkaContextCore
 
     internal KafkaProducerManager GetProducerManager() => _producerManager;
     internal KafkaConsumerManager GetConsumerManager() => _consumerManager;
+    internal DlqProducer GetDlqProducer() => _dlqProducer;
+
+    /// <summary>
+    /// 指定したエンティティを手動でDLQへ送信します
+    /// </summary>
+    public async Task SendToDlqAsync<T>(T entity, Exception exception, string reason = "Manual")
+    {
+        if (_dlqProducer == null)
+            throw new InvalidOperationException("DLQ producer not initialized");
+
+        var messageContext = new KafkaMessageContext
+        {
+            MessageId = Guid.NewGuid().ToString(),
+            Tags = new Dictionary<string, object>
+            {
+                ["original_topic"] = GetTopicName<T>(),
+                ["entity_type"] = typeof(T).Name,
+                ["error_phase"] = reason,
+                ["manual_dlq"] = true
+            }
+        };
+
+        var errorContext = new ErrorContext
+        {
+            Exception = exception,
+            OriginalMessage = entity,
+            AttemptCount = 1,
+            FirstAttemptTime = DateTime.UtcNow,
+            LastAttemptTime = DateTime.UtcNow,
+            ErrorPhase = reason
+        };
+
+        await _dlqProducer.HandleErrorAsync(errorContext, messageContext);
+    }
+
+    /// <summary>
+    /// エンティティ型からトピック名を取得します
+    /// </summary>
+    public string GetTopicName<T>()
+    {
+        var models = GetEntityModels();
+        if (models.TryGetValue(typeof(T), out var model))
+        {
+            return model.TopicAttribute?.TopicName ?? typeof(T).Name;
+        }
+        return typeof(T).Name;
+    }
 
     /// <summary>
     /// EntityModel の情報を AvroEntityConfiguration へ変換する

@@ -2,6 +2,7 @@ using Kafka.Ksql.Linq;
 using Kafka.Ksql.Linq.Core.Abstractions;
 using Kafka.Ksql.Linq.Core.Context;
 using Kafka.Ksql.Linq.Messaging.Consumers;
+using Kafka.Ksql.Linq.Messaging.Producers;
 using Kafka.Ksql.Linq.Application;
 using System;
 using Xunit;
@@ -22,6 +23,7 @@ public class KsqlContextTests
 
         public KafkaProducerManager CallGetProducerManager() => base.GetProducerManager();
         public KafkaConsumerManager CallGetConsumerManager() => base.GetConsumerManager();
+        public DlqProducer CallGetDlqProducer() => base.GetDlqProducer();
     }
 
     [Fact]
@@ -53,5 +55,12 @@ public class KsqlContextTests
     {
         var ctx = new TestContext();
         ctx.Dispose();
+    }
+
+    [Fact]
+    public void GetDlqProducer_ReturnsInstance()
+    {
+        var ctx = new TestContext();
+        Assert.NotNull(ctx.CallGetDlqProducer());
     }
 }
