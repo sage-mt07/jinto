@@ -51,11 +51,4 @@ public class KsqlContextOptionsExtensionsTests
         Assert.Equal(ts, options.SchemaRegistrationTimeout);
     }
 
-    [Fact]
-    public void EnableDebugMode_SetsFlag()
-    {
-        var options = new KsqlContextOptions();
-        options.EnableDebugMode(true);
-        Assert.True(options.EnableDebugLogging);
-    }
 }

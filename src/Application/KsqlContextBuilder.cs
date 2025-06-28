@@ -58,11 +58,6 @@ public class KsqlContextBuilder
         return this;
     }
 
-    public KsqlContextBuilder EnableDebugMode(bool enable = true)
-    {
-        _options.EnableDebugMode(enable);
-        return this;
-    }
 
     public KsqlContextOptions Build()
     {

@@ -50,11 +50,4 @@ public static class KsqlContextOptionsExtensions
         return options;
     }
 
-    public static KsqlContextOptions EnableDebugMode(
-        this KsqlContextOptions options,
-        bool enable = true)
-    {
-        options.EnableDebugLogging = enable;
-        return options;
-    }
 }

@@ -39,8 +39,7 @@ public class KsqlContextBuilderTests
             .UseSchemaRegistry("http://localhost:8081")
             .EnableLogging(factory)
             .ConfigureValidation(autoRegister: false, failOnErrors: false, enablePreWarming: false)
-            .WithTimeouts(System.TimeSpan.FromSeconds(5))
-            .EnableDebugMode(true);
+            .WithTimeouts(System.TimeSpan.FromSeconds(5));
         var options = builder.Build();
         Assert.NotNull(options.SchemaRegistryClient);
         Assert.Equal(factory, options.LoggerFactory);
@@ -48,7 +47,6 @@ public class KsqlContextBuilderTests
         Assert.False(options.FailOnInitializationErrors);
         Assert.False(options.EnableCachePreWarming);
         Assert.Equal(System.TimeSpan.FromSeconds(5), options.SchemaRegistrationTimeout);
-        Assert.True(options.EnableDebugLogging);
     }
 
     [Fact]
