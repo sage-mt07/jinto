@@ -39,33 +39,6 @@ public class EntityModelBuilder<T> : IEntityBuilder<T> where T : class
         return this;
     }
 
-    public EntityModelBuilder<T> OnDeserializationError(DeserializationErrorPolicy policy)
-    {
-        _entityModel.DeserializationErrorPolicy = policy;
-        return this;
-    }
-
-    public EntityModelBuilder<T> HasTopic(string topicName)
-    {
-        if (string.IsNullOrWhiteSpace(topicName))
-            throw new ArgumentException("Topic name cannot be null or empty", nameof(topicName));
-
-        var current = EnsureTopicAttribute();
-        var newAttr = new TopicAttribute(topicName)
-        {
-            PartitionCount = current.PartitionCount,
-            ReplicationFactor = current.ReplicationFactor,
-            RetentionMs = current.RetentionMs,
-            Compaction = current.Compaction,
-            Description = current.Description,
-            MaxMessageBytes = current.MaxMessageBytes,
-            SegmentBytes = current.SegmentBytes,
-            MinInSyncReplicas = current.MinInSyncReplicas
-        };
-
-        _entityModel.TopicAttribute = newAttr;
-        return this;
-    }
 
     public EntityModelBuilder<T> WithPartitions(int partitions)
     {
@@ -87,15 +60,6 @@ public class EntityModelBuilder<T> : IEntityBuilder<T> where T : class
         return this;
     }
 
-    public EntityModelBuilder<T> WithMinInSyncReplicas(int minInSyncReplicas)
-    {
-        if (minInSyncReplicas <= 0)
-            throw new ArgumentException("MinInSyncReplicas must be greater than 0", nameof(minInSyncReplicas));
-
-        var attr = EnsureTopicAttribute();
-        attr.MinInSyncReplicas = minInSyncReplicas;
-        return this;
-    }
 
     public EntityModelBuilder<T> WithPartitioner(string partitioner)
     {
