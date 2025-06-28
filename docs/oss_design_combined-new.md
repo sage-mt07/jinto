@@ -397,3 +397,88 @@ public class MyKsqlContext : KsqlContext
   }
 }
 ```
+
+## 7. ウィンドウ・テーブル操作
+
+⏳ Window 機能の設計
+
+### 概要
+
+KSQLにおけるWindow処理は、時間単位での集計や状態管理を行う際に使用されます。本OSSでは、LINQ構文からWindow処理に対応するDSLを提供し、Kafka Streamsによるウィンドウ処理のKSQL変換を自動化しています。
+
+### 対象エンティティ
+
+ウィンドウ処理は Set<T> に対して .Window(x) を指定することで適用され、内部的に WindowConfiguration として扱われます。
+```
+modelBuilder.Entity<Order>()
+    .Window(new[] { 1, 5, 60 });
+```
+
+この設定により、1分足、5分足、60分足の3種類のウィンドウが定義され、各ウィンドウに対応する状態管理とKSQLクエリが生成されます。
+
+### Window Finalization
+
+ウィンドウ処理で生成されたデータは、一定時間経過後に「確定」され、*_window_{minutes}_final 形式のトピックに書き出されます。確定処理は WindowFinalizationManager により管理され、以下の責務を持ちます：
+
+- 複数のPODから送信された同一Windowキーのデータをマージ
+- 指定分単位でタイマーを駆動し、該当Windowを確定
+- KafkaトピックへFinalメッセージを書き込み
+
+このとき、元のWindowデータとは異なるトピックに送信されるため、事前に _window_final トピックの作成が必要です。また、元のトピックに新しいデータが送られなくても、タイマーによりx分単位でFinalデータが自動生成されます。
+
+初期化時、すべての _window_final トピックは EnsureWindowFinalTopicsExistAsync により事前に作成されます。この処理は OnModelCreating 後のステージで自動的に実行され、各エンティティの .Window(...) 設定に基づいて必要なFinalトピックを準備します。
+
+### AvroTimestamp の利用
+
+Window処理で使用される時間情報は、すべて AvroTimestamp 型で管理されます。これにより：
+
+- Avroシリアライズ時のUTC変換とスキーマ整合性を確保
+- WindowStart/End の精度と互換性を保証
+- フィールドには [AvroTimestamp] 属性を付与
+```
+
+public class WindowedOrderSummary
+{
+    [AvroTimestamp]
+    public DateTime WindowStart { get; set; }
+
+    [AvroTimestamp]
+    public DateTime WindowEnd { get; set; }
+
+    public int Count { get; set; }
+}
+```
+
+### 課題と補足
+
+- .Window(...) で複数の粒度（例: 1, 5, 60分）を定義した場合、それぞれに対応する _window_{minutes}_final トピックが必要です。
+- Kafka設定で auto.create.topics.enable = false が指定されている場合、本OSSでは初期化処理中に EnsureWindowFinalTopicsExistAsync を用いてすべての Final トピックを自動作成します。
+- Final トピックのスキーマは WindowFinalMessage に準拠して自動登録されます。
+- 元のデータが送信されなくても、指定時間が経過すれば Final データは内部タイマーにより自動的に生成されます。
+
+このWindow機能は、リアルタイムな時間軸集計や、複数粒度でのKTable生成に対応するための中核機能となります。
+
+
+## 8.ロギングとクエリ可視化
+
+ロギングとクエリ可視化
+
+本OSSでは、namespace単位でのログ出力制御を行い、必要な情報のみをDebugレベルで可視化する設計としています。appsettings.json の例：
+```
+
+"Logging": {
+  "LogLevel": {
+    "Default": "Information",
+    "Kafka.Ksql.Linq.Serialization": "Debug",
+    "Kafka.Ksql.Linq.Messaging": "Warning",
+    "Kafka.Ksql.Linq.Core": "Information"
+  }
+}
+```
+クエリのログ出力を詳細に行いたい場合は、以下の設定を追加することで KSQL 変換処理を対象とできます：
+```
+"Kafka.Ksql.Linq.Query": "Debug"
+```
+これにより、KSQLの変換処理ログを確認することが可能です。
+
+## 10. 代表的な利用パターン

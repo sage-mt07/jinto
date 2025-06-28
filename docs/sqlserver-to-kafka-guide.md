@@ -293,6 +293,53 @@ Key: "customer_123", Value: null
 
 このデータがKafkaトピックに存在する場合、KSQLDB Tableでは"customer_123"キーのレコードは表示されません。
 
+## 🪟 Kafkaにおける「Window」操作の理解
+SQL Serverの視点からの変換ガイド
+
+SQL Server視点	|Kafka/KSQL視点	|解説
+|---|---|---|
+GROUP BY + DATEPART() などで「時間単位で集約」	|TUMBLING WINDOW や HOPPING WINDOW によるウィンドウ集約	|Kafkaでは「連続的な流れ」を一定間隔で切り取る
+ストアドプロシージャや集計ビューで処理	|ストリーム内で自動的にウィンドウ適用・出力トピックへ集約書き込み	|結果はKafkaトピックとして自動生成・書き込みされる
+SQL: SELECT customer, COUNT(*) FROM orders WHERE ... GROUP BY customer, DATEPART(...)|	KSQL: SELECT customer, COUNT(*) FROM orders WINDOW TUMBLING (SIZE 5 MINUTES) GROUP BY customer;	|ウィンドウサイズ指定が構文の中に明示される
+
+### 🧠 知っておきたい設計上の考慮点
+- ウィンドウの種類：
+
+    - TUMBLING：5分単位などで非重複の集約
+    - HOPPING：スライディングウィンドウ。重複あり
+    - SESSION：アクティビティの間隔に基づく自動集約
+
+- 出力トピックは自動生成される：
+
+    ウィンドウクエリの結果は、Kafka内部で別トピックとして表現される。例：orders_window_5min
+
+- RDBでは集約クエリだが、Kafkaでは常に「流れ」：
+    時系列のデータが蓄積され、リアルタイムで「閉じられたウィンドウ」だけが順次トピックに書き出される。
+
+- 重要：遅延イベントの扱い
+    Kafkaでは遅れて届いたデータを受け取った場合、ウィンドウが再計算されるかは「グレース期間」に依存する。
+
+### 💡 DSLライブラリでの表現（簡易例）
+```csharp
+var orders = context.Set<Order>();
+
+var windowed = orders.Window(TimeSpan.FromMinutes(5));
+
+var result = windowed.Aggregate(g => new OrderCount
+{
+    CustomerId = g.Key,
+    Count = g.Count()
+});
+```
+※内部的には orders_window_5min のようなトピックに自動的に出力されます。
+
+### 🔰 初心者向けまとめ
+- RDBでいう「集計クエリ」は、Kafkaでは「ストリームの断面処理」になる
+- クエリで得た結果は、再利用可能な Kafka トピックに蓄積される
+- 遅延データへの耐性や再処理も考慮されている（ただし設定次第）
+
+
+
 ## まとめ
 
 SQLServerとKafka/KSQLDBは根本的な設計思想が異なります：
