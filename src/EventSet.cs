@@ -443,13 +443,6 @@ public abstract class EventSet<T> : IEntitySet<T> where T : class
         };
     }
 
-    /// <summary>
-    /// EventSetの結果を取得します
-    /// </summary>
-    public IEnumerable<T> GetResults()
-    {
-        return ToListAsync().GetAwaiter().GetResult();
-    }
 }
 internal class MappedEventSet<T> : EventSet<T> where T : class
 {
