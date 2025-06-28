@@ -1,6 +1,7 @@
 using Kafka.Ksql.Linq.Configuration;
 using Kafka.Ksql.Linq.StateStore.Configuration;
 using Kafka.Ksql.Linq.StateStore.Core;
+using Kafka.Ksql.Linq.StateStore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
@@ -81,7 +82,7 @@ internal class StateStoreManager : IStateStoreManager
     internal void InitializeStoresForEntity(Type entityType)
     {
         var config = GetEntityConfiguration(entityType);
-        if (config == null || config.StoreType != "RocksDb") return;
+        if (config == null || config.StoreType != StoreTypes.RocksDb) return;
 
         if (config.Windows.Count == 0)
         {
@@ -128,7 +129,7 @@ internal class StateStoreManager : IStateStoreManager
     {
         return new StateStoreOptions
         {
-            StoreType = config?.StoreType ?? "RocksDb",
+            StoreType = config?.StoreType ?? StoreTypes.RocksDb,
             EnableCache = config?.EnableCache ?? false,
             Windows = config?.Windows ?? new List<int>(),
             BaseDirectory = System.IO.Path.Combine(

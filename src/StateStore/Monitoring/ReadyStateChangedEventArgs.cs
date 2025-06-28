@@ -2,7 +2,10 @@ using System;
 
 namespace Kafka.Ksql.Linq.StateStore.Monitoring;
 
-internal class ReadyStateChangedEventArgs : EventArgs
+/// <summary>
+/// Event data for state store readiness changes.
+/// </summary>
+public class ReadyStateChangedEventArgs : EventArgs
 {
     public string TopicName { get; set; } = string.Empty;
     public bool IsReady { get; set; }
