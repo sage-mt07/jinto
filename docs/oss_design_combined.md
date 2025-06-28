@@ -6,32 +6,25 @@
 
 ## 目次 (Table of Contents)
 
-- [1. 設計原則](#1-設計原則)
-- [2. アーキテクチャ概観（Architecture Overview）](#2-アーキテクチャ概要)
-- [3. 主要コンポーネント](#3-主要コンポーネント)
-  - [3.1 トピック (Kafka Topics)](#31-トピック-kafka-topics)
-  - [3.2 ストリーム (KSQL Streams)](#32-ストリーム-ksql-streams)
-  - [3.3 テーブル (KSQL Tables)](#33-テーブル-ksql-tables)
-  - [3.4 クエリと購読](#34-クエリと購読)
-- [4. POCO (Plain Old CLR Objects) の設計](#4-poco-plain-old-clr-objects-の設計)
-  - [4.1 基本定義](#41-基本定義)
-  - [4.2 特殊型のサポート](#42-特殊型のサポート)
-- [5. プロデュース/コンシューム操作](#5-プロデュースコンシューム操作)
-  - [5.1 プロデューサー (データ送信)](#51-プロデューサー-データ送信)
-  - [5.2 コンシューマー (データ受信)](#52-コンシューマー-データ受信)
-  - [5.3 トランザクション処理](#53-トランザクション処理)
-- [6. エラー処理とデータ品質](#6-エラー処理とデータ品質)
-  - [6.1 エラー処理戦略](#61-エラー処理戦略)
-  - [6.2 デッドレターキュー](#62-デッドレターキュー)
-  - [EventSet拡張: エラーハンドリング & DLQ](#eventset拡張-エラーハンドリング--dlq)
-- [7. テーブル管理操作](#7-テーブル管理操作)
-  - [7.1 テーブル作成と更新](#71-テーブル作成と更新)
-  - [7.2 テーブルの再構築と管理](#72-テーブルの再構築と管理)
-- [8. リリース計画](#8-リリース計画)
-- [9. アーキテクチャ概要](#9-アーキテクチャ概要)
-  - [コアコンポーネント](#コアコンポーネント)
-  - [主要インターフェース](#主要インターフェース)
-  - 
+-
+  1. 設計原則
+-
+  2. アーキテクチャ概観
+-
+  3. POCO属性ベースDSL設計ルール
+-
+  4. POCO設計
+-
+  5. プロデュース操作
+-
+  6. コンシューム操作、（リトライ、エラー、DLQ、commitの誤解）
+-
+  7. ウィンドウ・テーブル操作
+-
+  8. ロギングとクエリ可視化
+-
+  10. 代表的な利用パターン
+
 ## 1. 設計原則
 
 ### 1.1 型安全・Fail Fast
@@ -60,32 +53,16 @@ char型プロパティ|⚠️ 警告|⚠️ 警告|KSQL互換性の警告
 - Builder、Query、Messaging、Windowなど明確な層構造
 - Fluent APIによる構文追加・拡張が容易
 
-### 1.4 AI協調開発を前提とした構成
+## 2. アーキテクチャ概観
 
-- Entity/Query定義とドキュメントのリンク
-- 自動生成コードとの協調設計
+本OSSの構造は、Entity Framework の設計哲学に基づいて構築されています。POCO（Plain Old CLR Objects）に属性を付与し、LINQ式を用いて処理ロジックを記述することで、Kafka および ksqlDB の構造を宣言的に表現します。
 
-## 2. アーキテクチャ概観（Architecture Overview）
+これにより、Entity Framework に慣れた開発者が直感的にKafkaベースのストリーミング処理を設計・運用できるようになっています。各DSL操作（AddAsync, ForEachAsync, Window, Aggregate など）はEFの文法と類似性を持たせることで、学習コストの削減と記述一貫性を実現しています。
 
-### 2.1 主な構成層と責務
+POCO（Plain Old CLR Objects）とは、依存性やフレームワーク固有の継承を持たない純粋なC#クラスを指します。本OSSでは、Kafka/KSQLの設定をこのPOCOに対する属性付与によって表現します。
 
-- Application層：ユーザーコードとPOCO定義
-- Core層：IEntitySet/IQueryableベースの抽象定義
-- Query層：LINQ式→KSQLクエリへの変換
-- Messaging層：KafkaとのProducer/Consumer連携
-- Serialization層：Avroスキーマ管理と変換
-- StateStore層：KTable結果のキャッシュ（RocksDB）
-- Window層：時間窓、集計処理の記述
+このアプローチにより、構成情報とデータ定義が1つのクラスに集約され、Entity Frameworkと同様の直感的なコーディングスタイルを可能にしています。また、Fluent APIに頼らず、型安全かつ構文明快なDSLを構築することで、チーム内での可読性と再利用性も向上します。
 
-##  2.2 データフロー
-
-```
-POCO + LINQ
-   ↓ OnModelCreating()
-SchemaRegistry登録 //ここまでksqlContextのコンストラクタで実行
-   ↓
-KafkaProducer/Consumer連携
-```
 kafkaへの接続エラーはksqlContextのコンストラクタでthrowされます。
 
 
@@ -94,15 +71,26 @@ kafkaへの接続エラーはksqlContextのコンストラクタでthrowされ�
 本OSSでは、Kafka/KSQLの設定をすべてPOCOクラスの属性で定義する方式を採用する。
 これは、Fluent APIを用いたDSL記述の柔軟性と引き換えに、「構成がPOCOに集約されている」という明快さを重視した設計方針である。
 
-🏷️ クラスレベル属性一覧
-|属性名	|説明|
-|---|---|
-[Topic("topic-name")]	|Kafkaトピック名の指定（Partitions, Replicationも設定可能）
-[KsqlStream] / [KsqlTable]	|Stream/Table の明示指定（未指定時は自動判定）
-[Table("name")]	|EF Coreとの互換性維持用（任意）
+### 3.1 型一覧
 
+C#型
+- bool
+- int
+- long
+- float
+- double
+- string
+- byte[]
+- decimal
+- DateTime
+- DateTimeOffset
+- Nullable型
+- Guid
+- short ,char ※keyに使用することはできません
 
-🧩 プロパティレベル属性一覧
+### 3.2 プロパティ属性一覧
+
+🧩 プロパティ属性一覧
 |属性名	|説明|
 |---|---|
 [Key(Order = n)]|	KafkaのKeyに対応するプロパティ。複合キー可
@@ -111,13 +99,6 @@ kafkaへの接続エラーはksqlContextのコンストラクタでthrowされ�
 [DateTimeFormat("format")]	|KSQL上でのDateTimeの文字列フォーマット
 [DefaultValue(value)]	|定義時のデフォルト値（スキーマ定義上のみ）
 [MaxLength(n)]	|文字列長の制約。Avroスキーマにも反映
-
-🤖 自動判定ロジック
-[Key]の有無によって [KsqlStream] or [KsqlTable] の暗黙的推定を行う
-
-Nullable<T> はスキーマ上で Union<Type, null> として定義される
-
-Key属性が複数ある場合は複合キー（CompositeKey）として変換される
 
 💡 サンプル：Orderエンティティの定義
 ```csharp
@@ -141,67 +122,13 @@ public class Order
     public string? InternalUseOnly { get; set; }
 }
 ```
-📘 設計上の方針と意図
-構成情報はすべて POCOに記述され、外部設定ファイルやFluent DSLは不要
+### 3.3 クラス属性一覧
 
-利用者は .cs ファイル上の属性のみを参照すれば動作構成を把握可能
-
-
-🔁 Fluent API の補助的活用と制限について
-POCO属性を中心とした設計方針を採る本DSLでは、Fluent API はあくまで補助的手段として位置づけられ、以下のコンポーネントで限定的に利用可能です。
-
-🧱 1. KsqlContextBuilder（KSQL DSL全体の構成）
-```csharp
-var context = KsqlContextBuilder.Create()
-    .UseSchemaRegistry("http://localhost:8081")
-    .EnableLogging(loggerFactory)
-    .ConfigureValidation(autoRegister: true, failOnErrors: false, enablePreWarming: true)
-    .WithTimeouts(TimeSpan.FromSeconds(5))
-    .BuildContext<MyKsqlContext>();
-```
-主な用途：
-
-スキーマレジストリ連携
-
-
-バリデーションやタイムアウト等の動作制御
-
-🧩 2. ModelBuilder（Entity定義時）
-```csharp
-protected override void OnModelCreating(IModelBuilder modelBuilder)
-{
-    modelBuilder.Entity<Order>()
-        .AsTable(); // または .AsStream()
-}
-```
-- Linq文の構成によりStream/Tableを判断する。
-- 別途POCO属性に Stream/Table 指定で強制することができる。
-
-```csharp
-public class MyKsqlContext : KsqlContext
-{
-    protected override void OnModelCreating(IModelBuilder modelBuilder)
-    {
-        modelBuilder.Entity<Order>()
-            // .ToTopic("orders")           // ❌ 未実装
-            // .HasKey(o => o.Id)           // ❌ Obsolete
-            .WithPartitions(3)               // ✅ 可能
-            .WithReplicationFactor(2)        // ✅ 可能
-            .AsStream();                     // ✅ 可能
-    }
-}
-```    
-このビルダーは、Avroスキーマ生成時に高度な制御が必要な場合に限り使用される。
-ただし、以下のメソッド呼び出しは設計原則違反となる。
-
-🚫 制限事項
-メソッド|	理由
+🏷️ クラス属性一覧
+|属性名	|説明|
 |---|---|
-.AsStream() / .AsTable()	|属性またはModelBuilderと重複可能。両方指定で一致しない場合はエラー
-
-これらのメソッドは呼び出された場合に NotSupportedException をスローする設計とし、誤用を防止する。
-
-### 3.1 トピック (Kafka Topics)
+[Topic("topic-name")]	|Kafkaトピック名の指定（Partitions, Replicationも設定可能）
+[KsqlStream] / [KsqlTable]	|Stream/Table の明示指定（未指定時は自動判定）
 
 [Topic] 属性でトピックを定義。
 
@@ -219,757 +146,339 @@ public class Order
     public DateTime OrderTime { get; set; }
 }
 
-// Fluent API
-modelBuilder.Entity<Order>()
-    .WithPartitions(12)
-    .WithReplicationFactor(3);
-```
-
-#### トピック構成
-- パーティション設定: パーティション数、パーティショニング戦略
-- レプリケーション設定: レプリケーションファクター、ISRの最小数
-- 保持ポリシー: メッセージの保持期間、サイズ制限
-- 圧縮設定: トピックレベルの圧縮方式
-
-#### スキーマ管理
-- 自動スキーマ登録: POCOからAvroスキーマを生成し登録
-- 互換性設定: スキーマ互換性ポリシーの指定
-- スキーマ進化: スキーマバージョンの管理とマイグレーション
-
-
-### 3.2 ストリーム (KSQL Streams)
-.Where(...), .Select(...) によるフィルタ・変換。
-
-.WithManualCommit() による手動コミット指定が可能。
-
-EntityModel に状態を保存、実行時に反映。
-
-実行時切り替えは不可。
-#### ストリーム定義の前提
-
-ストリームは POCO に対して LINQ 式が適用されたときに動的に解釈され、生成される。
-
-#### 判定ルール
-
-POCO（C#のエンティティ定義）に対してLINQ式が記述された場合、
-その型は "ストリーム" として解釈され、対応する CREATE STREAM 定義が自動生成されます。
-
-ただし、以下のように GroupBy や Aggregate、Window を含む場合は CREATE TABLE（テーブル）として解釈されます。
-```csharp
-// ストリームとして解釈される例（AutoCommitがデフォルト）
-modelBuilder.Entity<Order>()
-    .Where(o => o.Amount > 1000)
-    .Select(o => new { o.OrderId, o.CustomerId });
-
-// テーブルとして解釈される例（GroupBy を含む）
-modelBuilder.Entity<Order>()
-    .Window(TumblingWindow.Of(TimeSpan.FromHours(1)))
-    .GroupBy(o => o.CustomerId)
-    .Select(g => new HourlyStats 
-    { 
-        CustomerId = g.Key,
-        Hour = g.Window.Start,
-        OrderCount = g.Count() 
-    });
-
-// 明示的にストリームとして扱う（GroupByがあっても）
-modelBuilder.Entity<Order>()
-    .AsStream()
-    .GroupBy(o => o.Region)
-    .Select(g => new { g.Key });
-
-// 明示的にテーブルとして扱う
-modelBuilder.Entity<Order>()
-    .AsTable()
-    .Select(o => new { o.CustomerId, o.Amount });
-```
-
-このように modelBuilder.Entity<Order>() に対して LINQ が付くか否かで "配信対象"
-さらに LINQ の内容によって "ストリーム" か "テーブル" かを判別します。
-加えて、.AsStream() や .AsTable() を使用することで、意図的に解釈を上書きすることも可能です。
-
-#### コミット方式の指定
-
-この `WithManualCommit()` 指定は `EntityModel` に保存され、実行時の `ForEachAsync()` での処理方式（自動／手動）を決定する際に参照されます。実行時にこの設定を変更することはできません。
-
-```csharp
-// 自動コミット（デフォルト）
-modelBuilder.Entity<Order>()
-    .Where(o => o.Amount > 1000)
-    .Select(o => new { o.OrderId, o.CustomerId });
-
-// 手動コミットを明示
-modelBuilder.Entity<Order>()
-    .Where(o => o.Amount > 1000)
-    .Select(o => new { o.OrderId, o.CustomerId })
-    .WithManualCommit();
-```
-注意：購読時の commit モードは LINQ 実行時に切り替えることはできません。定義時に確定させる必要があります。
-
-### 3.3 テーブル (KSQL Tables)
-
-このライブラリでは、LINQ 式が GroupBy や Aggregate を含み、テーブルと判定された場合、対応するトピックは 自動的に compact モードで作成 されます。
-
-開発者はコンパクションの有無を意識せず、通常の LINQ クエリ定義だけで正しく永続化特性を持ったトピックを扱えます。
-```csharp
-protected override void OnModelCreating(ModelBuilder modelBuilder)
-{
-
-    modelBuilder.Entity<Order>()
-        .HasTopic("orders")
-        .GroupBy(o => o.CustomerId)
-        .Select(g => new
-        {
-            CustomerId = g.Key,
-            LatestAmount = g.LatestByOffset(o => o.Amount)
-        });
-}
-```
-この例では CustomerId をキーとした最新の注文金額だけを保持するテーブルが作成され、その裏のトピックは compact となります。
-
-GroupBy(...) によりテーブル（KTable）化。
-
-```csharp
-protected override void OnModelCreating(ModelBuilder modelBuilder)
-{
-    modelBuilder.Entity<Order>()
-        .HasTopic("orders")
-        .GroupBy(o => o.OrderId)
-        .Window(new[] { 1 })
-        .Select(g => new
-        {
-            OrderId = g.Key,
-            LatestPrice = g.Last().Price,
-            WindowStart = g.WindowStart,
-            WindowEnd = g.WindowEnd
-        });
-}
-
-```
-.Window(...) によりウィンドウ集約可能。
-
-複数のウィンドウサイズ（例：1分・5分）に対応。
-
-orders_window_{windowMinutes}_final への書き込みはPOD内タイマーによるWindow確定で自律実行。
-この Final トピックは `OnModelCreating` 実行時に自動定義される。
-アプリケーションで確定済みウィンドウを参照する場合は
-`UseFinalized()` DSL を使用して `orders_window_{windowMinutes}_final`
-から読み取る `ReadCachedWindowSet<T>` に切り替える。既定では通常トピックを
-使用するが `KsqlDslOptions.ReadFromFinalTopicByDefault` オプションで
-デフォルト動作を変更できる。
-
-最初に到着したレコードを正とする方針を採用。
-
-#### テーブル判定ルールと基本設計
-
-POCO（C#のエンティティ定義）に対する LINQ 式の中で GroupBy, Aggregate, Window などの構文が含まれている場合、そのクエリは CREATE TABLE に相当する KSQL テーブルと解釈されます。これにより、ストリームとテーブルの判定が LINQ 構文の意味に基づいて一貫して行われます。
-
-また、.AsTable() を明示的に呼び出すことで、意図的にテーブルとして扱うことも可能です。
-
-#### 集約操作
-```csharp
-// サマリ集計
-var customerStats = context.Orders
-    .GroupBy(o => o.CustomerId)
-    .Aggregate(g => new CustomerStats 
-    { 
-        CustomerId = g.Key, 
-        TotalAmount = g.Sum(o => o.Amount),
-        OrderCount = g.Count()
-    });
-
-// LATEST_BY_OFFSET
-var latestCustomerOrders = context.Orders
-    .GroupBy(o => o.CustomerId)
-    .Aggregate(g => new CustomerLatestOrder
-    {
-        CustomerId = g.Key,
-        LatestOrderId = g.LatestByOffset(o => o.OrderId),
-        LatestOrderTime = g.LatestByOffset(o => o.OrderTime),
-        LatestAmount = g.LatestByOffset(o => o.Amount)
-    });
-
-// EARLIEST_BY_OFFSET
-var firstTimeCustomers = context.Orders
-    .GroupBy(o => o.CustomerId)
-    .Aggregate(g => new CustomerFirstOrder
-    {
-        CustomerId = g.Key,
-        FirstOrderId = g.EarliestByOffset(o => o.OrderId),
-        FirstOrderTime = g.EarliestByOffset(o => o.OrderTime),
-        FirstAmount = g.EarliestByOffset(o => o.Amount)
-    });
-
-
-```
-#### テーブル結合（JOIN）
-
-```csharp
-// 単一キー結合
-var query = from o in context.Orders
-            join c in context.Customers
-            on o.CustomerId equals c.CustomerId
-            select new { o.OrderId, c.CustomerName, o.Amount };
-
-// 複合キー結合
-var query2 = from o in context.Orders
-             join c in context.Customers
-             on new { o.CustomerId, o.Region } equals 
-                new { c.CustomerId, c.Region }
-             select new { o.OrderId, c.CustomerName, o.Amount };
-
-// 3テーブル結合
-var query3 = from o in context.Orders
-             join c in context.Customers on o.CustomerId equals c.CustomerId
-             join p in context.Products on o.ProductId equals p.ProductId
-             select new {
-                 o.OrderId,
-                 c.CustomerName,
-                 p.ProductName,
-                 o.Quantity,
-                 o.Amount
-             };
-
-```
-
-⏱️ ウィンドウDSLの拡張：複数Window定義とアクセス
-本フレームワークは、同一エンティティに対して複数の異なるウィンドウ幅（例：1分、5分、15分、60分）を定義し、個別にアクセス・購読可能とする拡張DSLをサポートします。
-
-```csharp
-modelBuilder.Entity<Chart>()
-    .Window(new int[]{1,5,15,60});
-```
-この記述により以下の4テーブルが自動生成されます：
-
-Chart_1min
-
-Chart_5min
-
-Chart_15min
-
-Chart_60min
-
-
-💻 LINQからのアクセス方法
-ユーザーコードからは次のようにウィンドウサイズを指定してデータ取得できます：
-
-```csharp
-var candles1m = ctx.Charts.Window(1).ToList();
-var candles5m = ctx.Charts.Window(5).ToList();
-// TimeSpan 指定も可能
-var candles15m = ctx.Charts.Window(TimeSpan.FromMinutes(15)).ToList();
-```
-戻り値は IQueryable<Chart> として取得され、通常のLINQ式が適用可能です。
-
-🔁 最新データ取得の例
-ToLatest() は専用メソッドではなく、LINQで以下のように記述することを推奨します：
-
-```csharp
-var latest = ctx.Charts.Window(5).ToList()
-    .OrderByDescending(c => c.Timestamp)
-    .GroupBy(c => c.Symbol)
-    .Select(g => g.First());
-```
-
-### 3.4 クエリと購読
-ForEachAsync() による購読ストリーム取得。
-
-.WithManualCommit() が指定されたストリームは IManualCommitMessage<T> 型を返す。
-
-.Value：メッセージ内容
-
-.CommitAsync()：コミット処理
-
-.NegativeAckAsync()：否定応答
-#### ストリーム定義とコミット方式の指定
-```csharp
-// modelBuilder による定義（自動コミット：デフォルト）
-modelBuilder.Entity<Order>()
-    .Where(o => o.Amount > 1000)
-    .Select(o => new { o.OrderId, o.CustomerId });
-// 自動コミットの購読処理（デフォルト）
-await foreach (var order in context.Orders.ForEachAsync())
-{
-    Console.WriteLine($"Received: {order.Value.OrderId}");
-    // 自動でコミットされるため明示的な commit は不要
-}
-
-// modelBuilder による定義（手動コミット）
-modelBuilder.Entity<HighValueOrder>()
-    .Where(o => o.Amount > 1000)
-    .Select(o => new { o.OrderId, o.CustomerId })
-    .WithManualCommit();
-
-// 手動コミット付きの購読処理
-await foreach (var order in context.HighValueOrders.ForEachAsync())
-{
-    try
-    {
-        Console.WriteLine($"Received: {order.Value.OrderId}");
-        await order.CommitAsync();
-    }
-    catch
-    {
-        await order.NegativeAckAsync();
-    }
-}
-
-```
-手動コミットを使用する場合、`ForEachAsync()` は `IManualCommitMessage<T>` 型のオブジェクトを返します。
-このオブジェクトは `.Value` プロパティで元のメッセージにアクセスでき、`.CommitAsync()` / `.NegativeAckAsync()` によって処理完了／失敗通知を制御します。
-```csharp
-public interface IManualCommitMessage<T>
-{
-    T Value { get; }
-    Task CommitAsync();
-    Task NegativeAckAsync();
-}
-```
-この型は手動コミット指定時のみ返され、自動コミット時は T のままになります（ForEachAsync() の中で分岐）
-
-## 4. POCO (Plain Old CLR Objects) の設計
-
-### 4.1 基本定義
-- シンプルなC#クラス: 特別な基底クラス不要
-- 標準的なプロパティ: 一般的な.NET型のサポート
-- [Topic], [Key], [AvroTimestamp] 属性を提供。
-
-### 4.2 型のサポート
-
-以下はPOCOで使用可能な主なデータ型の一覧です：
-
-|データ型|説明|
----|---
-int, long|整数型、KafkaではAvro/Protobuf経由でそのままマッピング可能
-float, double|浮動小数点数
-decimal|高精度数値。[DecimalPrecision]で精度指定可能
-bool|真偽値
-string|テキスト
-DateTime|AvroTimestamp(IsEventTime=true) で処理 Kafkaへの送信時にUTC変換処理が入る。
-DateTimeOffset|日時型。Kafkaへの送信時にUTC変換処理が入る。利用推奨。KSQL互換に注意
-Guid|一意識別子としてサポート
-short|Kafkaでは int として扱われます。使用可能ですが、必要に応じて明示的なスキーマ変換を考慮してください。
-char|Kafkaには直接の対応がなく、事実上非推奨です。1文字は string 型で表現することを推奨します。
-
-#### Decimal型の精度指定
-```csharp
-[DecimalPrecision(precision: 18, scale: 4)]
-public decimal Amount { get; set; }
-```
-
-#### DateTime/DateTimeOffset
-```csharp
-// DateTimeOffset推奨（タイムゾーン情報保持）
-public DateTimeOffset TransactionTime { get; set; }
-
-// または設定付きのDateTime
-[DateTimeFormat(Format = "yyyy-MM-dd'T'HH:mm:ss.SSS", Locale = "en-US")]
-public DateTime OrderDate { get; set; }
-```
-Kafkaにはタイムゾーンの概念がなく、すべての時刻はUTCとして扱われます。このため、プロデューサとコンシューマが同一のタイムゾーン前提を共有していることが重要です。このフレームワークは Kafka に不慣れな開発者でも安全に利用できるよう設計されています。DateTimeOffset を利用することで、開発者はタイムゾーン情報を保ったままアプリケーション開発ができ、Kafka との間の UTC 変換はフレームワークが吸収します。そのため、タイムゾーンを意識したビジネスロジックの記述が可能です。また、DateTime を使用しても、Kafka送信時には内部的に DateTimeOffset(Utc) に変換されるため、安全に運用可能です。このため、プロデューサとコンシューマが同一のタイムゾーン前提を共有していることが重要です。
-
-このフレームワークは Kafka に不慣れな開発者でも安全に利用できるよう設計されています。
-DateTimeOffset を利用することで、開発者はタイムゾーン情報を保ったままアプリケーション開発ができ、Kafka との間の UTC 変換はフレームワークが吸収します。
-そのため、タイムゾーンを意識したビジネスロジックの記述が可能です。
-#### null許容性
-```csharp
-// C#標準の ?修飾子を使用
-public int? OptionalQuantity { get; set; }
-```
-
-#### 数値型のデフォルト値
-```csharp
-[DefaultValue(10)]
-public int Quantity { get; set; }
-```
-非nullableな数値プロパティ（例：int, double など）は、C#の仕様により初期化されていない場合でも自動的に 0 や 0.0 などの既定値が適用されます。Kafka送信時もこれらの値がそのまま使用されます。特別な初期化が不要なケースでは [DefaultValue] 属性は省略可能です。
-
-## 5. プロデュース操作
-このセクションでは、Kafka にデータを送信（プロデュース）する際の基本的な操作方法とフレームワークが提供する抽象化手法について説明します。開発者は Kafka の複雑な設定を意識することなく、Entity Framework ライクな記述でストリームデータを扱うことができます。
-### 5.1 プロデューサー (データ送信)
-Kafkaのリアルタイム性を維持するため、本フレームワークでは AddAsync によって即時にKafkaへ送信が行われます。
-Entity Frameworkのように SaveChangesAsync によってバッファを明示的にフラッシュする設計とは異なります。
-このため、開発者は AddAsync を「送信操作」として扱うことを前提に実装してください。
-```csharp
-// 単一レコードのプロデュース
-await context.Orders.AddAsync(new Order { OrderId = "123", Amount = 100 });
-
-```
-AddAsync を呼び出すことで、該当する Kafka トピックにイベントが送信されます。
-
-複数件のバッファリング送信や並列制御も内部で吸収されます
-
-### 5.3 トランザクション処理
-Kafka は一部の操作に対して「プロデューサートランザクション」をサポートしています。ただし、ksqlDB 側ではトランザクション処理を前提としていないため、本フレームワークでは以下のような方針を採用します：
-
-明示的なトランザクション API は提供しない（例：BeginTransaction / CommitTransaction）
-
-Kafka における「Exactly Once Semantics (EOS)」をサポートする構成の場合でも、アプリケーション側では操作単位の idempotency を保証してください。
-
-複数件の連続送信が必要な場合、アプリケーション側で逐次 AddAsync() を呼び出す実装で十分に高い信頼性を確保できます。
-
-このフレームワークでは、Kafka のリアルタイムストリーム処理の思想に従い、永続化トランザクションよりも 即時性と可用性のバランスを優先しています。
-
-
-## 6. エラー処理とデータ品質
-
-### 6.1 OnError構文とErrorActionの種類
-エラーハンドリングは以下の3種類の ErrorAction により制御されます：
-
-Skip: 該当レコードをスキップして処理継続
-
-Retry: 指定回数リトライして継続
-
-DLQ: Dead Letter Queue にエラーレコードを送信
-```csharp
-context.Orders
-    .OnError(ErrorAction.Skip)
-    .ForEachAsync(...);
-
-context.Orders
-    .OnError(ErrorAction.Retry)
-    .WithRetry(3)
-    .ForEachAsync(...);
-
-context.Orders
-    .OnError(ErrorAction.DLQ)
-    .ForEachAsync(...);
-```
-
-### 6.2 デッドレターキュー
-
-DLQはシステム全体で1つのトピックに自動送信（例：dead.letter.queue）
-
-.WithDeadLetterQueue("custom-dlq") により名称変更も可能
-
-Kafka起動時にDLQトピックは自動作成されます
-
-
-DLQ内のメッセージ構造
-
-DLQに送信されるレコードは、以下の形式で構成されます：
-```
-{
-  "timestamp": "2025-06-28T14:30:00Z",
-  "topic": "orders",
-  "partition": 3,
-  "offset": 125,
-  "errorType": "DeserializationException",
-  "exceptionMessage": "Cannot deserialize Avro record...",
-  "payload": "...base64 or hex string..."
-}
-```
-timestamp: 処理失敗時刻（UTC）
-
-topic/partition/offset: 元レコードのメタ情報
-
-errorType: 想定されるエラー種別（例：DeserializationException, BusinessExceptionなど）
-
-exceptionMessage: スタックトレースまたはメッセージ
-
-payload: 生のレコードデータ（形式はシステムによる）
-
-この構造により、DLQトピックからの再処理・原因分析が容易になります。
-
-.OnError(ErrorAction) でスキップ・リトライ・DLQ送信の方針を指定できます。DLQは自動的にトピックへ送信され、再処理や分析が可能です。
-
-DLQの詳細は `KsqlDslOptions.DlqConfiguration` を通じて設定でき、`DlqTopicConfiguration` では保持期間やパーティション数、レプリケーション係数のカスタマイズが可能です。
-
-
-
-
-## 8. リリース計画
-
-### フェーズ1: 基盤構築 (v0.1-v0.3)
-- トピックおよびストリーム定義 DSL
-- POCO ベースのデータ定義とマッピング
-- プロデュース / コンシューム操作の抽象化
-- Dead Letter Queue 対応
-
-
-### フェーズ2: 高度なストリーム処理 (v0.4-v0.6)
-- LINQ ベースのウィンドウ・集約処理
-- ストリーム / テーブルの明示的切り替え
-- スキーマ進化対応の検討
-
-### フェーズ3: 高度なデータ連携 (v0.7-v0.9)
-- JOIN処理のDSL化（複合キー対応含む）
-- テーブル定義と RocksDB 前提の読み取り最適化
-- エラー通知・メトリクス・DLQ監視基盤との連携
-
-### フェーズ4: エンタープライズ機能 (v1.0+)
-- 分散トレーシングとメトリクス
-- トランザクショナルメッセージング
-- マルチクラスタサポート
-
-## 9. アーキテクチャ概要
-本フレームワークは、Kafka／ksqlDB 環境における Entity Framework ライクな操作を実現するために、以下の主要レイヤーと責務をもって構成されます。
-### 9.1 レイヤー構成
-
-```
-+------------------------------+
-| アプリケーション層           |
-|------------------------------|
-| - コンシューマ購読処理       |
-| - LINQベースのDSL記述       |
-| - POCO定義（エンティティ）   |
-+------------------------------+
-            ↓
-+------------------------------+
-| DSL定義／マッピング層        |
-|------------------------------|
-| - modelBuilder によるDSL定義 |
-| - LINQの解釈とクエリ変換     |
-| - ストリーム／テーブル区別   |
-+------------------------------+
-            ↓
-+------------------------------+
-| コード解析・モデル構築層     |
-|------------------------------|
-| - POCO構造の解析              |
-| - Avroスキーマの自動生成     |
-| - スキーマレジストリへの登録 |
-| - トピック／DLQ名の解決       |
-+------------------------------+
-            ↓
-+------------------------------+
-| Kafka連携層（プロデュース／購読）|
-|------------------------------|
-| - Kafkaへの送信（AddAsync）   |
-| - ForEachAsyncによる購読処理 |
-| - DLQへのエラールーティング   |
-+------------------------------+
-            ↓
-+------------------------------+
-| KSQL操作層                   |
-|------------------------------|
-| - CREATE STREAM/TABLE生成    |
-| - JOIN / AGGREGATE の発行    |
-| - クエリ登録と監視           |
-+------------------------------+
-            ↓
-+------------------------------+
-| RocksDBキャッシュ層（KTable backing store） |
-|------------------------------|
-| - KTable/テーブル参照時にRocksDBでローカルキャッシュ
-| - 参照クエリは極力RocksDB経由で応答（遅延低減・パフォーマンス最適化）
-+------------------------------+
-
-```
-### 9.2 フォーマットポリシー
-
-本フレームワークでは Kafka との通信において Avro のみを正式サポート しています。
-
-JSON Schema はサポート対象外です（理由：サイズ効率・速度・互換性管理の明確性）。
-
-スキーマは自動生成され、スキーマレジストリに登録されます。
-
-### 9.3 補足
-
-### 9.3 補足
-
-スキーマレジストリの接続設定や互換性ルール（BACKWARD 等）は、`KsqlContextBuilder` で構成可能です。
-
-このフレームワークでは、**KafkaDbContext（KsqlContext）生成時に** LINQ DSL の構築と同時に、
-POCO 定義の解析・KSQL文の生成・Avroスキーマの登録処理が自動で行われます。
-
-Kafka接続やスキーマレジストリが未接続の場合は、**コンテキスト生成時に例外として検出**されます。
-
-> Kafka 環境が未整備な状態で構文のみを検証したい場合は、アプリケーションの `LogLevel` を `"Debug"` に設定することで、生成される KSQL文をログとして確認することが可能です。
-
-
- #### RocksDBキャッシュ設計思想
-
- 本フレームワークでは、KSQLのテーブル（KTable）参照時に、RocksDBをバックエンドストアとして自動利用し、参照クエリのパフォーマンスを最大化しています。
-
- - 通常の`.ToList()`や`.FirstOrDefault()`などの参照はRocksDBを経由し、ksqlDBやKafka本体への都度問い合わせを避けます。
-- RocksDB層はデフォルトで有効化。キャッシュサイズや永続化設定など詳細は将来的にFluent APIで拡張予定です。
-- この設計により、「大量データ参照でもレイテンシが大幅に低減」されます。
-- 詳細なパフォーマンス設計例はFAQ・運用ガイド参照。
-なお、RocksDBを直接操作する `RocksDbStateStore` クラスは internal として実装されており、利用者が直接参照する必要はありません。
-
-10.4 DIコンテナと初期化タイミング
-
-本フレームワークの利用においては、KafkaDbContext は DI コンテナを通じてスコープ管理されることを想定しています。
-
-DbContext のインスタンスが解決されると、内部的に OnModelCreating() が呼ばれ、LINQベースの DSL 定義が構築・解析されます。
-
-コンストラクタは軽量であり、DSL構文の構築のみを行います。
-
-
-
-注意点：このタイミングで Schema Registry への通信や Kafka メタデータ取得処理が走るため、接続先が利用可能でない場合に例外が発生する可能性があります。
-
-そのため、KafkaDbContext 自体は軽量な構築とし、重い外部接続処理は明示的な初期化メソッドに切り出しています。
-
-EF と異なり Kafka OSS では「コードに基づいて Kafka 側の構造を生成する」ため、初期化を明示化することで、利用者の意図したタイミングでエラーを把握できる構造となっています。
-
-この点を考慮し、Kafka 接続が不要な構文検証モードを別途用意することも検討されます（例：ValidateModelOnly=true オプション）。
-
-Kafka接続不要な構文検証モードの価値
-
-このモードには以下の利点があります：
-
-CI/CD での構文検証：Kafka や Schema Registry が起動していない環境でも LINQ DSL や POCO の定義が妥当かを自動チェック可能。
-
-Kafka インフラ未構築でも開発可能：先に LINQ や POCO を定義し、Kafka が準備される前に開発が進行可能。
-
-安全な単体テスト：Kafka 接続なしでローカルテストが可能。
-
-学習コスト低減：Kafka 環境のセットアップを待たずに、DSL定義の学習・試行錯誤が可能。。
-
-## 10. 代表的な利用パターン
-
-本ライブラリの主な使用パターンは以下の4つに分類されます：
-
-### 10.1 モデル定義（KsqlContextの拡張）
-
-```
-public class MyKsqlContext : KsqlContext
-{
-    protected override void OnModelCreating(IModelBuilder modelBuilder)
-    {
-        modelBuilder.Entity<Order>();
-    }
-}
-```
-
-### 10.2 プロデュース（Kafkaへの送信）
-
-基本版（自動コミット）
-```
-await context.Orders.AddAsync(new Order
-{
-    OrderId = 1001,
-    Amount = 1200,
-    OrderDate = DateTime.UtcNow
-});
-```
-
-
-### 10.3 コンシューム（ForEachAsyncによる購読）
-
-基本版（自動コミット）
-```
-await foreach (var order in context.Orders.ForEachAsync())
-{
-    Console.WriteLine($"OrderId: {order.OrderId}");
-}
-```
-
-手動コミット（WithManualCommit指定時）
-
-```
-await foreach (var order in context.Orders.ForEachAsync())
-{
-    try
-    {
-        Console.WriteLine(order.Value.OrderId);
-        await order.CommitAsync(); // 必須
-    }
-    catch
-    {
-        await order.NegativeAckAsync(); // 任意（失敗通知）
-    }
-}
-
-```
-
-.OnError() .WithRetry() などのチェーン付加
-
-```
-await foreach (var order in context.Orders
-    .OnError(ErrorAction.DLQ)
-    .Map(o => Process(o))
-    .WithRetry(3)
-    .ForEachAsync())
-{
-    Console.WriteLine($"OrderId: {order.OrderId}");
-}
-```
-
-
-
-### 10.4 キャッシュアクセス
-
-```
+// Fluent API版
 public class MyKsqlContext : KsqlContext
 {
     protected override void OnModelCreating(IModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Order>()
-             .AsTable(topicName: "orders", useCache: true);
+            .WithPartitions(12)               
+            .WithReplicationFactor(3);        
     }
 }
+
 ```
 
+🤖 自動判定ロジック
+[Key]の有無によって [KsqlStream] or [KsqlTable] の暗黙的推定を行う
 
+Fluent APIでも指定可能です。
 
-### 10.5 ReadyStateMonitor による Lag 監視と Ready 判定
-
-StateStore バインディングでは、Kafka コンシューマの Lag を定期的に計測し、完全に追いついた時点を
-"Ready" として通知する `ReadyStateMonitor` を使用します。`TopicStateStoreBinding` 生成時に
-内部でこのモニターが起動し、5 秒間隔で `QueryWatermarkOffsets` と `Position` を照会して Lag を
-計算します。Lag が 0 になると `ReadyStateChanged` イベントが発火し、`WaitUntilReadyAsync` が完了
-します。
-
+トピックのpartition, replication設定、Table/Streamの指定
 ```csharp
-// バインディング作成後に同期完了を待機
-var binding = await manager.CreateBindingAsync(stateStore, consumer, entityModel);
-var ready = await binding.WaitUntilReadyAsync(TimeSpan.FromMinutes(5));
-if (!ready) throw new TimeoutException("StateStore sync timed out.");
-
-var info = binding.GetReadyStateInfo();
-Console.WriteLine($"Lag:{info.TotalLag} Ready:{info.IsReady}");
-```
-
-詳細フローやクラス構成は `docs/namespaces/statestore_namespace_doc.md` の Monitoring セクションを参照してください。
-
-
-## 11. Kafkaのcommit/DB commit・障害時の動作（DBエンジニア必読）
-
-Kafkaのコンシューマアプリでは「オフセットcommit」と「DBのトランザクションcommit」は同じではありません。 特にDBエンジニア・テックリード層に多い勘違いとして、\*\*障害発生時には「前回commitしたオフセット」から“再度メッセージが流れてくる”\*\*という動作を理解しておく必要があります。
-
-### サンプル：障害発生時の「重複実行」イメージ
-
-```csharp
-foreach (var msg in consumer.Consume())
+public class MyKsqlContext : KsqlContext
 {
-    // 1. DBに書き込む
-    db.Save(msg.Value); // 例：OrdersテーブルにINSERT
-
-    // 2. Kafkaにオフセットcommit（"ここまで処理済み"を通知）
-    consumer.Commit(msg);
-}
-```
-
-#### ▼このときの「状態」例
-
-| 処理        | DB     | Kafkaオフセット | 備考                       |
-| --------- | ------ | ---------- | ------------------------ |
-| 初回実行      | 書き込み済み | commit済み   | 1回だけでOK                  |
-| commit前障害 | 書き込み済み | commit前    | **再起動後、同じmsgを再実行（DB重複）** |
-| commit後障害 | 書き込み済み | commit済み   | 以降は次のmsgから処理             |
-
-#### 【冪等化例：重複反映を防ぐパターン】
-
-```csharp
-foreach (var msg in consumer.Consume())
-{
-    if (!db.Exists(msg.Key))
+    protected override void OnModelCreating(IModelBuilder modelBuilder)
     {
-        db.Save(msg.Value);
+        modelBuilder.Entity<Order>()
+            .AsStream();    //Tableの場合AsTable()                 
     }
-    consumer.Commit(msg);
+}
+```   
+ただし、以下のメソッド呼び出しは設計原則違反となる。
+
+🚫 制限事項
+メソッド|	理由
+|---|---|
+.AsStream() / .AsTable()	|属性またはModelBuilderと重複可能。両方指定で一致しない場合はエラー
+
+これらのメソッドは呼び出された場合に NotSupportedException をスローする設計とし、誤用を防止する。
+
+※その他の詳細設定はdev_guide.md参照
+
+## 4. スキーマ構築と初期化手順（OnModelCreating）
+
+Kafka.Ksql.Linq では、POCOクラスに定義された属性情報をもとに、OnModelCreating メソッドを通じて Stream/Table としてのスキーマ登録を行います。
+
+この初期化処理により、POCOの構造は Kafka/KSQL に対する明確なスキーマとして解釈され、後続の LINQ クエリが正しく処理される基盤となります。
+
+✅ 実装のポイント
+
+KsqlContext を継承したクラス内で、modelBuilder.Entity<T>() を用いて POCO を登録します。
+
+[KsqlStream] または [KsqlTable] 属性が定義されていない場合、[Key] の有無によって暗黙的に Stream/Table が決定されます。
+
+この登録時点で DSL の構文検証が行われ、構文誤りや属性不備はここで Fail Fast となります。
+
+Schema Registry への接続もこの時点で必要となり、未接続・未整備の場合には例外が発生します。
+
+```csharp
+
+[KsqlStream]
+[Topic("orders")]
+public class Order
+{
+    public string OrderId { get; set; }
+    public DateTimeOffset Timestamp { get; set; }
+    [DecimalPrecision(18, 2)]
+    public decimal Amount { get; set; }
+}
+
+[KsqlTable]
+[Topic("customers")]
+public class Customer
+{
+    [Key]
+    public string CustomerId { get; set; }
+    public string Name { get; set; }
+}
+
+public class MyKsqlContext : KsqlContext
+{
+    protected override void OnModelCreating(KsqlModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Order>();
+        modelBuilder.Entity<Customer>()
+            .Where(c => c.Name != null)
+            .Select(c => new { c.CustomerId, c.Name });
+        
+    }
+}
+```   
+
+このように、POCOの登録はアプリケーションの起動時に実施されることで、DSL全体の整合性とスキーマ妥当性を確保します。
+
+## 5. プロデュース操作
+Kafka.Ksql.Linq では、AddAsync() メソッドを使用して、POCOベースのデータをKafkaトピックへ送信（プロデュース）することができます。LINQ構文と統合されており、型安全かつ直感的なメッセージ生成を実現します。
+
+### ✅ 実装のポイント
+AddAsync() により、指定トピック（POCOに定義された [Topic]）へメッセージを送信
+
+送信処理は非同期（Taskベース）であり、awaitable
+
+Fail Fastにより、スキーマ不整合や未設定項目は実行前に検出されます
+
+送信前にログでメッセージ内容を確認可能（詳細は第8章のロギング参照）
+
+🧪 サンプルコード
+```csharp
+var order = new Order
+{
+    OrderId = "ORD-001",
+    Timestamp = DateTimeOffset.UtcNow,
+    Amount = 1234.56m
+};
+
+await context.AddAsync(order);
+```  
+このコードでは、Orderエンティティに基づいてKafkaに1件のメッセージが送信されます。トピックやスキーマ定義はPOCO属性に基づいて自動的に解決されます。
+
+
+### ✅ DLQ 送信を行う場合の方法
+AddAsync() を使ったDLQ活用例（利用側）
+
+```csharp
+try
+{
+    await context.Orders.AddAsync(order);
+}
+catch (Exception ex)
+{
+    await context.SendToDlqAsync(order, ex, "AddAsyncFailure");
 }
 ```
 
-- こうすることで、**再実行されてもDBは一意に保たれる**（冪等性担保）
+この方式により、AddAsync() の利用者はエラーハンドリングを自分で制御しつつ、DLQ機能も安全に併用することが可能です。
 
-### 解説
+ChatGPT:
+了解しました。次の章は以下の 6. コンシューム操作、（リトライ、エラー、DLQ、commitの誤解） です。以下のように表示を開始します：
 
-- Kafkaのcommitは「オフセット管理」でありDBのcommitとは意味が違う
-- commit前の副作用は何度も再実行される前提で設計する
-- 特にDB系テックリードは「一意反映」と誤認しやすいので**冪等設計必須**
-- こうした違いを理解せずに設計すると「二重反映」「消えたデータ」問題に直結
+## 6. コンシューム操作、（リトライ、エラー、DLQ、commitの誤解）
+この章では、Kafkaメッセージの コンシューム処理 に関する基本操作と、以下のような誤解されやすいポイントを整理します：
 
+### ✅ 基本的な消費処理の構文
+```csharp
+await context.Orders
+    .Where(o => o.Amount > 1000)
+    .Select(o => Process(o))
+    .ForEachAsync();
+```
+
+### 🧠 よくある誤解と実態
+誤解されやすい概念	|実際の挙動	|補足説明
+|---|---|---|
+ForEachAsync にリトライ機能がある|	ない	|エラー処理は .OnError() により明示的に定義が必要
+DLQは自動的に処理される|	明示 or .OnError(ErrorAction.DLQ) 必須	|設定がないとDLQ送信されない
+処理失敗時もcommitされる|	commitは常に明示または .WithAutoCommit() 指定|	自動ではないため注意
+メッセージスキップはデフォルトで行われる|	明示的に .OnError(ErrorAction.Skip) 指定が必要	|スキップ設定なしでは処理停止の可能性
+
+🛠 使用例（リトライ＋DLQ）
+```csharp
+await context.Orders
+    .OnError(ErrorAction.DLQ)
+    .WithRetry(3)
+    .ForEachAsync(order => Handle(order));
+```
+
+このように、明示的なエラーハンドリング設計が求められます。
+
+### commitの制御
+Kafkaのコンシューム操作において、メッセージのオフセットコミットは非常に重要です。
+
+デフォルトでは 自動 commit（Auto Commit） が有効となっており、
+明示的な指定がない場合でも、処理が成功した時点で commit が行われます。
+
+ただし、エラーハンドリングや再処理設計の都合上、明示的に commit 制御をしたい場合は、
+WithManualCommit() による設定が必要です。
+
+自動 commit を前提とする場合でも、明示的に .WithAutoCommit() を記述することで、
+意図を明確にすることができます：
+
+```csharp
+public class MyKsqlContext : KsqlContext
+{
+    protected override void OnModelCreating(IModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Order>()
+            .WithManualCommit();  // ✅ 手動コミット設定
+    }
+    // 手動コミット例
+    public async Task ManualCommitExample()
+    {
+      var orders = context.Set<Order>();
+
+      await orders.ForEachAsync(async orderMessage => {
+        // WithManualCommit()設定時はIManualCommitMessage<T>が返される
+        if (orderMessage is IManualCommitMessage<Order> manualCommitMessage)
+        {
+            try
+            {
+                // メッセージ処理
+                var order = manualCommitMessage.Value;
+                await ProcessOrder(order);
+                
+                // ✅ 処理成功時にコミット
+                await manualCommitMessage.CommitAsync();
+                
+                Console.WriteLine($"Successfully processed and committed order: {order.Id}");
+            }
+            catch (Exception ex)
+            {
+                // ✅ 処理失敗時にネガティブACK
+                await manualCommitMessage.NegativeAckAsync();
+                
+                Console.WriteLine($"Failed to process order: {ex.Message}");
+                throw;
+            }
+        }
+    });
+  }
+  // retry例
+  public async Task RetryWithManualCommitExample()
+  {
+    var orders = context.Set<Order>()
+        .OnError(ErrorAction.Retry)  // ✅ リトライ設定
+        .WithRetry(maxRetries: 3, retryInterval: TimeSpan.FromSeconds(2));
+
+    await orders.ForEachAsync(async orderMessage => {
+        if (orderMessage is IManualCommitMessage<Order> manualCommitMessage)
+        {
+            try
+            {
+                var order = manualCommitMessage.Value;
+                await ProcessOrder(order);
+                
+                // ✅ 処理成功時にコミット
+                await manualCommitMessage.CommitAsync();
+                
+                Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] SUCCESS: Order {order.Id} processed and committed");
+            }
+            catch (Exception ex)
+            {
+                // ✅ EventSetのRetry機能が働く（内部的にリトライ実行）
+                // 最終的にリトライ失敗した場合のみここに到達
+                await manualCommitMessage.NegativeAckAsync();
+                
+                Console.WriteLine($"[{DateTime.UtcNow:HH:mm:ss}] FINAL_FAILURE: Order processing failed after retries: {ex.Message}");
+                throw;
+            }
+        }
+    });
+  }
+}
+```
+
+## 7. ウィンドウ・テーブル操作
+
+⏳ Window 機能の設計
+
+### 概要
+
+KSQLにおけるWindow処理は、時間単位での集計や状態管理を行う際に使用されます。本OSSでは、LINQ構文からWindow処理に対応するDSLを提供し、Kafka Streamsによるウィンドウ処理のKSQL変換を自動化しています。
+
+### 対象エンティティ
+
+ウィンドウ処理は Set<T> に対して .Window(x) を指定することで適用され、内部的に WindowConfiguration として扱われます。
+```
+modelBuilder.Entity<Order>()
+    .Window(new[] { 1, 5, 60 });
+```
+
+この設定により、1分足、5分足、60分足の3種類のウィンドウが定義され、各ウィンドウに対応する状態管理とKSQLクエリが生成されます。
+
+### Window Finalization
+
+ウィンドウ処理で生成されたデータは、一定時間経過後に「確定」され、*_window_{minutes}_final 形式のトピックに書き出されます。確定処理は WindowFinalizationManager により管理され、以下の責務を持ちます：
+
+- 複数のPODから送信された同一Windowキーのデータをマージ
+- 指定分単位でタイマーを駆動し、該当Windowを確定
+- KafkaトピックへFinalメッセージを書き込み
+
+このとき、元のWindowデータとは異なるトピックに送信されるため、事前に _window_final トピックの作成が必要です。また、元のトピックに新しいデータが送られなくても、タイマーによりx分単位でFinalデータが自動生成されます。
+
+初期化時、すべての _window_final トピックは EnsureWindowFinalTopicsExistAsync により事前に作成されます。この処理は OnModelCreating 後のステージで自動的に実行され、各エンティティの .Window(...) 設定に基づいて必要なFinalトピックを準備します。
+
+### AvroTimestamp の利用
+
+Window処理で使用される時間情報は、すべて AvroTimestamp 型で管理されます。これにより：
+
+- Avroシリアライズ時のUTC変換とスキーマ整合性を確保
+- WindowStart/End の精度と互換性を保証
+- フィールドには [AvroTimestamp] 属性を付与
+```
+
+public class WindowedOrderSummary
+{
+    [AvroTimestamp]
+    public DateTime WindowStart { get; set; }
+
+    [AvroTimestamp]
+    public DateTime WindowEnd { get; set; }
+
+    public int Count { get; set; }
+}
+```
+
+### 課題と補足
+
+- .Window(...) で複数の粒度（例: 1, 5, 60分）を定義した場合、それぞれに対応する _window_{minutes}_final トピックが必要です。
+- Kafka設定で auto.create.topics.enable = false が指定されている場合、本OSSでは初期化処理中に EnsureWindowFinalTopicsExistAsync を用いてすべての Final トピックを自動作成します。
+- Final トピックのスキーマは WindowFinalMessage に準拠して自動登録されます。
+- 元のデータが送信されなくても、指定時間が経過すれば Final データは内部タイマーにより自動的に生成されます。
+
+このWindow機能は、リアルタイムな時間軸集計や、複数粒度でのKTable生成に対応するための中核機能となります。
+
+
+## 8.ロギングとクエリ可視化
+
+ロギングとクエリ可視化
+
+本OSSでは、namespace単位でのログ出力制御を行い、必要な情報のみをDebugレベルで可視化する設計としています。appsettings.json の例：
+```
+
+"Logging": {
+  "LogLevel": {
+    "Default": "Information",
+    "Kafka.Ksql.Linq.Serialization": "Debug",
+    "Kafka.Ksql.Linq.Messaging": "Warning",
+    "Kafka.Ksql.Linq.Core": "Information"
+  }
+}
+```
+クエリのログ出力を詳細に行いたい場合は、以下の設定を追加することで KSQL 変換処理を対象とできます：
+```
+"Kafka.Ksql.Linq.Query": "Debug"
+```
+これにより、KSQLの変換処理ログを確認することが可能です。
+
+## 10. 代表的な利用パターン
