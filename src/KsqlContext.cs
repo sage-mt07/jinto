@@ -238,7 +238,9 @@ public abstract class KsqlContext : KafkaContextCore
                     string.Equals(e.Entity, model.EntityType.Name, StringComparison.OrdinalIgnoreCase));
                 if (config?.StoreType == StoreTypes.RocksDb)
                 {
-                    var method = GetType().GetMethod(nameof(CreateBindingForEntity), System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                    var method = typeof(KsqlContext).GetMethod(
+                        nameof(CreateBindingForEntity),
+                        System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
                     var generic = method!.MakeGenericMethod(model.EntityType);
                     var binding = (IDisposable)generic.Invoke(this, new object[] { model })!;
                     _stateBindings.Add(binding);
