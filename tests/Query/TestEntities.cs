@@ -53,3 +53,9 @@ public class Customer
     public int Id { get; set; }
     public string? Region { get; set; }
 }
+
+public class Payment
+{
+    public int OrderId { get; set; }
+    public string Status { get; set; } = string.Empty;
+}
