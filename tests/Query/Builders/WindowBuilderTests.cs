@@ -42,7 +42,7 @@ public class WindowBuilderTests
         var visitorType = typeof(WindowBuilder).GetNestedType("WindowExpressionVisitor", BindingFlags.NonPublic)!;
         var visitor = Activator.CreateInstance(visitorType)!;
 
-        var def = new WindowDef()
+        var def = new global::Kafka.Ksql.Linq.WindowDef()
             .TumblingWindow()
             .Size(TimeSpan.FromSeconds(30))
             .Retention(TimeSpan.FromDays(1))
@@ -61,7 +61,7 @@ public class WindowBuilderTests
         var visitorType = typeof(WindowBuilder).GetNestedType("WindowExpressionVisitor", BindingFlags.NonPublic)!;
         var visitor = Activator.CreateInstance(visitorType)!;
 
-        var def = new WindowDef()
+        var def = new global::Kafka.Ksql.Linq.WindowDef()
             .HoppingWindow()
             .Size(TimeSpan.FromMinutes(2))
             .AdvanceBy(TimeSpan.FromMinutes(1))
@@ -81,7 +81,7 @@ public class WindowBuilderTests
         var visitorType = typeof(WindowBuilder).GetNestedType("WindowExpressionVisitor", BindingFlags.NonPublic)!;
         var visitor = Activator.CreateInstance(visitorType)!;
 
-        var def = new WindowDef()
+        var def = new global::Kafka.Ksql.Linq.WindowDef()
             .SessionWindow()
             .Gap(TimeSpan.FromSeconds(45));
 
