@@ -94,4 +94,46 @@ public class QueryBuilderIntegrationTests
 
         Assert.Equal("SELECT OrderId, TotalAmount, OrderDate", sql);
     }
+
+    [Fact]
+    public void Build_WindowThenOrderBy_IgnoresSort()
+    {
+        IQueryable<TestEntity> src = new List<TestEntity>().AsQueryable();
+        var expr = src.Window(TimeSpan.FromMinutes(1))
+                      .OrderBy(x => x.Id)
+                      .Select(x => x.Name);
+
+        var generator = new DDLQueryGenerator(new NullLoggerFactory());
+        var sql = generator.GenerateCreateTableAs("t1", "Base", expr.Expression);
+
+        Assert.Contains("WINDOW TUMBLING (SIZE 1 MINUTES)", sql);
+        Assert.DoesNotContain("ORDER BY", sql);
+    }
+
+    [Fact]
+    public void Build_GroupByAndHaving_GeneratesClauses()
+    {
+        Expression<Func<Order, object>> groupExpr = o => o.CustomerId;
+        Expression<Func<IGrouping<int, Order>, bool>> havingExpr = g => g.Count() > 5;
+
+        var groupBuilder = new GroupByBuilder();
+        var havingBuilder = new HavingBuilder();
+
+        var groupSql = groupBuilder.Build(groupExpr.Body);
+        var havingSql = havingBuilder.Build(havingExpr.Body);
+
+        var final = $"{groupSql} {havingSql}";
+
+        Assert.Equal("GROUP BY CustomerId HAVING (COUNT(*) > 5)", final);
+    }
+
+    [Fact]
+    public void Build_SelectAnonymousTypeWithConversion_ReturnsSelectClause()
+    {
+        Expression<Func<Order, object>> expr = o => new { o.OrderId, Date = o.OrderDate.Date };
+        var builder = new ProjectionBuilder();
+        var sql = builder.Build(expr.Body);
+
+        Assert.Equal("SELECT OrderId, OrderDate AS Date", sql);
+    }
 }

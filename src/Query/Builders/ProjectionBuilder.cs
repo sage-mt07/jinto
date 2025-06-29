@@ -41,7 +41,7 @@ internal class ProjectionBuilder : IKsqlBuilder
 
                 if (arg is MemberExpression member)
                 {
-                    var memberName = member.Member.Name;
+                    var memberName = GetRootMemberName(member);
 
                     if (!string.IsNullOrEmpty(alias) && alias != memberName)
                     {
@@ -55,7 +55,7 @@ internal class ProjectionBuilder : IKsqlBuilder
                 else if (arg is UnaryExpression unary && unary.Operand is MemberExpression unaryMember)
                 {
                     // Handle UnaryExpression wrapping (like type conversions)
-                    var memberName = unaryMember.Member.Name;
+                    var memberName = GetRootMemberName(unaryMember);
 
                     if (!string.IsNullOrEmpty(alias) && alias != memberName)
                     {
@@ -83,7 +83,7 @@ internal class ProjectionBuilder : IKsqlBuilder
 
         protected override Expression VisitMember(MemberExpression node)
         {
-            _sb.Append(node.Member.Name);
+            _sb.Append(GetRootMemberName(node));
             return node;
         }
 
@@ -249,6 +249,15 @@ internal class ProjectionBuilder : IKsqlBuilder
                 "AVERAGE" => "AVG",
                 _ => methodName
             };
+        }
+
+        private static string GetRootMemberName(MemberExpression member)
+        {
+            while (member.Expression is MemberExpression inner)
+            {
+                member = inner;
+            }
+            return member.Member.Name;
         }
 
         private static MemberExpression? ExtractMember(Expression body)
