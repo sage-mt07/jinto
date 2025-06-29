@@ -1,4 +1,5 @@
 using Kafka.Ksql.Linq.Query.Abstractions;
+using Kafka.Ksql.Linq;
 using System;
 using System.Linq.Expressions;
 
@@ -19,13 +20,17 @@ internal class WindowBuilder : IKsqlBuilder
 
         var visitor = new WindowExpressionVisitor();
 
-        if (expression is ConstantExpression { Value: WindowDef def })
+        switch (expression)
         {
-            visitor.VisitWindowDef(def);
-        }
-        else
-        {
-            visitor.Visit(expression);
+            case ConstantExpression { Value: WindowDef def }:
+                visitor.VisitWindowDef(def);
+                break;
+            case ConstantExpression { Value: TimeSpan ts }:
+                visitor.VisitWindowDef(TumblingWindow.Of(ts));
+                break;
+            default:
+                visitor.Visit(expression);
+                break;
         }
 
         return visitor.BuildWindowClause();
@@ -133,7 +138,7 @@ internal class WindowBuilder : IKsqlBuilder
                     _windowType = "TUMBLING";
                     if (node.Arguments.Count > 1)
                     {
-                        _size = ExtractTimeSpanValue(node);
+                        _size = ExtractTimeSpanValue(node.Arguments[1]);
                     }
                     break;
             }
@@ -145,31 +150,33 @@ internal class WindowBuilder : IKsqlBuilder
         {
             if (node.Arguments.Count > 0)
             {
-                var arg = node.Arguments[0];
+                return ExtractTimeSpanValue(node.Arguments[0]);
+            }
 
-                // Handle TimeSpan.FromMinutes(1), TimeSpan.FromSeconds(30), etc.
-                if (arg is MethodCallExpression timeSpanCall && timeSpanCall.Method.DeclaringType == typeof(TimeSpan))
-                {
-                    var value = ExtractConstantValue(timeSpanCall.Arguments[0]);
-                    var unit = timeSpanCall.Method.Name switch
-                    {
-                        "FromMinutes" => "MINUTES",
-                        "FromSeconds" => "SECONDS",
-                        "FromHours" => "HOURS",
-                        "FromDays" => "DAYS",
-                        _ => "UNKNOWN"
-                    };
-                    return $"{value} {unit}";
-                }
+            return "UNKNOWN";
+        }
 
-                // Handle direct constants
-                if (arg is ConstantExpression constant)
+        private string ExtractTimeSpanValue(Expression arg)
+        {
+            // Handle TimeSpan.FromMinutes(1), TimeSpan.FromSeconds(30), etc.
+            if (arg is MethodCallExpression timeSpanCall && timeSpanCall.Method.DeclaringType == typeof(TimeSpan))
+            {
+                var value = ExtractConstantValue(timeSpanCall.Arguments[0]);
+                var unit = timeSpanCall.Method.Name switch
                 {
-                    if (constant.Value is TimeSpan timeSpan)
-                    {
-                        return FormatTimeSpan(timeSpan);
-                    }
-                }
+                    "FromMinutes" => "MINUTES",
+                    "FromSeconds" => "SECONDS",
+                    "FromHours" => "HOURS",
+                    "FromDays" => "DAYS",
+                    _ => "UNKNOWN"
+                };
+                return $"{value} {unit}";
+            }
+
+            // Handle direct constants
+            if (arg is ConstantExpression constant && constant.Value is TimeSpan timeSpan)
+            {
+                return FormatTimeSpan(timeSpan);
             }
 
             return "UNKNOWN";
