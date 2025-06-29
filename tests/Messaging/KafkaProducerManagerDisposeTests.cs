@@ -12,6 +12,8 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using Confluent.SchemaRegistry;
+using Kafka.Ksql.Linq.Tests.Serialization;
 using Xunit;
 
 namespace Kafka.Ksql.Linq.Tests.Messaging;
@@ -45,21 +47,6 @@ public class KafkaProducerManagerDisposeTests
         public void Dispose() { Disposed = true; }
     }
 
-    private class StubSchemaRegistryClient : Kafka.Ksql.Linq.Serialization.Abstractions.ISchemaRegistryClient
-    {
-        public bool Disposed;
-        public Task<(int keySchemaId, int valueSchemaId)> RegisterTopicSchemasAsync(string topicName, string keySchema, string valueSchema) => Task.FromResult((0, 0));
-        public Task<int> RegisterKeySchemaAsync(string topicName, string keySchema) => Task.FromResult(0);
-        public Task<int> RegisterValueSchemaAsync(string topicName, string valueSchema) => Task.FromResult(0);
-        public Task<int> RegisterSchemaAsync(string subject, string avroSchema) => Task.FromResult(0);
-        public Task<Kafka.Ksql.Linq.Serialization.Avro.Core.AvroSchemaInfo> GetLatestSchemaAsync(string subject) => Task.FromResult(new Kafka.Ksql.Linq.Serialization.Avro.Core.AvroSchemaInfo());
-        public Task<Kafka.Ksql.Linq.Serialization.Avro.Core.AvroSchemaInfo> GetSchemaByIdAsync(int schemaId) => Task.FromResult(new Kafka.Ksql.Linq.Serialization.Avro.Core.AvroSchemaInfo());
-        public Task<bool> CheckCompatibilityAsync(string subject, string avroSchema) => Task.FromResult(true);
-        public Task<IList<int>> GetSchemaVersionsAsync(string subject) => Task.FromResult<IList<int>>(new List<int>());
-        public Task<Kafka.Ksql.Linq.Serialization.Avro.Core.AvroSchemaInfo> GetSchemaAsync(string subject, int version) => Task.FromResult(new Kafka.Ksql.Linq.Serialization.Avro.Core.AvroSchemaInfo());
-        public Task<IList<string>> GetAllSubjectsAsync() => Task.FromResult<IList<string>>(new List<string>());
-        public void Dispose() { Disposed = true; }
-    }
 
     private static ConcurrentDictionary<Type, object> GetProducerDict(KafkaProducerManager manager)
         => (ConcurrentDictionary<Type, object>)typeof(KafkaProducerManager)
@@ -107,8 +94,9 @@ public class KafkaProducerManagerDisposeTests
         var topics = GetTopicProducerDict(manager);
         var serials = GetSerializationDict(manager);
         var schemaLazyField = typeof(KafkaProducerManager).GetField("_schemaRegistryClient", BindingFlags.NonPublic | BindingFlags.Instance)!;
-        var schemaStub = new StubSchemaRegistryClient();
-        schemaLazyField.SetValue(manager, new Lazy<Confluent.SchemaRegistry.ISchemaRegistryClient>(() => schemaStub));
+        var proxy = DispatchProxy.Create<ISchemaRegistryClient, FakeSchemaRegistryClient>();
+        var schemaStub = (FakeSchemaRegistryClient)proxy!;
+        schemaLazyField.SetValue(manager, new Lazy<ISchemaRegistryClient>(() => proxy));
 
         var p1 = new StubProducer<Sample>();
         var p2 = new StubProducer<Sample>();

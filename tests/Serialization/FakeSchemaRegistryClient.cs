@@ -10,6 +10,7 @@ namespace Kafka.Ksql.Linq.Tests.Serialization;
 
 internal class FakeSchemaRegistryClient : DispatchProxy
 {
+    public bool Disposed { get; private set; }
     public List<string> RegisterSubjects { get; } = new();
     public int RegisterReturn { get; set; } = 1;
     public bool CompatibilityResult { get; set; } = true;
@@ -40,6 +41,7 @@ internal class FakeSchemaRegistryClient : DispatchProxy
                     .Invoke(null, new[] { obj });
                 return fromResult!;
             case nameof(IDisposable.Dispose):
+                Disposed = true;
                 return null;
         }
         throw new NotImplementedException(targetMethod?.Name);
