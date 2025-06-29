@@ -18,11 +18,11 @@ public class JoinBuilderTests
         IQueryable<TestEntity> outer = new List<TestEntity>().AsQueryable();
         IQueryable<TestEntity> inner = new List<TestEntity>().AsQueryable();
 
-        // intentionally mismatch join keys
+        // intentionally mismatch join keys using different property counts
         var join = outer.Join(
             inner,
             o => new { o.Id },
-            i => new { i.Id, i.Age },
+            i => new { i.Id, i.Name },
             (o, i) => new { o.Id });
 
         var builder = new JoinBuilder();
