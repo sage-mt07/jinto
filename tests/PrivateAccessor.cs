@@ -16,7 +16,8 @@ internal static class PrivateAccessor
     {
         var startType = target as Type ?? target.GetType();
         var type = startType;
-        var flags = BindingFlags.NonPublic | (target is Type ? BindingFlags.Static : BindingFlags.Instance);
+        var flags = BindingFlags.NonPublic | BindingFlags.Public |
+                    (target is Type ? BindingFlags.Static : BindingFlags.Instance);
         MethodInfo? method = null;
         while (type != null)
         {
