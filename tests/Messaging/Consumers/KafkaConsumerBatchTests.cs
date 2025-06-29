@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Confluent.Kafka;
 using Kafka.Ksql.Linq.Configuration;
+using Kafka.Ksql.Linq.Configuration.Abstractions;
 using Kafka.Ksql.Linq.Core.Abstractions;
 using Kafka.Ksql.Linq.Messaging.Consumers.Core;
 using Kafka.Ksql.Linq.Messaging.Producers;
