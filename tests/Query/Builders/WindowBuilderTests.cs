@@ -35,4 +35,59 @@ public class WindowBuilderTests
         var result = (string)visitorType.GetMethod("BuildWindowClause")!.Invoke(visitor, null)!;
         Assert.Equal("WINDOW TUMBLING (SIZE 30 SECONDS) EMIT FINAL", result);
     }
+
+    [Fact]
+    public void VisitWindowDef_TumblingWindow_AllOptions()
+    {
+        var visitorType = typeof(WindowBuilder).GetNestedType("WindowExpressionVisitor", BindingFlags.NonPublic)!;
+        var visitor = Activator.CreateInstance(visitorType)!;
+
+        var def = new WindowDef()
+            .TumblingWindow()
+            .Size(TimeSpan.FromSeconds(30))
+            .Retention(TimeSpan.FromDays(1))
+            .GracePeriod(TimeSpan.FromMinutes(1))
+            .EmitFinal();
+
+        visitorType.GetMethod("VisitWindowDef")!.Invoke(visitor, new object[] { def });
+        var result = (string)visitorType.GetMethod("BuildWindowClause")!.Invoke(visitor, null)!;
+
+        Assert.Equal("WINDOW TUMBLING (SIZE 30 SECONDS, RETENTION 1 DAYS, GRACE PERIOD 1 MINUTES) EMIT FINAL", result);
+    }
+
+    [Fact]
+    public void VisitWindowDef_HoppingWindow_AllOptions()
+    {
+        var visitorType = typeof(WindowBuilder).GetNestedType("WindowExpressionVisitor", BindingFlags.NonPublic)!;
+        var visitor = Activator.CreateInstance(visitorType)!;
+
+        var def = new WindowDef()
+            .HoppingWindow()
+            .Size(TimeSpan.FromMinutes(2))
+            .AdvanceBy(TimeSpan.FromMinutes(1))
+            .Retention(TimeSpan.FromHours(1))
+            .GracePeriod(TimeSpan.FromSeconds(5))
+            .EmitFinal();
+
+        visitorType.GetMethod("VisitWindowDef")!.Invoke(visitor, new object[] { def });
+        var result = (string)visitorType.GetMethod("BuildWindowClause")!.Invoke(visitor, null)!;
+
+        Assert.Equal("WINDOW HOPPING (SIZE 2 MINUTES, ADVANCE BY 1 MINUTES, RETENTION 1 HOURS, GRACE PERIOD 5 SECONDS) EMIT FINAL", result);
+    }
+
+    [Fact]
+    public void VisitWindowDef_SessionWindow_Basic()
+    {
+        var visitorType = typeof(WindowBuilder).GetNestedType("WindowExpressionVisitor", BindingFlags.NonPublic)!;
+        var visitor = Activator.CreateInstance(visitorType)!;
+
+        var def = new WindowDef()
+            .SessionWindow()
+            .Gap(TimeSpan.FromSeconds(45));
+
+        visitorType.GetMethod("VisitWindowDef")!.Invoke(visitor, new object[] { def });
+        var result = (string)visitorType.GetMethod("BuildWindowClause")!.Invoke(visitor, null)!;
+
+        Assert.Equal("WINDOW SESSION (GAP 45 SECONDS)", result);
+    }
 }
