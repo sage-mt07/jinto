@@ -204,16 +204,34 @@ internal class WindowSelectExpressionVisitor : ExpressionVisitor
 
     private string ExtractAggregationColumn(string function, MethodCallExpression methodCall)
     {
+        LambdaExpression? lambda = null;
+
         if (methodCall.Arguments.Count > 0)
         {
-            var arg = methodCall.Arguments[0];
-            if (arg is LambdaExpression lambda && lambda.Body is MemberExpression member)
-            {
-                return $"{function}({member.Member.Name.ToUpper()})";
-            }
+            lambda = ExtractLambda(methodCall.Arguments[0]);
+        }
+
+        if (lambda == null && methodCall.Arguments.Count > 1)
+        {
+            lambda = ExtractLambda(methodCall.Arguments[1]);
+        }
+
+        if (lambda?.Body is MemberExpression member)
+        {
+            return $"{function}({member.Member.Name.ToUpper()})";
         }
 
         return $"{function}(*)";
+    }
+
+    private static LambdaExpression? ExtractLambda(Expression expr)
+    {
+        return expr switch
+        {
+            LambdaExpression l => l,
+            UnaryExpression u when u.Operand is LambdaExpression l => l,
+            _ => null
+        };
     }
 
     private string ExtractKeyExpression(MethodCallExpression methodCall)

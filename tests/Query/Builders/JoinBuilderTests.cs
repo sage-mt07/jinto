@@ -110,5 +110,16 @@ public class JoinBuilderTests
         var result = InvokePrivate<MethodCallExpression?>(builder, "FindJoinCall", new[] { typeof(Expression) }, null, invoke);
         Assert.NotNull(result);
     }
+
+    [Fact]
+    public void BuildJoinQuery_GeneratesJoinStatement()
+    {
+        IQueryable<TestEntity> outer = new List<TestEntity>().AsQueryable();
+        IQueryable<ChildEntity> inner = new List<ChildEntity>().AsQueryable();
+        var joinExpr = outer.Join(inner, o => o.Id, c => c.ParentId, (o, c) => new { o.Id, c.Name }).Expression as MethodCallExpression;
+        var builder = new JoinBuilder();
+        var sql = InvokePrivate<string>(builder, "BuildJoinQuery", new[] { typeof(MethodCallExpression) }, null, joinExpr!);
+        Assert.StartsWith("SELECT o.Id, c.Name FROM TestEntity o JOIN ChildEntity c ON o.Id = c.ParentId", sql);
+    }
 }
 

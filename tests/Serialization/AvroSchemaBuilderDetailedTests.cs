@@ -83,6 +83,10 @@ public class AvroSchemaBuilderDetailedTests
         obj = InvokePrivate<object>(builder, "GetBasicAvroType", new[] { typeof(PropertyInfo), typeof(Type) }, null, date, typeof(DateTime));
         json = JsonSerializer.Serialize(obj);
         Assert.Contains("date", json);
+        var guid = typeof(SampleEntity).GetProperty(nameof(SampleEntity.GuidKey))!;
+        obj = InvokePrivate<object>(builder, "GetBasicAvroType", new[] { typeof(PropertyInfo), typeof(Type) }, null, guid, typeof(Guid));
+        json = JsonSerializer.Serialize(obj);
+        Assert.Contains("uuid", json);
     }
 
     [Fact]

@@ -66,4 +66,16 @@ public class HavingBuilderTests
             InvokePrivate<string>(visitorType, "GetSqlOperator", new[] { typeof(ExpressionType) }, null, ExpressionType.ArrayIndex));
         Assert.IsType<NotSupportedException>(ex.InnerException);
     }
+
+    [Theory]
+    [InlineData("SUM", true)]
+    [InlineData("COUNT", true)]
+    [InlineData("COLLECTLIST", true)]
+    [InlineData("UNKNOWN", false)]
+    public void IsAggregateFunction_DetectsAggregateMethods(string name, bool expected)
+    {
+        var visitorType = typeof(HavingBuilder).GetNestedType("HavingExpressionVisitor", BindingFlags.NonPublic)!;
+        var result = InvokePrivate<bool>(visitorType, "IsAggregateFunction", new[] { typeof(string) }, null, name);
+        Assert.Equal(expected, result);
+    }
 }
