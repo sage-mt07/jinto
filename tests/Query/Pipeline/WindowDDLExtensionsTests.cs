@@ -5,6 +5,7 @@ using System.Reflection;
 using Kafka.Ksql.Linq.Query.Pipeline;
 using Kafka.Ksql.Linq;
 using Kafka.Ksql.Linq.Core.Abstractions;
+using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 using static Kafka.Ksql.Linq.Tests.PrivateAccessor;
 
