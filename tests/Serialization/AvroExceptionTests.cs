@@ -1,5 +1,6 @@
 using Kafka.Ksql.Linq.Serialization.Avro.Exceptions;
 using System;
+using System.Collections.Generic;
 using Xunit;
 using static Kafka.Ksql.Linq.Tests.PrivateAccessor;
 
