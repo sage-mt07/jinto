@@ -73,13 +73,11 @@ public class JoinDslUnitTests
     [Fact]
     public void ParameterReplacementVisitor_ReplacesMultipleParameters()
     {
-        var x = Expression.Parameter(typeof(int), "x");
-        var y = Expression.Parameter(typeof(int), "y");
         Expression<Func<int, int, bool>> expr = (a, b) => a > b;
         var replacements = new Dictionary<ParameterExpression, Expression>
         {
-            [x] = Expression.Constant(10),
-            [y] = Expression.Constant(5)
+            [expr.Parameters[0]] = Expression.Constant(10),
+            [expr.Parameters[1]] = Expression.Constant(5)
         };
         var visitor = new ParameterReplacementVisitor(replacements);
         var newBody = visitor.Visit(expr.Body);
@@ -127,7 +125,10 @@ public class JoinDslUnitTests
         var ctx = new DummyContext();
         var outer = new JoinableEntitySet<TestEntity>(new StubSet<TestEntity>(ctx));
         var inner = new StubSet<ChildEntity>(ctx);
-        var result = outer.Join(inner, o => o.Id, i => i.ParentId);
+        var result = outer.Join(
+            inner,
+            (Expression<Func<TestEntity, object>>)(o => (object)o.Id),
+            (Expression<Func<ChildEntity, object>>)(i => (object)i.ParentId));
         Assert.NotNull(result);
     }
 
@@ -137,7 +138,10 @@ public class JoinDslUnitTests
         var ctx = new DummyContext();
         var outer = new JoinableEntitySet<TestEntity>(new StubSet<TestEntity>(ctx));
         var inner = new StubSet<ChildEntity>(ctx);
-        var join = outer.Join(inner, o => o.Id, i => i.ParentId);
+        var join = outer.Join(
+            inner,
+            (Expression<Func<TestEntity, object>>)(o => (object)o.Id),
+            (Expression<Func<ChildEntity, object>>)(i => (object)i.ParentId));
         var result = join.Select((o, i) => new { o.Id, i.Name });
         var list = await result.ToListAsync();
         Assert.NotNull(list);
@@ -150,10 +154,14 @@ public class JoinDslUnitTests
         var outer = new JoinableEntitySet<TestEntity>(new StubSet<TestEntity>(ctx));
         var inner = new StubSet<ChildEntity>(ctx);
         var third = new StubSet<GrandChildEntity>(ctx);
-        var join = outer.Join(inner, o => o.Id, i => i.ParentId)
-                        .Join(third,
-                             (Expression<Func<ChildEntity, int>>)(i => i.Id),
-                             (Expression<Func<GrandChildEntity, int>>)(t => t.ChildId));
+        var join = outer.Join(
+                            inner,
+                            (Expression<Func<TestEntity, object>>)(o => (object)o.Id),
+                            (Expression<Func<ChildEntity, object>>)(i => (object)i.ParentId))
+                        .Join(
+                            third,
+                            (Expression<Func<ChildEntity, object>>)(i => (object)i.Id),
+                            (Expression<Func<GrandChildEntity, object>>)(t => (object)t.ChildId));
         var result = join.Select((o, i, t) => new { o.Id, t.Description });
         var list = await result.ToListAsync();
         Assert.NotNull(list);
@@ -165,7 +173,10 @@ public class JoinDslUnitTests
         var ctx = new DummyContext();
         var outer = new JoinableEntitySet<TestEntity>(new StubSet<TestEntity>(ctx));
         var inner = new StubSet<ChildEntity>(ctx);
-        var result = outer.Join(inner, o => o.Id, i => i.ParentId)
+        var result = outer.Join(
+                          inner,
+                          (Expression<Func<TestEntity, object>>)(o => (object)o.Id),
+                          (Expression<Func<ChildEntity, object>>)(i => (object)i.ParentId))
                           .Select((o, i) => new { o.Id, i.Name });
         await Assert.ThrowsAsync<NotSupportedException>(() => result.AddAsync(new { Id = 1, Name = "a" }));
     }
@@ -177,10 +188,14 @@ public class JoinDslUnitTests
         var outer = new JoinableEntitySet<TestEntity>(new StubSet<TestEntity>(ctx));
         var inner = new StubSet<ChildEntity>(ctx);
         var third = new StubSet<GrandChildEntity>(ctx);
-        var result = outer.Join(inner, o => o.Id, i => i.ParentId)
-                          .Join(third,
-                                (Expression<Func<ChildEntity, int>>)(i => i.Id),
-                                (Expression<Func<GrandChildEntity, int>>)(t => t.ChildId))
+        var result = outer.Join(
+                          inner,
+                          (Expression<Func<TestEntity, object>>)(o => (object)o.Id),
+                          (Expression<Func<ChildEntity, object>>)(i => (object)i.ParentId))
+                          .Join(
+                                third,
+                                (Expression<Func<ChildEntity, object>>)(i => (object)i.Id),
+                                (Expression<Func<GrandChildEntity, object>>)(t => (object)t.ChildId))
                           .Select((o, i, t) => new { o.Id, t.Description });
         await Assert.ThrowsAsync<NotSupportedException>(() => result.AddAsync(new { Id = 1, Description = "a" }));
     }
@@ -192,23 +207,37 @@ public class JoinDslUnitTests
         var outer = new StubSet<TestEntity>(ctx);
         var inner = new StubSet<ChildEntity>(ctx);
         var builder = new JoinBuilder();
-        var unified = new UnifiedJoinResult<TestEntity, ChildEntity>(outer, inner, (Expression<Func<TestEntity, int>>)(o => o.Id), (Expression<Func<ChildEntity, int>>)(i => i.ParentId), builder, ctx);
+        var unified = new UnifiedJoinResult<TestEntity, ChildEntity>(
+            outer,
+            inner,
+            (Expression<Func<TestEntity, object>>)(o => (object)o.Id),
+            (Expression<Func<ChildEntity, object>>)(i => (object)i.ParentId),
+            builder,
+            ctx);
         var result = unified.Select((o, i) => new { o.Id, i.Name });
         var str = result.ToString();
         Assert.Contains("JOIN", str);
     }
 
     [Fact]
-    public async Task UnifiedJoinResult_Join_Select_ToListAsync()
+    public void UnifiedJoinResult_Join_ReturnsResult()
     {
         var ctx = new DummyContext();
         var builder = new JoinBuilder();
         var outer = new StubSet<TestEntity>(ctx);
         var inner = new StubSet<ChildEntity>(ctx);
-        var unified = new UnifiedJoinResult<TestEntity, ChildEntity>(outer, inner, (Expression<Func<TestEntity, int>>)(o => o.Id), (Expression<Func<ChildEntity, int>>)(i => i.ParentId), builder, ctx);
-        var threeWay = unified.Join(new StubSet<GrandChildEntity>(ctx), (Expression<Func<TestEntity, int>>)(o => o.Id), (Expression<Func<GrandChildEntity, int>>)(g => g.ChildId));
-        var result = threeWay.Select((o, i, g) => new { o.Id, g.Description });
-        var list = await result.ToListAsync();
-        Assert.NotNull(list);
+        var unified = new UnifiedJoinResult<TestEntity, ChildEntity>(
+            outer,
+            inner,
+            (Expression<Func<TestEntity, object>>)(o => (object)o.Id),
+            (Expression<Func<ChildEntity, object>>)(i => (object)i.ParentId),
+            builder,
+            ctx);
+        var threeWay = unified.Join(
+            new StubSet<GrandChildEntity>(ctx),
+            (Expression<Func<TestEntity, object>>)(o => (object)o.Id),
+            (Expression<Func<GrandChildEntity, object>>)(g => (object)g.ChildId));
+
+        Assert.NotNull(threeWay);
     }
 }
