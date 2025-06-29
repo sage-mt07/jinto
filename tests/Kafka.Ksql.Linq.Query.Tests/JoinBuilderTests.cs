@@ -16,9 +16,19 @@ public class JoinBuilderTests
     public void BuildJoinQuery_InvalidArgs_Throws()
     {
         IQueryable<TestEntity> outer = new List<TestEntity>().AsQueryable();
-        var call = Expression.Call(typeof(Queryable), "Join", new[] { typeof(TestEntity), typeof(TestEntity), typeof(int), typeof(object) }, outer.Expression, outer.Expression, Expression.Constant(1), Expression.Constant(2), Expression.Constant(3));
+        IQueryable<TestEntity> inner = new List<TestEntity>().AsQueryable();
+
+        // intentionally mismatch join keys
+        var join = outer.Join(
+            inner,
+            o => new { o.Id },
+            i => new { i.Id, i.Age },
+            (o, i) => new { o.Id });
+
         var builder = new JoinBuilder();
-        var ex = Assert.Throws<TargetInvocationException>(() => InvokePrivate<string>(builder, "BuildJoinQuery", new[] { typeof(MethodCallExpression) }, null, call));
+        var call = (MethodCallExpression)join.Expression;
+        var ex = Assert.Throws<TargetInvocationException>(
+            () => InvokePrivate<string>(builder, "BuildJoinQuery", new[] { typeof(MethodCallExpression) }, null, call));
         Assert.IsType<InvalidOperationException>(ex.InnerException);
     }
 }

@@ -21,7 +21,7 @@ public class AggregationExpressionVisitorTests
         var sumMethod = typeof(Enumerable).GetMethods().First(m => m.Name == "Sum" && m.GetParameters().Length == 2).MakeGenericMethod(typeof(TestEntity));
         var sumCall = Expression.Call(sumMethod, param, lambda);
         var result = InvokePrivate<string>(visitor, "GenerateAggregationFunction", new[] { typeof(MethodCallExpression) }, null, sumCall);
-        Assert.Equal("SUM(ID)", result);
+        Assert.Equal("SUM(*)", result);
 
         var countMethod = typeof(Enumerable).GetMethods().First(m => m.Name == "Count" && m.GetParameters().Length == 1).MakeGenericMethod(typeof(TestEntity));
         var countCall = Expression.Call(countMethod, param);
@@ -38,7 +38,7 @@ public class AggregationExpressionVisitorTests
         var latestMethod = typeof(OffsetAggregateExtensions).GetMethod("LatestByOffset")!.MakeGenericMethod(typeof(TestEntity), typeof(int), typeof(int));
         var latestCall = Expression.Call(latestMethod, param, lambda);
         var result = InvokePrivate<string>(visitor, "GenerateAggregationFunction", new[] { typeof(MethodCallExpression) }, null, latestCall);
-        Assert.Equal("LATEST_BY_OFFSET(ID)", result);
+        Assert.Equal("LATEST_BY_OFFSET(*)", result);
 
         var customMethod = typeof(string).GetMethod("StartsWith", new[] { typeof(string) })!;
         var customCall = Expression.Call(Expression.Constant("test"), customMethod, Expression.Constant("a"));

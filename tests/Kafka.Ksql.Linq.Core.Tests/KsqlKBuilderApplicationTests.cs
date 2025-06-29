@@ -46,6 +46,6 @@ public class KsqlKBuilderApplicationTests
         var client = new KsqlDbRestApiClient("http://unit", new HttpClient(new Handler(message)));
         var cts = new CancellationTokenSource();
         cts.Cancel();
-        await Assert.ThrowsAsync<OperationCanceledException>(() => client.ExecuteStreamingQueryAsync("select", _ => Task.CompletedTask, cts.Token));
+        await Assert.ThrowsAsync<KsqlDbException>(() => client.ExecuteStreamingQueryAsync("select", _ => Task.CompletedTask, cts.Token));
     }
 }
