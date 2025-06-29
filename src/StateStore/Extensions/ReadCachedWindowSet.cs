@@ -48,7 +48,11 @@ internal class ReadCachedWindowSet<T> : Kafka.Ksql.Linq.StateStore.IWindowedEnti
     }
 
     public string GetTopicName()
-        => $"{_baseSet.GetTopicName()}_window_{WindowMinutes}_final";
+    {
+        var model = _baseSet.GetEntityModel();
+        var baseName = model.TopicAttribute?.TopicName ?? _baseSet.GetTopicName();
+        return $"{baseName}_window_{WindowMinutes}_final";
+    }
 
     public EntityModel GetEntityModel() => _baseSet.GetEntityModel();
 
