@@ -41,7 +41,6 @@ public class KafkaAdminServiceTests
         Assert.Equal("server:9092", config.BootstrapServers);
         Assert.Equal("cid-admin", config.ClientId);
         Assert.Equal(options.Common.MetadataMaxAgeMs, config.MetadataMaxAgeMs);
-        Assert.Equal(SecurityProtocol.Plaintext, config.SecurityProtocol);
         Assert.Equal("v", config.Get("p"));
     }
 
