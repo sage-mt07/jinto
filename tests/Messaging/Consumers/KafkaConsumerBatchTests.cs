@@ -4,7 +4,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Confluent.Kafka;
-using Kafka.Ksql.Linq.Configuration.Abstractions;
+using Kafka.Ksql.Linq.Configuration;
 using Kafka.Ksql.Linq.Core.Abstractions;
 using Kafka.Ksql.Linq.Messaging.Consumers.Core;
 using Kafka.Ksql.Linq.Messaging.Producers;
@@ -66,7 +66,7 @@ public class KafkaConsumerBatchTests
         var options = Options.Create(new KsqlDslOptions());
         var prodMgr = new KafkaProducerManager(options, new NullLoggerFactory());
         var dlq = new DlqProducer(prodMgr, new DlqOptions());
-        return new KafkaConsumer<TestEntity, int>(fake, keyDeser, valDeser, "t", CreateModel(), DeserializationErrorPolicy.Ignore, "dlq", dlq, new NullLoggerFactory());
+        return new KafkaConsumer<TestEntity, int>((IConsumer<object, object>)fake, keyDeser, valDeser, "t", CreateModel(), DeserializationErrorPolicy.Skip, "dlq", dlq, new NullLoggerFactory());
     }
 
     [Fact]
