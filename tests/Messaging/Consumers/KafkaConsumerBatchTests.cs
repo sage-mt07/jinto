@@ -42,9 +42,11 @@ public class KafkaConsumerBatchTests
         }
     }
 
+    private delegate object? DeserHandler(ReadOnlySpan<byte> data, bool isNull, SerializationContext context);
+
     private class StubDeserializer : IDeserializer<object>
     {
-        public Func<ReadOnlySpan<byte>, bool, SerializationContext, object?> Handler { get; set; } = (_, _, _) => null;
+        public DeserHandler Handler { get; set; } = (_, _, _) => null;
         public object? Deserialize(ReadOnlySpan<byte> data, bool isNull, SerializationContext context)
             => Handler(data, isNull, context);
     }
