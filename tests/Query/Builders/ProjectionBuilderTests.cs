@@ -54,4 +54,22 @@ public class ProjectionBuilderTests
             InvokePrivate<string>(visitorType, "GetSqlOperator", new[] { typeof(ExpressionType) }, null, ExpressionType.ArrayIndex));
         Assert.IsType<NotSupportedException>(ex.InnerException);
     }
+
+    [Fact]
+    public void Build_CountWithoutSelector_GeneratesCountAll()
+    {
+        Expression<Func<IGrouping<int, TestEntity>, object>> expr = g => g.Count();
+        var builder = new ProjectionBuilder();
+        var result = builder.Build(expr.Body);
+        Assert.Equal("SELECT COUNT(*)", result);
+    }
+
+    [Fact]
+    public void Build_SubstringWithLength_GeneratesSubstringFunction()
+    {
+        Expression<Func<TestEntity, object>> expr = e => e.Name.Substring(1, 3);
+        var builder = new ProjectionBuilder();
+        var result = builder.Build(expr.Body);
+        Assert.Equal("SELECT SUBSTRING(Name, 1, 3)", result);
+    }
 }

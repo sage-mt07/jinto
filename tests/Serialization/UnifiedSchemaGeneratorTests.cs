@@ -92,6 +92,10 @@ public class UnifiedSchemaGeneratorTests
         avro = InvokePrivate<object>(typeof(UnifiedSchemaGenerator), "GetAvroType", new[] { typeof(PropertyInfo) }, null, dtProp);
         json = JsonSerializer.Serialize(avro);
         Assert.Contains("date", json);
+        var guidProp = typeof(SampleEntity).GetProperty(nameof(SampleEntity.GuidKey))!;
+        avro = InvokePrivate<object>(typeof(UnifiedSchemaGenerator), "GetAvroType", new[] { typeof(PropertyInfo) }, null, guidProp);
+        json = JsonSerializer.Serialize(avro);
+        Assert.Contains("uuid", json);
     }
 
     [Fact]
