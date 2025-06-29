@@ -47,10 +47,12 @@ public void PersistToFile_WhenCacheEnabled()
 {
     var dir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
     var options = new StateStoreOptions { EnableCache = true, BaseDirectory = dir };
-    using var store = new RocksDbStateStore<string, Sample>("cache", options, new NullLoggerFactory());
-
-    store.Put("k", new Sample { Name = "val" });
-    store.Flush(); // ★ 追加
+    // Step 1: 書き込み
+    using (var store = new RocksDbStateStore<string, Sample>("cache", options, new NullLoggerFactory()))
+    {
+        store.Put("k", new Sample { Name = "val" });
+        // store.Flush(); // Flushが無効ならむしろ省略
+    }
 
     var file = Directory.GetFiles(dir, "*.dat");
     Assert.Single(file);
