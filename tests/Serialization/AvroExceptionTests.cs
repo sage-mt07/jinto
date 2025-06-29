@@ -77,4 +77,29 @@ public class AvroExceptionTests
         Assert.Contains("ResourceExhausted", msg);
         Assert.Contains("HUMAN INTERVENTION REQUIRED", msg);
     }
+
+    [Fact]
+    public void DetermineOperationalAction_AllCategories_ReturnsAction()
+    {
+        var expectations = new Dictionary<SchemaRegistrationFailureCategory, string>
+        {
+            [SchemaRegistrationFailureCategory.NetworkFailure] = "connectivity",
+            [SchemaRegistrationFailureCategory.AuthenticationFailure] = "credentials",
+            [SchemaRegistrationFailureCategory.SchemaIncompatible] = "schema compatibility",
+            [SchemaRegistrationFailureCategory.RegistryUnavailable] = "Registry service status",
+            [SchemaRegistrationFailureCategory.ConfigurationError] = "application configuration",
+            [SchemaRegistrationFailureCategory.ResourceExhausted] = "disk space",
+            [SchemaRegistrationFailureCategory.Unknown] = "application logs"
+        };
+
+        foreach (var kvp in expectations)
+        {
+            var action = InvokePrivate<string>(typeof(SchemaRegistrationFatalException),
+                "DetermineOperationalAction",
+                new[] { typeof(SchemaRegistrationFailureCategory) },
+                null,
+                kvp.Key);
+            Assert.Contains(kvp.Value, action);
+        }
+    }
 }
