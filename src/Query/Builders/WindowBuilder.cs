@@ -1,4 +1,5 @@
 using Kafka.Ksql.Linq.Query.Abstractions;
+using Kafka.Ksql.Linq;
 using System;
 using System.Linq.Expressions;
 
@@ -19,13 +20,17 @@ internal class WindowBuilder : IKsqlBuilder
 
         var visitor = new WindowExpressionVisitor();
 
-        if (expression is ConstantExpression { Value: WindowDef def })
+        switch (expression)
         {
-            visitor.VisitWindowDef(def);
-        }
-        else
-        {
-            visitor.Visit(expression);
+            case ConstantExpression { Value: WindowDef def }:
+                visitor.VisitWindowDef(def);
+                break;
+            case ConstantExpression { Value: TimeSpan ts }:
+                visitor.VisitWindowDef(TumblingWindow.Of(ts));
+                break;
+            default:
+                visitor.Visit(expression);
+                break;
         }
 
         return visitor.BuildWindowClause();
