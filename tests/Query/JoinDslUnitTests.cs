@@ -151,7 +151,9 @@ public class JoinDslUnitTests
         var inner = new StubSet<ChildEntity>(ctx);
         var third = new StubSet<GrandChildEntity>(ctx);
         var join = outer.Join(inner, o => o.Id, i => i.ParentId)
-                        .Join(third, i => i.Id, t => t.ChildId);
+                        .Join(third,
+                             (Expression<Func<ChildEntity, int>>)(i => i.Id),
+                             (Expression<Func<GrandChildEntity, int>>)(t => t.ChildId));
         var result = join.Select((o, i, t) => new { o.Id, t.Description });
         var list = await result.ToListAsync();
         Assert.NotNull(list);
@@ -176,7 +178,9 @@ public class JoinDslUnitTests
         var inner = new StubSet<ChildEntity>(ctx);
         var third = new StubSet<GrandChildEntity>(ctx);
         var result = outer.Join(inner, o => o.Id, i => i.ParentId)
-                          .Join(third, i => i.Id, t => t.ChildId)
+                          .Join(third,
+                                (Expression<Func<ChildEntity, int>>)(i => i.Id),
+                                (Expression<Func<GrandChildEntity, int>>)(t => t.ChildId))
                           .Select((o, i, t) => new { o.Id, t.Description });
         await Assert.ThrowsAsync<NotSupportedException>(() => result.AddAsync(new { Id = 1, Description = "a" }));
     }
