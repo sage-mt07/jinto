@@ -1,10 +1,10 @@
-## ⚙️ KsqlDsl appsettings.json 構成仕様
+## ⚙️ Kafka.Ksql.Linq appsettings.json 構成仕様
 
 Kafka.Ksql.Linq では、`appsettings.json` を通じて柔軟なDSL設定が可能です。以下はその構成要素と意味です。
 
 ---
 
-### 📐 基本構造
+### 1 📐 基本構造
 
 ```json
 {
@@ -24,7 +24,7 @@ Kafka.Ksql.Linq では、`appsettings.json` を通じて柔軟なDSL設定が可
 
 ---
 
-### 🧱 2.1 Common（共通Kafka設定）
+### 🧱 1.1 Common（共通Kafka設定）
 
 | 項目 | 説明 |
 |------|------|
@@ -61,7 +61,7 @@ Kafka.Ksql.Linq では、`appsettings.json` を通じて柔軟なDSL設定が可
 
 ---
 
-### 📦 2.2 Topics（トピックごとの詳細設定）
+### 📦 1.2 Topics（トピックごとの詳細設定）
 
 ```json
 "Topics": {
@@ -138,7 +138,7 @@ Kafka.Ksql.Linq では、`appsettings.json` を通じて柔軟なDSL設定が可
 
 ---
 
-### 🧬 2.3 SchemaRegistry（スキーマレジストリ設定）
+### 🧬 1.3 SchemaRegistry（スキーマレジストリ設定）
 
 ```json
 "SchemaRegistry": {
@@ -174,7 +174,7 @@ Kafka.Ksql.Linq では、`appsettings.json` を通じて柔軟なDSL設定が可
 
 ---
 
-### 🏪 2.4 Entities（StateStore定義）
+### 🏪 1.4 Entities（StateStore定義）
 
 ```json
 "Entities": [
@@ -200,7 +200,7 @@ Kafka.Ksql.Linq では、`appsettings.json` を通じて柔軟なDSL設定が可
 
 ---
 
-### 🛡️ 2.5 ValidationMode
+### 🛡️ 1.5 ValidationMode
 
 | 値 | 説明 |
 |-----|------|
@@ -213,7 +213,7 @@ Kafka.Ksql.Linq では、`appsettings.json` を通じて柔軟なDSL設定が可
 
 ---
 
-### 💌 2.6 DLQ 設定
+### 💌 1.6 DLQ 設定
 
 ```json
 "DlqTopicName": "dead.letter.queue",
@@ -239,11 +239,118 @@ Kafka.Ksql.Linq では、`appsettings.json` を通じて柔軟なDSL設定が可
 
 ---
 
-### ⚙️ 2.7 その他オプション
+### ⚙️ 1.7 その他オプション
 
 | 項目 | 説明 |
 |------|------|
 | `DeserializationErrorPolicy` | `Skip` / `Retry` / `DLQ` のエラーハンドリング方針 |
 | `ReadFromFinalTopicByDefault` | Finalトピックを既定で参照するか |
+
+
+### 🧩 DSL記述とappsettingsの対応関係
+
+| Kafka設定項目             | DSLでの指定                          | appsettings.jsonキー                         | 補足説明 |
+|----------------------------|--------------------------------------|---------------------------------------------|--------|
+| Bootstrap Servers          | なし                                 | `Kafka:BootstrapServers`                   | Kafka接続先クラスタ |
+| Schema Registry URL       | なし                                 | `KsqlDsl:SchemaRegistry:Url`              | POCOスキーマ自動登録時に使用 |
+| Auto Offset Reset | `.WithAutoOffsetReset(...)` | `Kafka:Consumers.<name>.AutoOffsetReset` | トピックごとの既読位置制御（複数可） | 通常は `earliest` or `latest` |
+| GroupId | `.WithGroupId(...)` | `Kafka:Consumers.<name>.GroupId` | コンシューマグループID（複数可） | コンシューマグループID |
+| トピック名                 | `[Topic("orders")]` 属性           | `KsqlDsl:Topics.orders` で上書き可         | 属性優先だが構成ファイルで詳細指定可 |
+| パーティション数           | `[Topic(..., Partitions = 3)]`       | `KsqlDsl:Topics.orders.NumPartitions` 等    | 属性と設定の併用可能 |
+| Replication Factor        | なし（構成ファイルで指定）          | `KsqlDsl:Topics.orders.ReplicationFactor`  | Kafkaクラスタ構成に依存 |
+| DLQ構成                    | `.OnError(ErrorAction.DLQ)`          | `KsqlDsl:DlqTopicName`, `DlqConfiguration` | DLQの有効化、保持期間指定など |
+| Windowサイズ               | `.Window(new[] { 5, 15, 60 })`       | `KsqlDsl:Entities[].Windows`              | DSL/設定どちらでも指定可（整合性が必要） |
+
+---
+
+### 📦 2. 実装例との対応（MyKsqlContext & Order & OrderCount）
+
+```csharp
+[Topic("orders", Partitions = 3)]
+public class Order
+{
+    public string ProductId { get; set; }
+    public decimal Amount { get; set; }
+}
+
+public class MyKsqlContext : KsqlContext
+{
+    protected override void OnModelCreating(KsqlModelBuilder modelBuilder)
+{
+    modelBuilder.Entity<Order>()
+        .WithGroupId("orders-consumer")
+        .WithAutoOffsetReset(AutoOffsetReset.Earliest)
+        .WithManualCommit()
+        .Window(new[] { 5 });
+
+    modelBuilder.Entity<OrderCount>()
+        .WithGroupId("order-counts-consumer")
+        .WithAutoOffsetReset(AutoOffsetReset.Latest)
+        .UseFinalTopic()
+        .WithManualCommit();
+});
+    }
+}
+```
+
+```json
+{
+  "Kafka": {
+    "BootstrapServers": "localhost:9092",
+    "Consumers": {
+      "orders-consumer": {
+        "GroupId": "orders-consumer",
+        "AutoOffsetReset": "earliest"
+      },
+      "order-counts-consumer": {
+        "GroupId": "order-counts-consumer",
+        "AutoOffsetReset": "latest"
+      }
+    }
+  },
+  "KsqlDsl": {
+    "SchemaRegistry": {
+      "Url": "http://localhost:8081"
+    },
+    "Topics": {
+        "orders": {
+          "NumPartitions": 3,
+          "ReplicationFactor": 1
+        },
+        "order_counts": {
+          "NumPartitions": 1,
+          "ReplicationFactor": 1,
+          "CleanupPolicy": "compact"
+        }
+      }
+    },
+    "Entities": [
+      {
+        "Type": "Order",
+        "Windows": [5]
+      }
+    ],
+    "DlqTopicName": "dead.letter.queue",
+    "DlqConfiguration": {
+      "RetentionMs": 5000,
+      "NumPartitions": 3,
+      "ReplicationFactor": 1
+    }
+  }
+}
+```
+
+
+
+### 💡 備考：複数GroupId構成と整合性
+
+- Kafkaでは1つのトピックに対して複数のコンシューマグループを定義可能です。
+- 本DSLでは `Entity<T>` ごとに `GroupId` を指定することで、複数のグループ単位の並列処理や責務分離を実現できます。
+- それに対応して `appsettings.json` では `Kafka:Consumers.<name>` として複数グループの構成を記述します。
+- 各DSL定義と `Consumers` のキー名（例: `orders-consumer`）が一致している必要があります。
+
+これにより、「DSLで定義するグループID = 運用時の構成名」として論理的に整合した設計が実現されます。
+
+
 
 
