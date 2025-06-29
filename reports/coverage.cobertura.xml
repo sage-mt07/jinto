@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<coverage line-rate="0.26940000000000003" branch-rate="0.2521" version="1.9" timestamp="1751177353" lines-covered="5309" lines-valid="19701" branches-covered="1609" branches-valid="6382">
+<coverage line-rate="0.2706" branch-rate="0.2521" version="1.9" timestamp="1751178613" lines-covered="5333" lines-valid="19701" branches-covered="1609" branches-valid="6382">
   <sources>
     <source>C:\</source>
   </sources>
   <packages>
-    <package name="Kafka.Ksql.Linq" line-rate="0.5496" branch-rate="0.4371" complexity="4550">
+    <package name="Kafka.Ksql.Linq" line-rate="0.5521" branch-rate="0.4371" complexity="4550">
       <classes>
         <class name="KafkaProducerManager" filename="jinto\jinto\src\Messaging\Producers\KafkaProducerManager.cs" line-rate="0.7484000000000001" branch-rate="0.5428000000000001" complexity="70">
           <methods>
@@ -2306,7 +2306,7 @@
             </line>
           </lines>
         </class>
-        <class name="Kafka.Ksql.Linq.WindowDef" filename="jinto\jinto\src\EventSetWindowExtensions.cs" line-rate="0.2432" branch-rate="1" complexity="10">
+        <class name="Kafka.Ksql.Linq.WindowDef" filename="jinto\jinto\src\EventSetWindowExtensions.cs" line-rate="0.5675" branch-rate="1" complexity="10">
           <methods>
             <method name="TumblingWindow" signature="()" line-rate="1" branch-rate="1" complexity="1">
               <lines>
@@ -2316,28 +2316,28 @@
                 <line number="66" hits="2" branch="False" />
               </lines>
             </method>
-            <method name="HoppingWindow" signature="()" line-rate="0" branch-rate="1" complexity="1">
+            <method name="HoppingWindow" signature="()" line-rate="1" branch-rate="1" complexity="1">
               <lines>
-                <line number="69" hits="0" branch="False" />
-                <line number="70" hits="0" branch="False" />
-                <line number="71" hits="0" branch="False" />
-                <line number="72" hits="0" branch="False" />
+                <line number="69" hits="2" branch="False" />
+                <line number="70" hits="2" branch="False" />
+                <line number="71" hits="2" branch="False" />
+                <line number="72" hits="2" branch="False" />
               </lines>
             </method>
-            <method name="SessionWindow" signature="()" line-rate="0" branch-rate="1" complexity="1">
+            <method name="SessionWindow" signature="()" line-rate="1" branch-rate="1" complexity="1">
               <lines>
-                <line number="75" hits="0" branch="False" />
-                <line number="76" hits="0" branch="False" />
-                <line number="77" hits="0" branch="False" />
-                <line number="78" hits="0" branch="False" />
+                <line number="75" hits="2" branch="False" />
+                <line number="76" hits="2" branch="False" />
+                <line number="77" hits="2" branch="False" />
+                <line number="78" hits="2" branch="False" />
               </lines>
             </method>
             <method name="Size" signature="(System.TimeSpan)" line-rate="1" branch-rate="1" complexity="1">
               <lines>
-                <line number="81" hits="2" branch="False" />
-                <line number="82" hits="2" branch="False" />
-                <line number="83" hits="2" branch="False" />
-                <line number="84" hits="2" branch="False" />
+                <line number="81" hits="4" branch="False" />
+                <line number="82" hits="4" branch="False" />
+                <line number="83" hits="4" branch="False" />
+                <line number="84" hits="4" branch="False" />
               </lines>
             </method>
             <method name="AdvanceBy" signature="(System.TimeSpan)" line-rate="0" branch-rate="1" complexity="1">
@@ -2348,12 +2348,12 @@
                 <line number="90" hits="0" branch="False" />
               </lines>
             </method>
-            <method name="Gap" signature="(System.TimeSpan)" line-rate="0" branch-rate="1" complexity="1">
+            <method name="Gap" signature="(System.TimeSpan)" line-rate="1" branch-rate="1" complexity="1">
               <lines>
-                <line number="93" hits="0" branch="False" />
-                <line number="94" hits="0" branch="False" />
-                <line number="95" hits="0" branch="False" />
-                <line number="96" hits="0" branch="False" />
+                <line number="93" hits="2" branch="False" />
+                <line number="94" hits="2" branch="False" />
+                <line number="95" hits="2" branch="False" />
+                <line number="96" hits="2" branch="False" />
               </lines>
             </method>
             <method name="Retention" signature="(System.TimeSpan)" line-rate="0" branch-rate="1" complexity="1">
@@ -2382,7 +2382,7 @@
             </method>
             <method name=".ctor" signature="()" line-rate="1" branch-rate="1" complexity="1">
               <lines>
-                <line number="60" hits="2" branch="False" />
+                <line number="60" hits="6" branch="False" />
               </lines>
             </method>
           </methods>
@@ -2391,26 +2391,26 @@
             <line number="64" hits="2" branch="False" />
             <line number="65" hits="2" branch="False" />
             <line number="66" hits="2" branch="False" />
-            <line number="69" hits="0" branch="False" />
-            <line number="70" hits="0" branch="False" />
-            <line number="71" hits="0" branch="False" />
-            <line number="72" hits="0" branch="False" />
-            <line number="75" hits="0" branch="False" />
-            <line number="76" hits="0" branch="False" />
-            <line number="77" hits="0" branch="False" />
-            <line number="78" hits="0" branch="False" />
-            <line number="81" hits="2" branch="False" />
-            <line number="82" hits="2" branch="False" />
-            <line number="83" hits="2" branch="False" />
-            <line number="84" hits="2" branch="False" />
+            <line number="69" hits="2" branch="False" />
+            <line number="70" hits="2" branch="False" />
+            <line number="71" hits="2" branch="False" />
+            <line number="72" hits="2" branch="False" />
+            <line number="75" hits="2" branch="False" />
+            <line number="76" hits="2" branch="False" />
+            <line number="77" hits="2" branch="False" />
+            <line number="78" hits="2" branch="False" />
+            <line number="81" hits="4" branch="False" />
+            <line number="82" hits="4" branch="False" />
+            <line number="83" hits="4" branch="False" />
+            <line number="84" hits="4" branch="False" />
             <line number="87" hits="0" branch="False" />
             <line number="88" hits="0" branch="False" />
             <line number="89" hits="0" branch="False" />
             <line number="90" hits="0" branch="False" />
-            <line number="93" hits="0" branch="False" />
-            <line number="94" hits="0" branch="False" />
-            <line number="95" hits="0" branch="False" />
-            <line number="96" hits="0" branch="False" />
+            <line number="93" hits="2" branch="False" />
+            <line number="94" hits="2" branch="False" />
+            <line number="95" hits="2" branch="False" />
+            <line number="96" hits="2" branch="False" />
             <line number="99" hits="0" branch="False" />
             <line number="100" hits="0" branch="False" />
             <line number="101" hits="0" branch="False" />
@@ -2423,7 +2423,7 @@
             <line number="112" hits="0" branch="False" />
             <line number="113" hits="0" branch="False" />
             <line number="114" hits="0" branch="False" />
-            <line number="60" hits="2" branch="False" />
+            <line number="60" hits="6" branch="False" />
           </lines>
         </class>
         <class name="Kafka.Ksql.Linq.TumblingWindow" filename="jinto\jinto\src\EventSetWindowExtensions.cs" line-rate="1" branch-rate="1" complexity="2">
@@ -2444,84 +2444,84 @@
             <line number="120" hits="2" branch="False" />
           </lines>
         </class>
-        <class name="Kafka.Ksql.Linq.HoppingWindow" filename="jinto\jinto\src\EventSetWindowExtensions.cs" line-rate="0" branch-rate="1" complexity="2">
+        <class name="Kafka.Ksql.Linq.HoppingWindow" filename="jinto\jinto\src\EventSetWindowExtensions.cs" line-rate="1" branch-rate="1" complexity="2">
           <methods>
-            <method name="Of" signature="(System.TimeSpan)" line-rate="0" branch-rate="1" complexity="1">
+            <method name="Of" signature="(System.TimeSpan)" line-rate="1" branch-rate="1" complexity="1">
               <lines>
-                <line number="125" hits="0" branch="False" />
+                <line number="125" hits="2" branch="False" />
               </lines>
             </method>
-            <method name="OfMinutes" signature="(System.Int32)" line-rate="0" branch-rate="1" complexity="1">
+            <method name="OfMinutes" signature="(System.Int32)" line-rate="1" branch-rate="1" complexity="1">
               <lines>
-                <line number="126" hits="0" branch="False" />
+                <line number="126" hits="1" branch="False" />
               </lines>
             </method>
           </methods>
           <lines>
-            <line number="125" hits="0" branch="False" />
-            <line number="126" hits="0" branch="False" />
+            <line number="125" hits="2" branch="False" />
+            <line number="126" hits="1" branch="False" />
           </lines>
         </class>
-        <class name="Kafka.Ksql.Linq.SessionWindow" filename="jinto\jinto\src\EventSetWindowExtensions.cs" line-rate="0" branch-rate="1" complexity="2">
+        <class name="Kafka.Ksql.Linq.SessionWindow" filename="jinto\jinto\src\EventSetWindowExtensions.cs" line-rate="1" branch-rate="1" complexity="2">
           <methods>
-            <method name="Of" signature="(System.TimeSpan)" line-rate="0" branch-rate="1" complexity="1">
+            <method name="Of" signature="(System.TimeSpan)" line-rate="1" branch-rate="1" complexity="1">
               <lines>
-                <line number="131" hits="0" branch="False" />
+                <line number="131" hits="2" branch="False" />
               </lines>
             </method>
-            <method name="OfMinutes" signature="(System.Int32)" line-rate="0" branch-rate="1" complexity="1">
+            <method name="OfMinutes" signature="(System.Int32)" line-rate="1" branch-rate="1" complexity="1">
               <lines>
-                <line number="132" hits="0" branch="False" />
+                <line number="132" hits="1" branch="False" />
               </lines>
             </method>
           </methods>
           <lines>
-            <line number="131" hits="0" branch="False" />
-            <line number="132" hits="0" branch="False" />
+            <line number="131" hits="2" branch="False" />
+            <line number="132" hits="1" branch="False" />
           </lines>
         </class>
-        <class name="Kafka.Ksql.Linq.OffsetAggregateExtensions" filename="jinto\jinto\src\Extensions\OffsetAggregateExtensions.cs" line-rate="0" branch-rate="1" complexity="2">
+        <class name="Kafka.Ksql.Linq.OffsetAggregateExtensions" filename="jinto\jinto\src\Extensions\OffsetAggregateExtensions.cs" line-rate="1" branch-rate="1" complexity="2">
           <methods>
-            <method name="LatestByOffset" signature="(System.Linq.IGrouping`2&lt;TKey,TSource&gt;,System.Linq.Expressions.Expression`1&lt;System.Func`2&lt;TSource,TResult&gt;&gt;)" line-rate="0" branch-rate="1" complexity="1">
+            <method name="LatestByOffset" signature="(System.Linq.IGrouping`2&lt;TKey,TSource&gt;,System.Linq.Expressions.Expression`1&lt;System.Func`2&lt;TSource,TResult&gt;&gt;)" line-rate="1" branch-rate="1" complexity="1">
               <lines>
-                <line number="14" hits="0" branch="False" />
-                <line number="15" hits="0" branch="False" />
+                <line number="14" hits="1" branch="False" />
+                <line number="15" hits="1" branch="False" />
               </lines>
             </method>
-            <method name="EarliestByOffset" signature="(System.Linq.IGrouping`2&lt;TKey,TSource&gt;,System.Linq.Expressions.Expression`1&lt;System.Func`2&lt;TSource,TResult&gt;&gt;)" line-rate="0" branch-rate="1" complexity="1">
+            <method name="EarliestByOffset" signature="(System.Linq.IGrouping`2&lt;TKey,TSource&gt;,System.Linq.Expressions.Expression`1&lt;System.Func`2&lt;TSource,TResult&gt;&gt;)" line-rate="1" branch-rate="1" complexity="1">
               <lines>
-                <line number="19" hits="0" branch="False" />
-                <line number="20" hits="0" branch="False" />
+                <line number="19" hits="1" branch="False" />
+                <line number="20" hits="1" branch="False" />
               </lines>
             </method>
           </methods>
           <lines>
-            <line number="14" hits="0" branch="False" />
-            <line number="15" hits="0" branch="False" />
-            <line number="19" hits="0" branch="False" />
-            <line number="20" hits="0" branch="False" />
+            <line number="14" hits="1" branch="False" />
+            <line number="15" hits="1" branch="False" />
+            <line number="19" hits="1" branch="False" />
+            <line number="20" hits="1" branch="False" />
           </lines>
         </class>
-        <class name="Kafka.Ksql.Linq.WindowInfoExtensions" filename="jinto\jinto\src\Extensions\WindowInfoExtensions.cs" line-rate="0" branch-rate="1" complexity="2">
+        <class name="Kafka.Ksql.Linq.WindowInfoExtensions" filename="jinto\jinto\src\Extensions\WindowInfoExtensions.cs" line-rate="1" branch-rate="1" complexity="2">
           <methods>
-            <method name="WindowStart" signature="(System.Linq.IGrouping`2&lt;TKey,TSource&gt;)" line-rate="0" branch-rate="1" complexity="1">
+            <method name="WindowStart" signature="(System.Linq.IGrouping`2&lt;TKey,TSource&gt;)" line-rate="1" branch-rate="1" complexity="1">
               <lines>
-                <line number="14" hits="0" branch="False" />
-                <line number="15" hits="0" branch="False" />
+                <line number="14" hits="1" branch="False" />
+                <line number="15" hits="1" branch="False" />
               </lines>
             </method>
-            <method name="WindowEnd" signature="(System.Linq.IGrouping`2&lt;TKey,TSource&gt;)" line-rate="0" branch-rate="1" complexity="1">
+            <method name="WindowEnd" signature="(System.Linq.IGrouping`2&lt;TKey,TSource&gt;)" line-rate="1" branch-rate="1" complexity="1">
               <lines>
-                <line number="19" hits="0" branch="False" />
-                <line number="20" hits="0" branch="False" />
+                <line number="19" hits="1" branch="False" />
+                <line number="20" hits="1" branch="False" />
               </lines>
             </method>
           </methods>
           <lines>
-            <line number="14" hits="0" branch="False" />
-            <line number="15" hits="0" branch="False" />
-            <line number="19" hits="0" branch="False" />
-            <line number="20" hits="0" branch="False" />
+            <line number="14" hits="1" branch="False" />
+            <line number="15" hits="1" branch="False" />
+            <line number="19" hits="1" branch="False" />
+            <line number="20" hits="1" branch="False" />
           </lines>
         </class>
         <class name="Kafka.Ksql.Linq.Window.Finalization.WindowConfiguration`1" filename="jinto\jinto\src\Window\Finalization\WindowConfiguration.cs" line-rate="1" branch-rate="1" complexity="9">
