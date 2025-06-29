@@ -70,6 +70,12 @@ public class JoinDslUnitTests
         }
     }
 
+    private class JoinProjection
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+    }
+
     [Fact]
     public void ParameterReplacementVisitor_ReplacesMultipleParameters()
     {
@@ -204,18 +210,26 @@ public class JoinDslUnitTests
     public void JoinResultEntitySet_ToString_ReturnsSql()
     {
         var ctx = new DummyContext();
-        var outer = new StubSet<TestEntity>(ctx);
-        var inner = new StubSet<ChildEntity>(ctx);
         var builder = new JoinBuilder();
-        var unified = new UnifiedJoinResult<TestEntity, ChildEntity>(
-            outer,
-            inner,
-            (Expression<Func<TestEntity, object>>)(o => (object)o.Id),
-            (Expression<Func<ChildEntity, object>>)(i => (object)i.ParentId),
-            builder,
-            ctx);
-        var result = unified.Select((o, i) => new { o.Id, i.Name });
-        var str = result.ToString();
+
+        IQueryable<TestEntity> outer = new List<TestEntity>().AsQueryable();
+        IQueryable<ChildEntity> inner = new List<ChildEntity>().AsQueryable();
+
+        var expr = outer.Join(inner, o => o.Id, i => i.ParentId, (o, i) => new JoinProjection { Id = o.Id, Name = i.Name }).Expression;
+
+        var model = new EntityModel
+        {
+            EntityType = typeof(JoinProjection),
+            TopicAttribute = new TopicAttribute("join_projection"),
+            AllProperties = typeof(JoinProjection).GetProperties(),
+            KeyProperties = Array.Empty<PropertyInfo>(),
+            ValidationResult = new ValidationResult { IsValid = true }
+        };
+
+        var entitySet = new JoinResultEntitySet<JoinProjection>(ctx, model, expr, builder);
+
+        var str = entitySet.ToString();
+
         Assert.Contains("JOIN", str);
     }
 
