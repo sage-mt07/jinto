@@ -48,4 +48,53 @@ public class WindowDDLExtensionsTests
         result = InvokePrivate<string>(visitor, "GenerateAggregationFunction", new[] { typeof(MethodCallExpression) }, null, countCall);
         Assert.Equal("COUNT(*)", result);
     }
+
+    private class TimedEntity
+    {
+        public int Id { get; set; }
+        [AvroTimestamp]
+        public DateTime Created { get; set; }
+    }
+
+    [Fact]
+    public void GenerateCreateWindowTable_BuildsQuery()
+    {
+        var generator = new DDLQueryGenerator(new NullLoggerFactory());
+
+        Expression<Func<IGrouping<int, TimedEntity>, object>> agg = g => new { Count = g.Count() };
+        Expression<Func<TimedEntity, object>> groupBy = e => e.Id;
+
+        var sql = generator.GenerateCreateWindowTable(
+            "win_table",
+            "source",
+            10,
+            groupBy.Body,
+            agg.Body,
+            TimeSpan.FromSeconds(5));
+
+        Assert.Contains("CREATE TABLE win_table AS", sql);
+        Assert.Contains("FROM source", sql);
+        Assert.Contains("WINDOW TUMBLING (SIZE 10 MINUTES, GRACE PERIOD 5", sql);
+        Assert.Contains("GROUP BY ID", sql);
+        Assert.Contains("COUNT(*) AS Count", sql);
+    }
+
+    [Fact]
+    public void GenerateWindowAvroSchema_IncludesWindowFields()
+    {
+        var generator = new DDLQueryGenerator(new NullLoggerFactory());
+        var model = new EntityModel
+        {
+            EntityType = typeof(TimedEntity),
+            AllProperties = typeof(TimedEntity).GetProperties(),
+            KeyProperties = new[] { typeof(TimedEntity).GetProperty(nameof(TimedEntity.Id))! },
+            TopicAttribute = new TopicAttribute("src")
+        };
+
+        var schema = generator.GenerateWindowAvroSchema(model, "win_table");
+
+        Assert.Contains("\"name\": \"win_table\"", schema);
+        Assert.Contains("WINDOWSTART", schema);
+        Assert.Contains("WINDOWEND", schema);
+    }
 }
