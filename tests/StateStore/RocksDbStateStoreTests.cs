@@ -54,8 +54,11 @@ public void PersistToFile_WhenCacheEnabled()
         // store.Flush(); // Flushが無効ならむしろ省略
     }
 
-    var file = Directory.GetFiles(dir, "*.dat");
-    Assert.Single(file);
+    var files = Directory.GetFiles(dir, "*", SearchOption.AllDirectories)
+                     .Where(f => f.EndsWith(".sst") || f.EndsWith(".ldb")).ToList();
+
+    Assert.NotEmpty(files); // *.dat ではなく、*.sst / *.ldb を対象に
+
 
     // load through new instance
     using var store2 = new RocksDbStateStore<string, Sample>("cache", options, new NullLoggerFactory());
