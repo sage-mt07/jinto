@@ -43,20 +43,22 @@ public class RocksDbStateStoreTests
     }
 
     [Fact]
-    public void PersistToFile_WhenCacheEnabled()
-    {
-        var dir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
-        var options = new StateStoreOptions { EnableCache = true, BaseDirectory = dir };
-        using var store = new RocksDbStateStore<string, Sample>("cache", options, new NullLoggerFactory());
+public void PersistToFile_WhenCacheEnabled()
+{
+    var dir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+    var options = new StateStoreOptions { EnableCache = true, BaseDirectory = dir };
+    using var store = new RocksDbStateStore<string, Sample>("cache", options, new NullLoggerFactory());
 
-        store.Put("k", new Sample { Name = "val" });
-        var file = Directory.GetFiles(dir, "*.dat");
-        Assert.Single(file);
+    store.Put("k", new Sample { Name = "val" });
+    store.Flush(); // ★ 追加
 
-        // load through new instance
-        using var store2 = new RocksDbStateStore<string, Sample>("cache", options, new NullLoggerFactory());
-        var loaded = store2.Get("k");
-        Assert.NotNull(loaded);
-        Assert.Equal("val", loaded!.Name);
-    }
+    var file = Directory.GetFiles(dir, "*.dat");
+    Assert.Single(file);
+
+    // load through new instance
+    using var store2 = new RocksDbStateStore<string, Sample>("cache", options, new NullLoggerFactory());
+    var loaded = store2.Get("k");
+    Assert.NotNull(loaded);
+    Assert.Equal("val", loaded!.Name);
+}
 }
