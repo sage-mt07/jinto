@@ -13,23 +13,23 @@ public class WindowBuilderTests
     public void Build_TumblingWindowWithFinal_ReturnsClause()
     {
         Expression<Func<WindowDef, WindowDef>> expr = w => w.TumblingWindow().Size(TimeSpan.FromMinutes(1)).EmitFinal();
-        var builder = new WindowBuilder();
-        var result = builder.Build(expr.Body);
+        var builder = new WindowClauseBuilder();
+        var result = builder.BuildClause(expr.Body);
         Assert.Equal("WINDOW TUMBLING (SIZE 1 MINUTES) EMIT FINAL", result);
     }
 
     [Fact]
     public void Build_NullExpression_ThrowsArgumentNullException()
     {
-        var builder = new WindowBuilder();
-        Assert.Throws<ArgumentNullException>(() => builder.Build(null!));
+        var builder = new WindowClauseBuilder();
+        Assert.Throws<ArgumentNullException>(() => builder.BuildClause(null!));
     }
 
     [Fact]
     public void VisitMethodCall_BuildsTumblingWindowClause()
     {
         Expression<Func<WindowDef, WindowDef>> expr = w => w.TumblingWindow().Size(TimeSpan.FromSeconds(30)).EmitFinal();
-        var visitorType = typeof(WindowBuilder).GetNestedType("WindowExpressionVisitor", BindingFlags.NonPublic)!;
+        var visitorType = typeof(WindowClauseBuilder).GetNestedType("WindowExpressionVisitor", BindingFlags.NonPublic)!;
         var visitor = Activator.CreateInstance(visitorType)!;
         InvokePrivate<object>(visitor, "Visit", new[] { typeof(Expression) }, null, expr.Body);
         var result = (string)visitorType.GetMethod("BuildWindowClause")!.Invoke(visitor, null)!;
@@ -39,7 +39,7 @@ public class WindowBuilderTests
     [Fact]
     public void VisitWindowDef_TumblingWindow_AllOptions()
     {
-        var visitorType = typeof(WindowBuilder).GetNestedType("WindowExpressionVisitor", BindingFlags.NonPublic)!;
+        var visitorType = typeof(WindowClauseBuilder).GetNestedType("WindowExpressionVisitor", BindingFlags.NonPublic)!;
         var visitor = Activator.CreateInstance(visitorType)!;
 
         var def = new global::Kafka.Ksql.Linq.WindowDef()
@@ -58,7 +58,7 @@ public class WindowBuilderTests
     [Fact]
     public void VisitWindowDef_HoppingWindow_AllOptions()
     {
-        var visitorType = typeof(WindowBuilder).GetNestedType("WindowExpressionVisitor", BindingFlags.NonPublic)!;
+        var visitorType = typeof(WindowClauseBuilder).GetNestedType("WindowExpressionVisitor", BindingFlags.NonPublic)!;
         var visitor = Activator.CreateInstance(visitorType)!;
 
         var def = new global::Kafka.Ksql.Linq.WindowDef()
@@ -78,7 +78,7 @@ public class WindowBuilderTests
     [Fact]
     public void VisitWindowDef_SessionWindow_Basic()
     {
-        var visitorType = typeof(WindowBuilder).GetNestedType("WindowExpressionVisitor", BindingFlags.NonPublic)!;
+        var visitorType = typeof(WindowClauseBuilder).GetNestedType("WindowExpressionVisitor", BindingFlags.NonPublic)!;
         var visitor = Activator.CreateInstance(visitorType)!;
 
         var def = new global::Kafka.Ksql.Linq.WindowDef()

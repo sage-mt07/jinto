@@ -26,7 +26,7 @@ public class JoinBuilderTests
             i => (object)new { i.Id, i.Name },
             (o, i) => (object)new { o.Id });
 
-        var builder = new JoinBuilder();
+        var builder = new JoinClauseBuilder();
         var call = (MethodCallExpression)join.Expression;
         var ex = Assert.Throws<TargetInvocationException>(
             () => InvokePrivate<string>(builder, "BuildJoinQuery", new[] { typeof(MethodCallExpression) }, null, call));

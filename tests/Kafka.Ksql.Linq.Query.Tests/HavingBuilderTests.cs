@@ -18,7 +18,7 @@ public class HavingBuilderTests
     [InlineData("COLLECTSET")]
     public void IsAggregateFunction_ReturnsTrueForSupported(string name)
     {
-        var visitorType = typeof(HavingBuilder)
+        var visitorType = typeof(HavingClauseBuilder)
             .GetNestedType("HavingExpressionVisitor", BindingFlags.NonPublic)!;
         var result = InvokePrivate<bool>(visitorType, "IsAggregateFunction", new[] { typeof(string) }, null, name);
         Assert.True(result);
@@ -27,7 +27,7 @@ public class HavingBuilderTests
     [Fact]
     public void IsAggregateFunction_ReturnsFalseForUnknown()
     {
-        var visitorType = typeof(HavingBuilder)
+        var visitorType = typeof(HavingClauseBuilder)
             .GetNestedType("HavingExpressionVisitor", BindingFlags.NonPublic)!;
         var result = InvokePrivate<bool>(visitorType, "IsAggregateFunction", new[] { typeof(string) }, null, "LASTVALUE");
         Assert.False(result);

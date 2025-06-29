@@ -24,23 +24,23 @@ public class BigBangScenarioTests
             o => o.CustomerId,
             c => c.Id,
             (o, c) => new OrderCustomerInfo(o.OrderDate, o.TotalAmount, c.Region)).Expression;
-        var joinBuilder = new JoinBuilder();
-        var joinSql = joinBuilder.Build(joinExpr);
+        var joinBuilder = new JoinClauseBuilder();
+        var joinSql = joinBuilder.BuildClause(joinExpr);
 
         // where clause
         Expression<Func<OrderCustomerInfo, bool>> whereExp = x => x.TotalAmount > 100 && x.Region != null;
-        var whereBuilder = new SelectBuilder();
-        var whereSql = whereBuilder.Build(whereExp.Body);
+        var whereBuilder = new SelectClauseBuilder();
+        var whereSql = whereBuilder.BuildClause(whereExp.Body);
 
         // group by
         Expression<Func<OrderCustomerInfo, object>> groupExp = x => x.OrderDate;
-        var groupBuilder = new GroupByBuilder();
-        var groupSql = groupBuilder.Build(groupExp.Body);
+        var groupBuilder = new GroupByClauseBuilder();
+        var groupSql = groupBuilder.BuildClause(groupExp.Body);
 
         // window clause
         Expression<Func<WindowDef, WindowDef>> winExp = w => w.TumblingWindow().Size(TimeSpan.FromDays(1));
-        var windowBuilder = new WindowBuilder();
-        var windowSql = windowBuilder.Build(winExp.Body);
+        var windowBuilder = new WindowClauseBuilder();
+        var windowSql = windowBuilder.BuildClause(winExp.Body);
 
         var final = $"{joinSql} {whereSql} {windowSql} {groupSql}";
 

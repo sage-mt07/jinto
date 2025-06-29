@@ -15,7 +15,7 @@ public class ProjectionBuilderTests
     [InlineData(ExpressionType.Multiply, "*")]
     public void GetSqlOperator_ReturnsExpected(ExpressionType type, string expected)
     {
-        var visitorType = typeof(ProjectionBuilder).GetNestedType("ProjectionExpressionVisitor", BindingFlags.NonPublic)!;
+        var visitorType = typeof(SelectClauseBuilder).GetNestedType("ProjectionExpressionVisitor", BindingFlags.NonPublic)!;
         var result = InvokePrivate<string>(visitorType, "GetSqlOperator", new[] { typeof(ExpressionType) }, null, type);
         Assert.Equal(expected, result);
     }
@@ -24,8 +24,8 @@ public class ProjectionBuilderTests
     public void Build_ToUpper_UsesFunction()
     {
         Expression<Func<TestEntity, object>> expr = e => e.Name.ToUpper();
-        var builder = new ProjectionBuilder();
-        var result = builder.Build(expr.Body);
+        var builder = new SelectClauseBuilder();
+        var result = builder.BuildClause(expr.Body);
         Assert.Equal("SELECT UCASE(Name)", result);
     }
 }

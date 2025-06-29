@@ -18,8 +18,8 @@ public class WindowStartEndTests
             End = g.WindowEnd()
         };
 
-        var builder = new ProjectionBuilder();
-        var result = builder.Build(expr.Body);
+        var builder = new SelectClauseBuilder();
+        var result = builder.BuildClause(expr.Body);
 
         Assert.Equal("SELECT WINDOWSTART AS Start, WINDOWEND AS End", result);
     }

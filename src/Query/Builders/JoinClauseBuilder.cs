@@ -1,21 +1,22 @@
-﻿using Kafka.Ksql.Linq.Query.Abstractions;
+using Kafka.Ksql.Linq.Query.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Kafka.Ksql.Linq.Query.Builders;
-
-/// <summary>
-/// JOIN句構築ビルダー - 本体実装版
-/// 設計理由：旧KsqlJoinBuilderへの中継を排除し、直接実装に移行
-/// </summary>
-internal class JoinBuilder : IKsqlBuilder
+internal class JoinClauseBuilder : IKsqlClauseBuilder
 {
-    public KsqlBuilderType BuilderType => KsqlBuilderType.Join;
+    public KsqlClauseType ClauseType => KsqlClauseType.Join;
 
-    public string Build(Expression expression)
+    /// <summary>
+    /// JOIN句を構築（プレフィックスなし）
+    /// </summary>
+    /// <param name="expression">JOIN式木</param>
+    /// <returns>JOIN句部分のみ（例: "JOIN Customer c ON o.CustomerId = c.Id"）</returns>
+    public string BuildClause(Expression expression)
     {
         if (expression == null)
             throw new ArgumentNullException(nameof(expression));
@@ -32,6 +33,16 @@ internal class JoinBuilder : IKsqlBuilder
         {
             return $"/* JOIN構築エラー: {ex.Message} */";
         }
+    }
+
+    /// <summary>
+    /// 後方互換性維持：既存のBuild()メソッド
+    /// </summary>
+    [Obsolete("Use BuildClause() for pure clause building.")]
+    public string Build(Expression expression)
+    {
+        // JoinBuilderは完全なSELECT文を返すため、そのまま維持
+        return BuildClause(expression);
     }
 
     private string BuildJoinQuery(MethodCallExpression joinCall)

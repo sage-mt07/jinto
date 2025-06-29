@@ -1,30 +1,41 @@
-﻿using Kafka.Ksql.Linq.Query.Abstractions;
+using Kafka.Ksql.Linq.Query.Abstractions;
 using System;
 using System.Linq.Expressions;
 using System.Text;
 
 namespace Kafka.Ksql.Linq.Query.Builders;
 
-/// <summary>
-/// HAVING句構築ビルダー - 本体実装版
-/// 設計理由：旧KsqlHavingBuilderへの中継を排除し、直接実装に移行
-/// </summary>
-internal class HavingBuilder : IKsqlBuilder
+internal class HavingClauseBuilder : IKsqlClauseBuilder
 {
-    public KsqlBuilderType BuilderType => KsqlBuilderType.Having;
+    public KsqlClauseType ClauseType => KsqlClauseType.Having;
 
-    public string Build(Expression expression)
+    /// <summary>
+    /// HAVING条件句を構築（プレフィックスなし）
+    /// </summary>
+    /// <param name="expression">HAVING条件式木</param>
+    /// <returns>HAVING条件部分のみ（例: "(COUNT(*) > 5)"）</returns>
+    public string BuildClause(Expression expression)
     {
         if (expression == null)
             throw new ArgumentNullException(nameof(expression));
 
         var visitor = new HavingExpressionVisitor();
         visitor.Visit(expression);
-        return "HAVING " + visitor.ToString();
+        return visitor.ToString();
     }
 
     /// <summary>
-    /// HAVING句専用ExpressionVisitor
+    /// 後方互換性維持：既存のBuild()メソッド
+    /// </summary>
+    [Obsolete("Use BuildClause() for pure clause building. This method adds HAVING prefix for backward compatibility.")]
+    public string Build(Expression expression)
+    {
+        var clause = BuildClause(expression);
+        return $"HAVING {clause}";
+    }
+
+    /// <summary>
+    /// HAVING句専用ExpressionVisitor（既存ロジック維持）
     /// </summary>
     private class HavingExpressionVisitor : ExpressionVisitor
     {
@@ -118,9 +129,9 @@ internal class HavingBuilder : IKsqlBuilder
             if (node.Type == typeof(string))
                 _sb.Append($"'{node.Value}'");
             else if (node.Type == typeof(bool))
-                _sb.Append(node.Value?.ToString()?.ToLower() ?? "false"); // null安全性を追加
+                _sb.Append(node.Value?.ToString()?.ToLower() ?? "false");
             else
-                _sb.Append(node.Value ?? "NULL"); // null安全性を追加
+                _sb.Append(node.Value ?? "NULL");
             return node;
         }
 

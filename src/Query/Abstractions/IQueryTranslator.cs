@@ -1,4 +1,4 @@
-﻿using System.Linq.Expressions;
+using System.Linq.Expressions;
 
 namespace Kafka.Ksql.Linq.Query.Abstractions;
 /// <summary>
@@ -7,14 +7,7 @@ namespace Kafka.Ksql.Linq.Query.Abstractions;
 /// </summary>
 public interface IQueryTranslator
 {
-    /// <summary>
-    /// LINQ式をKSQL文に変換
-    /// </summary>
-    /// <param name="expression">LINQ式木</param>
-    /// <param name="topicName">対象トピック名</param>
-    /// <param name="isPullQuery">Pull Query判定</param>
-    /// <returns>KSQL文字列</returns>
-    string ToKsql(Expression expression, string topicName, bool isPullQuery = false);
+
 
     /// <summary>
     /// 変換診断情報取得

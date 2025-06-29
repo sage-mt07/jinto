@@ -1,19 +1,27 @@
 using Kafka.Ksql.Linq.Query.Abstractions;
-using Kafka.Ksql.Linq;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace Kafka.Ksql.Linq.Query.Builders;
 
-/// <summary>
-/// WINDOW句構築ビルダー - 本体実装版
-/// 設計理由：旧KsqlWindowBuilderへの中継を排除し、直接実装に移行
-/// </summary>
-internal class WindowBuilder : IKsqlBuilder
-{
-    public KsqlBuilderType BuilderType => KsqlBuilderType.Window;
 
-    public string Build(Expression expression)
+/// <summary>
+/// WINDOW句構築ビルダー - 責務純粋化版
+/// </summary>
+internal class WindowClauseBuilder : IKsqlClauseBuilder
+{
+    public KsqlClauseType ClauseType => KsqlClauseType.Window;
+
+    /// <summary>
+    /// WINDOW句を構築（プレフィックスなし）
+    /// </summary>
+    /// <param name="expression">ウィンドウ式木</param>
+    /// <returns>WINDOW句部分のみ（例: "TUMBLING (SIZE 1 MINUTES)"）</returns>
+    public string BuildClause(Expression expression)
     {
         if (expression == null)
             throw new ArgumentNullException(nameof(expression));
@@ -22,23 +30,31 @@ internal class WindowBuilder : IKsqlBuilder
 
         switch (expression)
         {
-            case ConstantExpression { Value: WindowDef def }:
+            case ConstantExpression { Value: global::Kafka.Ksql.Linq.WindowDef def }:
                 visitor.VisitWindowDef(def);
                 break;
             case ConstantExpression { Value: TimeSpan ts }:
-                visitor.VisitWindowDef(TumblingWindow.Of(ts));
+                visitor.VisitWindowDef(global::Kafka.Ksql.Linq.TumblingWindow.Of(ts));
                 break;
             default:
                 visitor.Visit(expression);
                 break;
         }
 
-        return visitor.BuildWindowClause();
+        return visitor.BuildWindowClause().Replace("WINDOW ", ""); // プレフィックス除去
     }
 
     /// <summary>
-    /// WINDOW句専用ExpressionVisitor
+    /// 後方互換性維持
     /// </summary>
+    [Obsolete("Use BuildClause() for pure clause building.")]
+    public string Build(Expression expression)
+    {
+        var clause = BuildClause(expression);
+        return $"WINDOW {clause}";
+    }
+
+    // 既存のWindowExpressionVisitorロジックを維持
     private class WindowExpressionVisitor : ExpressionVisitor
     {
         private string _windowType = "";
@@ -47,39 +63,39 @@ internal class WindowBuilder : IKsqlBuilder
         private string _gap = "";
         private string _retention = "";
         private string _gracePeriod = "";
-        private string _emitBehavior = ""; // "FINAL" or empty (default CHANGES)
+        private string _emitBehavior = "";
 
-        public void VisitWindowDef(WindowDef def)
+        public void VisitWindowDef(global::Kafka.Ksql.Linq.WindowDef def)
         {
             foreach (var (Name, Value) in def.Operations)
             {
                 switch (Name)
                 {
-                    case nameof(WindowDef.TumblingWindow):
+                    case nameof(global::Kafka.Ksql.Linq.WindowDef.TumblingWindow):
                         _windowType = "TUMBLING";
                         break;
-                    case nameof(WindowDef.HoppingWindow):
+                    case nameof(global::Kafka.Ksql.Linq.WindowDef.HoppingWindow):
                         _windowType = "HOPPING";
                         break;
-                    case nameof(WindowDef.SessionWindow):
+                    case nameof(global::Kafka.Ksql.Linq.WindowDef.SessionWindow):
                         _windowType = "SESSION";
                         break;
-                    case nameof(WindowDef.Size):
+                    case nameof(global::Kafka.Ksql.Linq.WindowDef.Size):
                         _size = FormatTimeSpan((TimeSpan)Value!);
                         break;
-                    case nameof(WindowDef.AdvanceBy):
+                    case nameof(global::Kafka.Ksql.Linq.WindowDef.AdvanceBy):
                         _advanceBy = FormatTimeSpan((TimeSpan)Value!);
                         break;
-                    case nameof(WindowDef.Gap):
+                    case nameof(global::Kafka.Ksql.Linq.WindowDef.Gap):
                         _gap = FormatTimeSpan((TimeSpan)Value!);
                         break;
-                    case nameof(WindowDef.Retention):
+                    case nameof(global::Kafka.Ksql.Linq.WindowDef.Retention):
                         _retention = FormatTimeSpan((TimeSpan)Value!);
                         break;
-                    case nameof(WindowDef.GracePeriod):
+                    case nameof(global::Kafka.Ksql.Linq.WindowDef.GracePeriod):
                         _gracePeriod = FormatTimeSpan((TimeSpan)Value!);
                         break;
-                    case nameof(WindowDef.EmitFinal):
+                    case nameof(global::Kafka.Ksql.Linq.WindowDef.EmitFinal):
                         _emitBehavior = "FINAL";
                         break;
                 }
@@ -88,7 +104,6 @@ internal class WindowBuilder : IKsqlBuilder
 
         protected override Expression VisitMethodCall(MethodCallExpression node)
         {
-            // First visit the object to ensure we process method chains in the correct order
             if (node.Object != null)
             {
                 Visit(node.Object);
@@ -158,7 +173,6 @@ internal class WindowBuilder : IKsqlBuilder
 
         private string ExtractTimeSpanValue(Expression arg)
         {
-            // Handle TimeSpan.FromMinutes(1), TimeSpan.FromSeconds(30), etc.
             if (arg is MethodCallExpression timeSpanCall && timeSpanCall.Method.DeclaringType == typeof(TimeSpan))
             {
                 var value = ExtractConstantValue(timeSpanCall.Arguments[0]);
@@ -173,7 +187,6 @@ internal class WindowBuilder : IKsqlBuilder
                 return $"{value} {unit}";
             }
 
-            // Handle direct constants
             if (arg is ConstantExpression constant && constant.Value is TimeSpan timeSpan)
             {
                 return FormatTimeSpan(timeSpan);
@@ -258,11 +271,8 @@ internal class WindowBuilder : IKsqlBuilder
         private string BuildSessionClause()
         {
             var clause = $"WINDOW SESSION (GAP {_gap})";
-
-            // Note: SESSION windows do not support RETENTION, GRACE PERIOD, or EMIT FINAL
-            // They always emit changes immediately when sessions close
-
             return clause;
         }
     }
 }
+

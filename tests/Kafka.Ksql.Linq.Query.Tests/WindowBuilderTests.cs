@@ -12,8 +12,8 @@ public class WindowBuilderTests
     public void Build_SessionWindowWithGap_ReturnsClause()
     {
         Expression<Func<WindowDef, WindowDef>> expr = w => w.SessionWindow().Gap(TimeSpan.FromMinutes(2));
-        var builder = new WindowBuilder();
-        var result = builder.Build(expr.Body);
+        var builder = new WindowClauseBuilder();
+        var result = builder.BuildClause(expr.Body);
         Assert.Equal("WINDOW SESSION (GAP 2 MINUTES)", result);
     }
 
@@ -21,8 +21,8 @@ public class WindowBuilderTests
     public void Build_HoppingWindowWithAdvance_ReturnsClause()
     {
         Expression<Func<WindowDef, WindowDef>> expr = w => w.HoppingWindow().Size(TimeSpan.FromMinutes(2)).AdvanceBy(TimeSpan.FromMinutes(1));
-        var builder = new WindowBuilder();
-        var result = builder.Build(expr.Body);
+        var builder = new WindowClauseBuilder();
+        var result = builder.BuildClause(expr.Body);
         Assert.Equal("WINDOW HOPPING (SIZE 2 MINUTES, ADVANCE BY 1 MINUTES)", result);
     }
 }

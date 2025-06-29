@@ -11,8 +11,8 @@ public class SelectBuilderTests
     public void Build_SimpleEquality_ReturnsWhereClause()
     {
         Expression<Func<TestEntity, bool>> expr = e => e.Id == 1;
-        var builder = new SelectBuilder();
-        var result = builder.Build(expr.Body);
+        var builder = new SelectClauseBuilder();
+        var result = builder.BuildClause(expr.Body);
         Assert.Equal("WHERE (Id = 1)", result);
     }
 
@@ -20,15 +20,15 @@ public class SelectBuilderTests
     public void BuildCondition_BooleanNegation_IncludesParameterPrefix()
     {
         Expression<Func<TestEntity, bool>> expr = e => !e.IsActive;
-        var builder = new SelectBuilder();
-        var result = builder.BuildCondition(expr.Body);
+        var builder = new SelectClauseBuilder();
+        var result = builder.BuildClause(expr.Body);
         Assert.Equal("(e.IsActive = false)", result);
     }
 
     [Fact]
     public void Build_NullExpression_ThrowsArgumentNullException()
     {
-        var builder = new SelectBuilder();
+        var builder = new SelectClauseBuilder();
         Assert.Throws<ArgumentNullException>(() => builder.Build(null!));
     }
 }

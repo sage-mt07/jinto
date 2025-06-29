@@ -32,11 +32,11 @@ public class QueryBuilderAdvancedPatternsTests
         Expression<Func<Order, object>> groupExpr = o => o.CustomerId;
         Expression<Func<IGrouping<int, Order>, bool>> havingExpr = g => g.Count() > 10;
 
-        var groupBuilder = new GroupByBuilder();
-        var havingBuilder = new HavingBuilder();
+        var groupBuilder = new GroupByClauseBuilder();
+        var havingBuilder = new HavingClauseBuilder();
 
-        var groupSql = groupBuilder.Build(groupExpr.Body);
-        var havingSql = havingBuilder.Build(havingExpr.Body);
+        var groupSql = groupBuilder.BuildClause(groupExpr.Body);
+        var havingSql = havingBuilder.BuildClause(havingExpr.Body);
         var final = $"{groupSql} {havingSql}";
 
         Assert.Equal("GROUP BY CustomerId HAVING (COUNT(*) > 10)", final);
@@ -46,8 +46,8 @@ public class QueryBuilderAdvancedPatternsTests
     public void Build_AnonymousSelectionWithConversion_GeneratesSelectClause()
     {
         Expression<Func<Order, object>> expr = o => new { o.OrderId, Date = o.OrderDate.Date };
-        var builder = new ProjectionBuilder();
-        var sql = builder.Build(expr.Body);
+        var builder = new SelectClauseBuilder();
+        var sql = builder.BuildClause(expr.Body);
 
         Assert.Equal("SELECT OrderId, OrderDate AS Date", sql);
     }

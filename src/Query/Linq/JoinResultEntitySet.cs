@@ -12,13 +12,13 @@ internal class JoinResultEntitySet<T> : IEntitySet<T> where T : class
     private readonly IKsqlContext _context;
     private readonly EntityModel _entityModel;
     private readonly Expression _joinExpression;
-    private readonly JoinBuilder _joinBuilder;
+    private readonly JoinClauseBuilder _joinBuilder;
 
     public JoinResultEntitySet(
         IKsqlContext context,
         EntityModel entityModel,
         Expression joinExpression,
-        JoinBuilder joinBuilder)
+        JoinClauseBuilder joinBuilder)
     {
         _context = context ?? throw new System.ArgumentNullException(nameof(context));
         _entityModel = entityModel ?? throw new System.ArgumentNullException(nameof(entityModel));
@@ -30,7 +30,7 @@ internal class JoinResultEntitySet<T> : IEntitySet<T> where T : class
     public async Task<List<T>> ToListAsync(CancellationToken cancellationToken = default)
     {
         // JoinBuilderを使用してKSQL文を生成
-        var ksqlQuery = _joinBuilder.Build(_joinExpression);
+        var ksqlQuery = _joinBuilder.BuildClause(_joinExpression);
 
         // 実際のクエリ実行は具象実装に委譲
         // TODO: KsqlDbExecutorを使用してクエリ実行
@@ -69,6 +69,6 @@ internal class JoinResultEntitySet<T> : IEntitySet<T> where T : class
 
     public override string ToString()
     {
-        return $"JoinResult<{typeof(T).Name}> - Generated KSQL: {_joinBuilder.Build(_joinExpression)}";
+        return $"JoinResult<{typeof(T).Name}> - Generated KSQL: {_joinBuilder.BuildClause(_joinExpression)}";
     }
 }

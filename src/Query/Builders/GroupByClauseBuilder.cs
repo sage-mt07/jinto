@@ -1,4 +1,4 @@
-﻿using Kafka.Ksql.Linq.Query.Abstractions;
+using Kafka.Ksql.Linq.Query.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
@@ -6,15 +6,16 @@ using System.Text;
 
 namespace Kafka.Ksql.Linq.Query.Builders;
 
-/// <summary>
-/// GROUP BY句構築ビルダー - 本体実装版
-/// 設計理由：旧KsqlGroupByBuilderへの中継を排除し、直接実装に移行
-/// </summary>
-internal class GroupByBuilder : IKsqlBuilder
+internal class GroupByClauseBuilder : IKsqlClauseBuilder
 {
-    public KsqlBuilderType BuilderType => KsqlBuilderType.GroupBy;
+    public KsqlClauseType ClauseType => KsqlClauseType.GroupBy;
 
-    public string Build(Expression expression)
+    /// <summary>
+    /// GROUP BY列リストを構築（プレフィックスなし）
+    /// </summary>
+    /// <param name="expression">グループ化式木</param>
+    /// <returns>列リスト部分のみ（例: "Id, Type"）</returns>
+    public string BuildClause(Expression expression)
     {
         if (expression == null)
             throw new ArgumentNullException(nameof(expression));
@@ -28,12 +29,20 @@ internal class GroupByBuilder : IKsqlBuilder
             throw new InvalidOperationException("Unable to extract GROUP BY keys from expression");
         }
 
-        return "GROUP BY " + result;
+        return result;
     }
 
     /// <summary>
-    /// GROUP BY専用ExpressionVisitor
+    /// 後方互換性維持
     /// </summary>
+    [Obsolete("Use BuildClause() for pure clause building.")]
+    public string Build(Expression expression)
+    {
+        var clause = BuildClause(expression);
+        return $"GROUP BY {clause}";
+    }
+
+    // 既存のGroupByVisitorロジックを維持（変更なし）
     private class GroupByVisitor : ExpressionVisitor
     {
         private readonly StringBuilder _sb = new();
@@ -42,7 +51,6 @@ internal class GroupByBuilder : IKsqlBuilder
         {
             var keys = new List<string>();
 
-            // Extract keys from Arguments with UnaryExpression support
             foreach (var arg in node.Arguments)
             {
                 var memberName = ExtractMemberName(arg);
@@ -52,7 +60,6 @@ internal class GroupByBuilder : IKsqlBuilder
                 }
             }
 
-            // Build the result string
             for (int i = 0; i < keys.Count; i++)
             {
                 _sb.Append(keys[i]);
@@ -71,7 +78,6 @@ internal class GroupByBuilder : IKsqlBuilder
 
         protected override Expression VisitUnary(UnaryExpression node)
         {
-            // Handle Convert operations by extracting the underlying member
             if (node.NodeType == ExpressionType.Convert || node.NodeType == ExpressionType.ConvertChecked)
             {
                 return Visit(node.Operand);

@@ -18,7 +18,7 @@ internal class UnifiedThreeWayJoinResult<TOuter, TInner, TThird> : IJoinResult<T
     private readonly Expression _secondJoinKeySelector;
     private readonly Expression _thirdKeySelector;
     private readonly JoinKeySource _secondJoinKeySource;
-    private readonly JoinBuilder _joinBuilder;
+    private readonly JoinClauseBuilder _joinBuilder;
     private readonly IKsqlContext _context;
 
     public UnifiedThreeWayJoinResult(
@@ -30,7 +30,7 @@ internal class UnifiedThreeWayJoinResult<TOuter, TInner, TThird> : IJoinResult<T
         Expression secondJoinKeySelector,
         Expression thirdKeySelector,
         JoinKeySource secondJoinKeySource,
-        JoinBuilder joinBuilder,
+        JoinClauseBuilder joinBuilder,
         IKsqlContext context)
     {
         _outer = outer;

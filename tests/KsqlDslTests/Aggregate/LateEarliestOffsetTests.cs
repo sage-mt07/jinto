@@ -12,8 +12,8 @@ public class LateEarliestOffsetTests
     public void ProjectionBuilder_LatestByOffset_GeneratesFunction()
     {
         Expression<Func<IGrouping<int, TestEntity>, object>> expr = g => new { Latest = g.LatestByOffset(x => x.Id) };
-        var builder = new ProjectionBuilder();
-        var result = builder.Build(expr.Body);
+        var builder = new SelectClauseBuilder();
+        var result = builder.BuildClause(expr.Body);
         Assert.Equal("SELECT LATEST_BY_OFFSET(Id) AS Latest", result);
     }
 
@@ -21,8 +21,8 @@ public class LateEarliestOffsetTests
     public void ProjectionBuilder_EarliestByOffset_GeneratesFunction()
     {
         Expression<Func<IGrouping<int, TestEntity>, object>> expr = g => new { First = g.EarliestByOffset(x => x.Id) };
-        var builder = new ProjectionBuilder();
-        var result = builder.Build(expr.Body);
+        var builder = new SelectClauseBuilder();
+        var result = builder.BuildClause(expr.Body);
         Assert.Equal("SELECT EARLIEST_BY_OFFSET(Id) AS First", result);
     }
 }
