@@ -22,6 +22,8 @@ public class KafkaConsumerBatchTests
     {
         public Queue<ConsumeResult<object, object>?> Queue { get; } = new();
         public bool ThrowOnConsume { get; set; }
+        public Exception? ExceptionToThrow { get; set; }
+
         protected override object? Invoke(MethodInfo? targetMethod, object?[]? args)
         {
             switch (targetMethod?.Name)
@@ -29,6 +31,8 @@ public class KafkaConsumerBatchTests
                 case nameof(IConsumer<object, object>.Subscribe):
                     return null;
                 case nameof(IConsumer<object, object>.Consume) when args?.Length == 1 && args[0] is TimeSpan:
+                    if (ExceptionToThrow != null)
+                        throw ExceptionToThrow;
                     if (ThrowOnConsume)
                         throw new InvalidOperationException("consume");
                     if (Queue.Count == 0)
@@ -100,5 +104,25 @@ public class KafkaConsumerBatchTests
         var consumer = CreateConsumer(fake);
         var opts = new KafkaBatchOptions { MaxBatchSize = 1, MaxWaitTime = TimeSpan.FromMilliseconds(10) };
         await Assert.ThrowsAsync<InvalidOperationException>(() => consumer.ConsumeBatchAsync(opts));
+    }
+
+    [Fact]
+    public async Task ConsumeBatchAsync_WhenTimeoutOccurs_ShouldReturnEmptyBatch()
+    {
+        var fake = DispatchProxy.Create<IConsumer<object, object>, FakeConsumer>() as FakeConsumer;
+        var consumer = CreateConsumer(fake!);
+        var opts = new KafkaBatchOptions { MaxBatchSize = 5, MaxWaitTime = TimeSpan.FromMilliseconds(50) };
+        var batch = await consumer.ConsumeBatchAsync(opts);
+        Assert.Empty(batch.Messages);
+    }
+
+    [Fact]
+    public async Task ConsumeBatchAsync_WhenKafkaDisconnects_ShouldThrowKafkaException()
+    {
+        var fake = DispatchProxy.Create<IConsumer<object, object>, FakeConsumer>() as FakeConsumer;
+        fake!.ExceptionToThrow = new KafkaException(new Error(ErrorCode.Local_Transport));
+        var consumer = CreateConsumer(fake);
+        var opts = new KafkaBatchOptions { MaxBatchSize = 1, MaxWaitTime = TimeSpan.FromMilliseconds(10) };
+        await Assert.ThrowsAsync<KafkaException>(() => consumer.ConsumeBatchAsync(opts));
     }
 }
